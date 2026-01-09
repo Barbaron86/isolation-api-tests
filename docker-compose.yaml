@@ -1,0 +1,130 @@
+version: '3.9'
+
+x-base-service: &base-service
+  image: base-service
+  volumes:
+    - .:/app
+  working_dir: /app
+  environment:
+    ENV_FILE: .env
+
+x-python-service: &python-service
+  <<: *base-service
+  entrypoint: [ "python", "-u", "-m" ]
+
+services:
+  # kafka
+  kafka:
+    image: confluentinc/cp-kafka:7.6.0
+    ports: [ "9092:9092", "9093:9093" ]
+    depends_on: [ "zookeeper" ]
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,PLAINTEXT_HOST://0.0.0.0:9093
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:9093
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    container_name: kafka
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    ports: [ "8081:8080" ]
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local-kafka
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+    container_name: kafka-ui
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.6.0
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    container_name: zookeeper
+
+  # postgres
+  postgres:
+    image: postgres:15
+    ports: [ "5432:5432" ]
+    restart: always
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: pg_isready -U root
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+    container_name: postgres
+
+  postgres-init:
+    image: postgres:15
+    volumes:
+      - ./scripts:/scripts
+      - ./migrations/postgres:/docker-entrypoint-initdb.d
+    command: >
+      bash -c "apt-get update && apt-get install -y dos2unix && dos2unix /scripts/postgres.sh && bash /scripts/postgres.sh"
+    depends_on: [ "postgres" ]
+    environment:
+      PGPASSWORD: root
+    container_name: postgres-init
+
+  postgres-admin:
+    image: dpage/pgadmin4
+    ports: [ "5050:80" ]
+    restart: always
+    depends_on: [ "postgres" ]
+    environment:
+      PGADMIN_DEFAULT_EMAIL: postgresadmin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: postgresadmin
+    container_name: postgres-admin
+
+  postgres-migrator-operations:
+    <<: *base-service
+    command: [ "alembic", "-c", "services/operations/alembic.ini", "upgrade", "head" ]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      postgres-init:
+        condition: service_completed_successfully
+    container_name: "postgres-migrator-operations"
+
+  # gateway-services
+  http-gateway:
+    <<: *python-service
+    ports: [ "8001:8001" ]
+    command: "services.gateway.server.http"
+    container_name: "http-gateway"
+
+  grpc-gateway:
+    <<: *python-service
+    ports: [ "9001:9001" ]
+    command: "services.gateway.server.grpc"
+    container_name: "grpc-gateway"
+
+  # operations-service
+  http-operations:
+    <<: *python-service
+    ports: [ "8002:8002" ]
+    command: "services.operations.server.http"
+    container_name: "http-operations"
+
+  grpc-operations:
+    <<: *python-service
+    ports: [ "9002:9002" ]
+    command: "services.operations.server.grpc"
+    container_name: "grpc-operations"
+
+  kafka-operations:
+    <<: *python-service
+    command: "services.operations.server.kafka"
+    depends_on: [ "kafka" ]
+    container_name: "kafka-operations"
+
+volumes:
+  pgdata:

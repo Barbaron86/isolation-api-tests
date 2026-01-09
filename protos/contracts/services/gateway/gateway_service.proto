@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package contracts.services.gateway;
+
+import "contracts/services/gateway/rpc_get_user_details.proto";
+import "contracts/services/gateway/rpc_get_account_details.proto";
+
+service GatewayService {
+  rpc GetUserDetails (GetUserDetailsRequest) returns (GetUserDetailsResponse);
+  rpc GetAccountDetails (GetAccountDetailsRequest) returns (GetAccountDetailsResponse);
+}

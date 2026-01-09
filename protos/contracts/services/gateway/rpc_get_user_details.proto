@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package contracts.services.gateway;
+
+import "contracts/services/gateway/user_details.proto";
+
+message GetUserDetailsRequest {
+  string id = 1;
+}
+
+message GetUserDetailsResponse {
+  UserDetails details = 1;
+}

@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package contracts.services.gateway;
+
+import "contracts/services/gateway/account_details.proto";
+
+message GetAccountDetailsRequest {
+  string id = 1;
+}
+
+message GetAccountDetailsResponse {
+  AccountDetails details = 1;
+}

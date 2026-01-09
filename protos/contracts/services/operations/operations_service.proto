@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package contracts.services.operations;
+
+import "contracts/services/operations/rpc_get_operation.proto";
+import "contracts/services/operations/rpc_get_operations.proto";
+
+service OperationsService {
+  rpc GetOperation (GetOperationRequest) returns (GetOperationResponse);
+  rpc GetOperations (GetOperationsRequest) returns (GetOperationsResponse);
+}

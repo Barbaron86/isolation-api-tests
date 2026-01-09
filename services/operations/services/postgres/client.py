@@ -1,0 +1,4 @@
+from config import settings
+from libs.postgres.engine import get_postgres_session_factory
+
+postgres_session_factory = get_postgres_session_factory(settings.operations_postgres_database)

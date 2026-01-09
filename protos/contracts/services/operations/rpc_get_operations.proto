@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package contracts.services.operations;
+
+import "contracts/services/operations/operation.proto";
+
+message GetOperationsRequest {
+  string user_id = 1;
+  optional string card_id = 2;
+  optional string account_id = 3;
+}
+
+message GetOperationsResponse {
+  repeated Operation operations = 1;
+}
