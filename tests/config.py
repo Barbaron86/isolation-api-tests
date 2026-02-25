@@ -23,7 +23,7 @@ class TestSettings(BaseSettings):
         env_nested_delimiter=".",
     )
 
-    operation_postgres_client: PostgresClientTestConfig
+    operations_postgres_client: PostgresClientTestConfig
 
     mock_http_server: HTTPServerTestConfig
     mock_grpc_server: GRPCServerTestConfig
