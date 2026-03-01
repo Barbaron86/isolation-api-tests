@@ -32,6 +32,7 @@ class OperationsGRPCTestClient(GRPCTestClient):
             card_id: UUID | None = None,
             account_id: UUID | None = None,
     ) -> GetOperationsResponse:
+
         request = GetOperationsRequest(user_id=str(user_id))
         if card_id is not None:
             request.card_id = str(card_id)
