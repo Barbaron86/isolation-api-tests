@@ -11,7 +11,7 @@ from tests.tools.logger import get_test_logger
 from tests.tools.routes import APITestRoutes
 
 
-class OperationHttpTestClient(HTTPTestClient):
+class OperationsHTTPTestClient(HTTPTestClient):
     @allure.step("Get operations View")
     def get_operations_api(
             self,
@@ -56,9 +56,9 @@ class OperationHttpTestClient(HTTPTestClient):
         return GetOperationsResponseTestSchema.model_validate_json(response.text)
 
 
-def build_operations_http_test_client() -> OperationHttpTestClient:
+def build_operations_http_test_client() -> OperationsHTTPTestClient:
     client = build_http_test_client(
         logger=get_test_logger("OPERATION_HTTP_TEST_CLIENT"),
         config=test_settings.operations_http_client
     )
-    return OperationHttpTestClient(client=client)
+    return OperationsHTTPTestClient(client=client)
