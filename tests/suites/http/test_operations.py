@@ -19,7 +19,7 @@ from tests.tools.allure import AllureTag, AllureStory, AllureFeature
 class TestOperationsHTTP:
     @allure.tag(AllureTag.HTTP, AllureTag.KAFKA, AllureTag.OPERATIONS_SERVICE)
     @allure.story(AllureStory.OPERATION_EVENTS)
-    @allure.title("[HTTP][KAFKA] Operation events. In progress purchase operation")
+    @allure.title("[HTTP][Kafka] Operation events. In progress purchase operation")
     def test_operation_events_in_progress_purchase_operation(
             self,
             operations_http_test_client: OperationsHTTPTestClient,
@@ -43,7 +43,7 @@ class TestOperationsHTTP:
     )
     @allure.tag(AllureTag.HTTP, AllureTag.POSTGRES, AllureTag.OPERATIONS_SERVICE)
     @allure.story(AllureStory.OPERATION_FILTERS)
-    @allure.title("[HTTP][POSTGRES] Filter by card id. In progress purchase operation")
+    @allure.title("[HTTP][Postgres] Filter by card id. In progress purchase operation")
     def test_filter_by_card_id_in_progress_purchase_operation(
             self,
             operations_http_test_client: OperationsHTTPTestClient,
@@ -67,7 +67,7 @@ class TestOperationsHTTP:
 
     @allure.tag(AllureTag.HTTP, AllureTag.KAFKA, AllureTag.OPERATIONS_SERVICE)
     @allure.story(AllureStory.OPERATION_EVENTS)
-    @allure.title("[HTTP][KAFKA] Operation events. Completed purchase operation")
+    @allure.title("[HTTP][Kafka] Operation events. Completed purchase operation")
     def test_operation_events_completed_purchase_operation(
             self,
             operations_http_test_client: OperationsHTTPTestClient,
@@ -83,7 +83,7 @@ class TestOperationsHTTP:
     )
     @allure.tag(AllureTag.HTTP, AllureTag.POSTGRES, AllureTag.OPERATIONS_SERVICE)
     @allure.story(AllureStory.OPERATION_FILTERS)
-    @allure.title("[HTTP][POSTGRES] Filter by account id. Completed purchase operation")
+    @allure.title("[HTTP][Postgres] Filter by account id. Completed purchase operation")
     def test_filter_by_account_id_completed_purchase_operation(
             self,
             operations_http_test_client: OperationsHTTPTestClient,
