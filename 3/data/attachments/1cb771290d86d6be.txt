@@ -1,0 +1,22 @@
+INFO     sqlalchemy.engine.Engine:base.py:2698 BEGIN (implicit)
+INFO     sqlalchemy.engine.Engine:base.py:1842 INSERT INTO operations (id, type, status, amount, user_id, card_id, account_id, category, created_at) VALUES (%(id)s::UUID, %(type)s, %(status)s, %(amount)s, %(user_id)s::UUID, %(card_id)s::UUID, %(account_id)s::UUID, %(category)s, %(created_at)s)
+INFO     sqlalchemy.engine.Engine:base.py:1842 [cached since 1.36s ago] {'id': UUID('84bdae76-3ce1-48a3-8e20-e3280938b2f2'), 'type': <OperationTestType.PURCHASE: 'PURCHASE'>, 'status': <OperationTestStatus.IN_PROGRESS: 'IN_PROGRESS'>, 'amount': 94.9, 'user_id': UUID('954b0c14-5b52-47c4-b3a3-82cadcdcd2e7'), 'card_id': UUID('4d175d8a-4da4-46ae-b7d1-81e328d6292e'), 'account_id': UUID('7d5cfebe-cfbb-4f0d-b4f7-721e5b420c37'), 'category': 'satellite', 'created_at': datetime.datetime(1993, 1, 10, 11, 32, 49, 744352)}
+INFO     sqlalchemy.engine.Engine:base.py:1842 SELECT operations.id, operations.type, operations.status, operations.amount, operations.user_id, operations.card_id, operations.account_id, operations.category, operations.created_at 
+FROM operations 
+WHERE operations.id = %(pk_1)s::UUID
+INFO     sqlalchemy.engine.Engine:base.py:1842 [cached since 1.358s ago] {'pk_1': UUID('84bdae76-3ce1-48a3-8e20-e3280938b2f2')}
+INFO     sqlalchemy.engine.Engine:base.py:2704 COMMIT
+INFO     OPERATION_HTTP_TEST_CLIENT:logger_event_hook.py:35 GET http://127.0.0.1:8002/api/v1/operations?userId=954b0c14-5b52-47c4-b3a3-82cadcdcd2e7&cardId=4d175d8a-4da4-46ae-b7d1-81e328d6292e - Waiting for response
+INFO     OPERATION_HTTP_TEST_CLIENT:logger_event_hook.py:45 GET http://127.0.0.1:8002/api/v1/operations?userId=954b0c14-5b52-47c4-b3a3-82cadcdcd2e7&cardId=4d175d8a-4da4-46ae-b7d1-81e328d6292e - Status 200
+INFO     OPERATIONS_ASSERTIONS:operations.py:78 Check get operations response from models
+INFO     BASE_ASSERTIONS:base.py:27 Check that "operations count" equals to 1
+INFO     OPERATIONS_ASSERTIONS:operations.py:43 Check operation from model
+INFO     BASE_ASSERTIONS:base.py:27 Check that "id" equals to 84bdae76-3ce1-48a3-8e20-e3280938b2f2
+INFO     BASE_ASSERTIONS:base.py:27 Check that "type" equals to PURCHASE
+INFO     BASE_ASSERTIONS:base.py:27 Check that "status" equals to IN_PROGRESS
+INFO     BASE_ASSERTIONS:base.py:27 Check that "amount" equals to 94.9
+INFO     BASE_ASSERTIONS:base.py:27 Check that "user_id" equals to 954b0c14-5b52-47c4-b3a3-82cadcdcd2e7
+INFO     BASE_ASSERTIONS:base.py:27 Check that "card_id" equals to 4d175d8a-4da4-46ae-b7d1-81e328d6292e
+INFO     BASE_ASSERTIONS:base.py:27 Check that "category" equals to satellite
+INFO     BASE_ASSERTIONS:base.py:27 Check that "created_at" equals to 1993-01-10 11:32:49.744352
+INFO     BASE_ASSERTIONS:base.py:27 Check that "account_id" equals to 7d5cfebe-cfbb-4f0d-b4f7-721e5b420c37

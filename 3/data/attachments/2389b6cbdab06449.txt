@@ -1,0 +1,28 @@
+INFO     sqlalchemy.engine.Engine:base.py:1842 select pg_catalog.version()
+INFO     sqlalchemy.engine.Engine:base.py:1842 [raw sql] {}
+INFO     sqlalchemy.engine.Engine:base.py:1842 select current_schema()
+INFO     sqlalchemy.engine.Engine:base.py:1842 [raw sql] {}
+INFO     sqlalchemy.engine.Engine:base.py:1842 show standard_conforming_strings
+INFO     sqlalchemy.engine.Engine:base.py:1842 [raw sql] {}
+INFO     sqlalchemy.engine.Engine:base.py:2698 BEGIN (implicit)
+INFO     sqlalchemy.engine.Engine:base.py:1842 INSERT INTO operations (id, type, status, amount, user_id, card_id, account_id, category, created_at) VALUES (%(id)s::UUID, %(type)s, %(status)s, %(amount)s, %(user_id)s::UUID, %(card_id)s::UUID, %(account_id)s::UUID, %(category)s, %(created_at)s)
+INFO     sqlalchemy.engine.Engine:base.py:1842 [generated in 0.00018s] {'id': UUID('52436439-408a-4cc7-bbc4-1fefd183bef7'), 'type': <OperationTestType.PURCHASE: 'PURCHASE'>, 'status': <OperationTestStatus.IN_PROGRESS: 'IN_PROGRESS'>, 'amount': 954.5, 'user_id': UUID('f3ee9c67-7f9d-48d2-aa38-1488a72545e4'), 'card_id': UUID('b0955eaf-d134-452a-8ee3-4f1b1f69ba0d'), 'account_id': UUID('cb6a95c9-be5f-4c80-9f42-db9a5fef431a'), 'category': 'mobile', 'created_at': datetime.datetime(1999, 11, 28, 19, 17, 39, 238606)}
+INFO     sqlalchemy.engine.Engine:base.py:1842 SELECT operations.id, operations.type, operations.status, operations.amount, operations.user_id, operations.card_id, operations.account_id, operations.category, operations.created_at 
+FROM operations 
+WHERE operations.id = %(pk_1)s::UUID
+INFO     sqlalchemy.engine.Engine:base.py:1842 [generated in 0.00018s] {'pk_1': UUID('52436439-408a-4cc7-bbc4-1fefd183bef7')}
+INFO     sqlalchemy.engine.Engine:base.py:2704 COMMIT
+INFO     OPERATIONS_GRPC_TEST_CLIENT:logger_interceptor.py:54 REQUEST: /contracts.services.operations.OperationsService/GetOperations
+INFO     OPERATIONS_GRPC_TEST_CLIENT:logger_interceptor.py:65 RESPONSE: /contracts.services.operations.OperationsService/GetOperations
+INFO     GRPC_OPERATIONS_ASSERTIONS:operations.py:87 Check get operations response from model
+INFO     BASE_ASSERTIONS:base.py:27 Check that "count operations" equals to 1
+INFO     GRPC_OPERATIONS_ASSERTIONS:operations.py:57 Check operation from model
+INFO     BASE_ASSERTIONS:base.py:27 Check that "id" equals to 52436439-408a-4cc7-bbc4-1fefd183bef7
+INFO     BASE_ASSERTIONS:base.py:27 Check that "type" equals to 4
+INFO     BASE_ASSERTIONS:base.py:27 Check that "status" equals to 1
+INFO     BASE_ASSERTIONS:base.py:27 Check that "amount" equals to 954.5
+INFO     BASE_ASSERTIONS:base.py:27 Check that "user_id" equals to f3ee9c67-7f9d-48d2-aa38-1488a72545e4
+INFO     BASE_ASSERTIONS:base.py:27 Check that "card_id" equals to b0955eaf-d134-452a-8ee3-4f1b1f69ba0d
+INFO     BASE_ASSERTIONS:base.py:27 Check that "account_id" equals to cb6a95c9-be5f-4c80-9f42-db9a5fef431a
+INFO     BASE_ASSERTIONS:base.py:27 Check that "category" equals to mobile
+INFO     BASE_ASSERTIONS:base.py:27 Check that "created_at" equals to 1999-11-28 19:17:39
