@@ -34,7 +34,7 @@ jobs:
         with:
           python-version: '3.12'
 
-      # Шаг 3. Собираем базовый Docker-образ
+      # Шаг 3. Собираем базовый Docker- образ
       # Это тот же base-service, который используется всеми Python-сервисами стенда
       - name: Build base Docker image
         run: docker build -t base-service .
