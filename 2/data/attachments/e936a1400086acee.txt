@@ -1,0 +1,34 @@
+INFO     GATEWAY_HTTP_TEST_CLIENT:logger_event_hook.py:35 GET http://127.0.0.1:8001/api/v1/gateway/account-details/87647f25-65e9-49fa-9838-49f430b746c5 - Waiting for response
+INFO     GATEWAY_HTTP_TEST_CLIENT:logger_event_hook.py:45 GET http://127.0.0.1:8001/api/v1/gateway/account-details/87647f25-65e9-49fa-9838-49f430b746c5 - Status 200
+INFO     GATEWAY_ASSERTIONS:gateway.py:157 Check get account details response. User with active debit card account
+INFO     GATEWAY_ASSERTIONS:gateway.py:107 Check get account details response
+INFO     GATEWAY_ASSERTIONS:gateway.py:62 Check account details
+INFO     ACCOUNTS_ASSERTIONS:accounts.py:12 Check account
+INFO     BASE_ASSERTIONS:base.py:27 Check that "id" equals to 99999999-aaaa-4bbb-8ccc-000000000001
+INFO     BASE_ASSERTIONS:base.py:27 Check that "type" equals to DEBIT_CARD
+INFO     BASE_ASSERTIONS:base.py:27 Check that "status" equals to ACTIVE
+INFO     BASE_ASSERTIONS:base.py:27 Check that "user_id" equals to 3fa85f64-5717-4562-b3fc-2c963f66afa6
+INFO     BASE_ASSERTIONS:base.py:27 Check that "balance" equals to -15230.75
+INFO     BASE_ASSERTIONS:base.py:27 Check that "cards count" equals to 2
+INFO     CARDS_ASSERTIONS:cards.py:12 Check card
+INFO     BASE_ASSERTIONS:base.py:27 Check that "id" equals to 11111111-aaaa-4bbb-8ccc-222222222222
+INFO     BASE_ASSERTIONS:base.py:27 Check that "pin" equals to 1234
+INFO     BASE_ASSERTIONS:base.py:27 Check that "cvv" equals to 456
+INFO     BASE_ASSERTIONS:base.py:27 Check that "type" equals to VIRTUAL
+INFO     BASE_ASSERTIONS:base.py:27 Check that "status" equals to ACTIVE
+INFO     BASE_ASSERTIONS:base.py:27 Check that "account_id" equals to aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee
+INFO     BASE_ASSERTIONS:base.py:27 Check that "card_number" equals to 4111111111111111
+INFO     BASE_ASSERTIONS:base.py:27 Check that "card_holder" equals to IVAN PETROV
+INFO     BASE_ASSERTIONS:base.py:27 Check that "expiry_date" equals to 2027-12-31
+INFO     BASE_ASSERTIONS:base.py:27 Check that "payment_system" equals to VISA
+INFO     CARDS_ASSERTIONS:cards.py:12 Check card
+INFO     BASE_ASSERTIONS:base.py:27 Check that "id" equals to 33333333-dddd-4eee-8fff-444444444444
+INFO     BASE_ASSERTIONS:base.py:27 Check that "pin" equals to 9876
+INFO     BASE_ASSERTIONS:base.py:27 Check that "cvv" equals to 789
+INFO     BASE_ASSERTIONS:base.py:27 Check that "type" equals to PHYSICAL
+INFO     BASE_ASSERTIONS:base.py:27 Check that "status" equals to ACTIVE
+INFO     BASE_ASSERTIONS:base.py:27 Check that "account_id" equals to aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee
+INFO     BASE_ASSERTIONS:base.py:27 Check that "card_number" equals to 5500000000000004
+INFO     BASE_ASSERTIONS:base.py:27 Check that "card_holder" equals to IVAN PETROV
+INFO     BASE_ASSERTIONS:base.py:27 Check that "expiry_date" equals to 2028-06-30
+INFO     BASE_ASSERTIONS:base.py:27 Check that "payment_system" equals to MASTERCARD
