@@ -1,0 +1,118 @@
+# Имя workflow — так он будет отображаться в разделе GitHub Actions
+name: Isolation Tests
+
+# Триггеры запуска workflow
+on:
+  # Запуск при пуше в ветку main
+  push:
+    branches:
+      - main
+
+  # Запуск при создании / обновлении pull request в main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  # Первая job — запуск изоляционных тестов
+  run-tests:
+    # Используем стандартный Linux-раннер GitHub
+    runs-on: ubuntu-latest
+
+    # Ограничение по времени, чтобы job не зависала бесконечно
+    timeout-minutes: 30
+
+    steps:
+      # Шаг 1. Клонируем репозиторий в рабочую директорию раннера
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      # Шаг 2. Устанавливаем Python нужной версии
+      # Важно: версия совпадает с локальной средой и Docker-образами
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      # Шаг 3. Собираем базовый Docker-образ
+      # Это тот же base-service, который используется всеми Python-сервисами стенда
+      - name: Build base Docker image
+        run: docker build -t base-service .
+
+      # Шаг 4. Поднимаем тестовый стенд в CI-режиме
+      # Используется docker-compose.ci.yaml — без UI-сервисов и лишних компонентов
+      - name: Start test services
+        run: docker compose -f docker-compose.ci.yaml up -d --build
+
+      # Шаг 5. Устанавливаем зависимости для локального запуска тестов
+      # Тесты запускаются с хоста CI-раннера, а не из контейнера
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # Шаг 6. Запускаем изоляционные тесты
+      # --alluredir сохраняет "сырые" результаты для последующей генерации отчёта
+      - name: Run Isolation tests and generate Allure report
+        run: python -m pytest -m "regression" --alluredir=./allure-results
+
+      # Шаг 7. Гарантированно останавливаем тестовый стенд
+      # if: always() — выполнится даже если тесты упали
+      # -v удаляет volumes, чтобы не тащить состояние между запусками
+      - name: Stop test services
+        if: always()
+        run: docker compose -f docker-compose.ci.yaml down -v
+
+      # Шаг 8. Загружаем результаты Allure как артефакт
+      # Они будут использованы во второй job
+      - name: Upload Allure results
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: allure-results
+          path: allure-results
+
+  # Вторая job — генерация и публикация Allure-отчёта
+  publish-report:
+    # Запускается всегда, даже если тесты упали
+    if: always()
+
+    # Явная зависимость от первой job
+    needs: [ run-tests ]
+
+    runs-on: ubuntu-latest
+
+    steps:
+      # Шаг 1. Клонируем ветку gh-pages
+      # В эту ветку будет опубликован HTML-отчёт
+      - name: Check out repository
+        uses: actions/checkout@v6
+        with:
+          ref: gh-pages
+          path: gh-pages
+
+      # Шаг 2. Скачиваем сохранённые allure-results
+      - name: Download Allure results
+        uses: actions/download-artifact@v6
+        with:
+          name: allure-results
+          path: allure-results
+
+      # Шаг 3. Генерируем HTML-отчёт Allure с историей запусков
+      # allure_history — каталог, который сохраняется между сборками
+      - name: Generate Allure Report with history
+        uses: simple-elf/allure-report-action@v1.13
+        if: always()
+        with:
+          allure_results: allure-results
+          allure_history: allure-history
+
+      # Шаг 4. Публикуем отчёт в GitHub Pages
+      # CI напрямую коммитит результат в ветку gh-pages
+      - name: Deploy report to Github Pages
+        if: always()
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: allure-history
