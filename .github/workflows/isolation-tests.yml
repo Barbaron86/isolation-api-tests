@@ -101,16 +101,22 @@ jobs:
       # Шаг 3. Генерируем HTML-отчёт Allure с историей запусков
       # allure_history — каталог, который сохраняется между сборками
       - name: Generate Allure Report with history
-        uses: simple-elf/allure-report-action@v1.13
-        if: always()
+        uses: simple-elf/allure-report-action@v1.15
         with:
           allure_results: allure-results
           allure_history: allure-history
 
-      # Шаг 4. Публикуем отчёт в GitHub Pages
+      # Шаг 4. Проверяем свежий отчёт и его копию для текущего запуска
+      # При отсутствии HTML публикация остановится, сохранив предыдущий отчёт
+      - name: Verify generated Allure report
+        shell: bash
+        run: |
+          test -s allure-report/index.html
+          test -s "allure-history/${GITHUB_RUN_NUMBER}/index.html"
+
+      # Шаг 5. Публикуем отчёт в GitHub Pages после успешных предыдущих шагов
       # CI напрямую коммитит результат в ветку gh-pages
       - name: Deploy report to Github Pages
-        if: always()
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
