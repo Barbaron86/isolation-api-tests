@@ -1,0 +1,28 @@
+INFO     sqlalchemy.engine.Engine:base.py:1842 select pg_catalog.version()
+INFO     sqlalchemy.engine.Engine:base.py:1842 [raw sql] {}
+INFO     sqlalchemy.engine.Engine:base.py:1842 select current_schema()
+INFO     sqlalchemy.engine.Engine:base.py:1842 [raw sql] {}
+INFO     sqlalchemy.engine.Engine:base.py:1842 show standard_conforming_strings
+INFO     sqlalchemy.engine.Engine:base.py:1842 [raw sql] {}
+INFO     sqlalchemy.engine.Engine:base.py:2698 BEGIN (implicit)
+INFO     sqlalchemy.engine.Engine:base.py:1842 INSERT INTO operations (id, type, status, amount, user_id, card_id, account_id, category, created_at) VALUES (%(id)s::UUID, %(type)s, %(status)s, %(amount)s, %(user_id)s::UUID, %(card_id)s::UUID, %(account_id)s::UUID, %(category)s, %(created_at)s)
+INFO     sqlalchemy.engine.Engine:base.py:1842 [generated in 0.00016s] {'id': UUID('79c5303f-aad9-493a-9638-8ed6de23b221'), 'type': <OperationTestType.PURCHASE: 'PURCHASE'>, 'status': <OperationTestStatus.IN_PROGRESS: 'IN_PROGRESS'>, 'amount': 415.9, 'user_id': UUID('d6b44d8a-1bb6-4258-801c-f7988b3ee010'), 'card_id': UUID('224a8040-30ec-4ef3-acfa-6679c8c3ec46'), 'account_id': UUID('aef79fa7-1f6d-46a8-b8d4-f02d9f82e2a8'), 'category': 'taxi', 'created_at': datetime.datetime(2009, 4, 23, 5, 40, 49, 650507)}
+INFO     sqlalchemy.engine.Engine:base.py:1842 SELECT operations.id, operations.type, operations.status, operations.amount, operations.user_id, operations.card_id, operations.account_id, operations.category, operations.created_at 
+FROM operations 
+WHERE operations.id = %(pk_1)s::UUID
+INFO     sqlalchemy.engine.Engine:base.py:1842 [generated in 0.00013s] {'pk_1': UUID('79c5303f-aad9-493a-9638-8ed6de23b221')}
+INFO     sqlalchemy.engine.Engine:base.py:2704 COMMIT
+INFO     OPERATIONS_GRPC_TEST_CLIENT:logger_interceptor.py:54 REQUEST: /contracts.services.operations.OperationsService/GetOperations
+INFO     OPERATIONS_GRPC_TEST_CLIENT:logger_interceptor.py:65 RESPONSE: /contracts.services.operations.OperationsService/GetOperations
+INFO     GRPC_OPERATIONS_ASSERTIONS:operations.py:87 Check get operations response from model
+INFO     BASE_ASSERTIONS:base.py:27 Check that "count operations" equals to 1
+INFO     GRPC_OPERATIONS_ASSERTIONS:operations.py:57 Check operation from model
+INFO     BASE_ASSERTIONS:base.py:27 Check that "id" equals to 79c5303f-aad9-493a-9638-8ed6de23b221
+INFO     BASE_ASSERTIONS:base.py:27 Check that "type" equals to 4
+INFO     BASE_ASSERTIONS:base.py:27 Check that "status" equals to 1
+INFO     BASE_ASSERTIONS:base.py:27 Check that "amount" equals to 415.9
+INFO     BASE_ASSERTIONS:base.py:27 Check that "user_id" equals to d6b44d8a-1bb6-4258-801c-f7988b3ee010
+INFO     BASE_ASSERTIONS:base.py:27 Check that "card_id" equals to 224a8040-30ec-4ef3-acfa-6679c8c3ec46
+INFO     BASE_ASSERTIONS:base.py:27 Check that "account_id" equals to aef79fa7-1f6d-46a8-b8d4-f02d9f82e2a8
+INFO     BASE_ASSERTIONS:base.py:27 Check that "category" equals to taxi
+INFO     BASE_ASSERTIONS:base.py:27 Check that "created_at" equals to 2009-04-23 05:40:49

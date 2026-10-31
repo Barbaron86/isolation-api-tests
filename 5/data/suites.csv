@@ -1,0 +1,20 @@
+"DESCRIPTION","DURATION IN MS","NAME","PARENT SUITE","START TIME","STATUS","STOP TIME","SUB SUITE","SUITE","TEST CLASS","TEST METHOD"
+"","557","[gRPC][Kafka] Operation events. In progress purchase operation","tests.suites.grpc","2026-10-31","passed","2026-10-31","TestOperationsGRPC","test_operations","",""
+"","29","[gRPC][Postgres] Filter by card id. In progress purchase operation","tests.suites.grpc","2026-10-31","passed","2026-10-31","TestOperationsGRPC","test_operations","",""
+"","23","[gRPC] Get user details. User with active credit card account","tests.suites.grpc","2026-10-31","passed","2026-10-31","TestGatewayGRPC","test_gateway","",""
+"
+        Сценарий:
+        Пользователь с активным кредитным счётом
+        запрашивает агрегированные данные через gateway-service.
+
+        Управляющая переменная теста — сценарий.
+        Все данные внешнего мира выбираются через него.
+        ","85","[HTTP] Get user details. User with active credit card account","tests.suites.http","2026-10-31","passed","2026-10-31","TestGatewayHTTP","test_gateway","",""
+"","563","[HTTP][Kafka] Operation events. In progress purchase operation","tests.suites.http","2026-10-31","passed","2026-10-31","TestOperationsHTTP","test_operations","",""
+"","17","[gRPC] Get account details. User with active debit card account","tests.suites.grpc","2026-10-31","passed","2026-10-31","TestGatewayGRPC","test_gateway","",""
+"","512","[gRPC][Kafka] Operation events. Completed purchase operation","tests.suites.grpc","2026-10-31","passed","2026-10-31","TestOperationsGRPC","test_operations","",""
+"","14","[HTTP][Postgres] Filter by card id. In progress purchase operation","tests.suites.http","2026-10-31","passed","2026-10-31","TestOperationsHTTP","test_operations","",""
+"","11","[HTTP][Postgres] Filter by account id. Completed purchase operation","tests.suites.http","2026-10-31","passed","2026-10-31","TestOperationsHTTP","test_operations","",""
+"","514","[HTTP][Kafka] Operation events. Completed purchase operation","tests.suites.http","2026-10-31","passed","2026-10-31","TestOperationsHTTP","test_operations","",""
+"","11","[gRPC][Postgres] Filter by account id. Completed purchase operation","tests.suites.grpc","2026-10-31","passed","2026-10-31","TestOperationsGRPC","test_operations","",""
+"","32","[HTTP] Get account details. User with active debit card account","tests.suites.http","2026-10-31","passed","2026-10-31","TestGatewayHTTP","test_gateway","",""
