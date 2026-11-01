@@ -32,10 +32,10 @@ class TestOperationsGRPC:
 
         assert_get_operations_response_from_events(response, [event])
 
-    @pytest.mark.skipif(
-        sys.platform == "win32",
-        reason="psycopg2 + Windows Unicode limitation"
-    )
+    # @pytest.mark.skipif(
+    #     sys.platform == "win32",
+    #     reason="psycopg2 + Windows Unicode limitation"
+    # )
     @allure.tag(AllureTag.GRPC, AllureTag.POSTGRES, AllureTag.OPERATIONS_SERVICE)
     @allure.story(AllureStory.OPERATION_FILTERS)
     @allure.title("[gRPC][Postgres] Filter by card id. In progress purchase operation")
@@ -46,13 +46,16 @@ class TestOperationsGRPC:
     ):
         # Проверка фильтрации gRPC API без участия Kafka.
         # Используется контролируемый сидинг базы данных.
-        model = operations_postgres_test_repository.create_in_progress_purchase_operation()
-        response = operations_grpc_test_client.get_operations(
-            user_id=model.user_id,
-            card_id=model.card_id
+        matching_operation_model = operations_postgres_test_repository.create_in_progress_purchase_operation()
+        other_card_operation_model = operations_postgres_test_repository.create_in_progress_purchase_operation(
+            user_id=matching_operation_model.user_id)
+
+        get_operations_response_data = operations_grpc_test_client.get_operations(
+            user_id=matching_operation_model.user_id,
+            card_id=matching_operation_model.card_id
         )
 
-        assert_get_operations_response_from_models(response, [model])
+        assert_get_operations_response_from_models(get_operations_response_data, [matching_operation_model])
 
     @allure.tag(AllureTag.GRPC, AllureTag.KAFKA, AllureTag.OPERATIONS_SERVICE)
     @allure.story(AllureStory.OPERATION_EVENTS)
@@ -67,10 +70,10 @@ class TestOperationsGRPC:
 
         assert_get_operations_response_from_events(response, [event])
 
-    @pytest.mark.skipif(
-        sys.platform == "win32",
-        reason="psycopg2 + Windows Unicode limitation"
-    )
+    # @pytest.mark.skipif(
+    #     sys.platform == "win32",
+    #     reason="psycopg2 + Windows Unicode limitation"
+    # )
     @allure.tag(AllureTag.GRPC, AllureTag.POSTGRES, AllureTag.OPERATIONS_SERVICE)
     @allure.story(AllureStory.OPERATION_FILTERS)
     @allure.title("[gRPC][Postgres] Filter by account id. Completed purchase operation")
@@ -79,10 +82,15 @@ class TestOperationsGRPC:
             operations_grpc_test_client: OperationsGRPCTestClient,
             operations_postgres_test_repository: OperationsPostgresTestRepository
     ):
-        model = operations_postgres_test_repository.create_completed_purchase_operation()
-        response = operations_grpc_test_client.get_operations(
-            user_id=model.user_id,
-            account_id=model.account_id
+        """Проверяет исключение операций другого счёта того же пользователя."""
+        matching_operation_model = operations_postgres_test_repository.create_completed_purchase_operation()
+        other_account_operation_model = operations_postgres_test_repository.create_completed_purchase_operation(
+            user_id=matching_operation_model.user_id,
         )
 
-        assert_get_operations_response_from_models(response, [model])
+        get_operations_response_data = operations_grpc_test_client.get_operations(
+            user_id=matching_operation_model.user_id,
+            account_id=matching_operation_model.account_id
+        )
+
+        assert_get_operations_response_from_models(get_operations_response_data, [matching_operation_model])

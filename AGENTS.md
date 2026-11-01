@@ -36,10 +36,16 @@ Read only the pointers relevant to the task. Paths below are repository-relative
 - Keep tests focused on the scenario and operation under test. Put prerequisite
   data in fixtures/factories, transport in clients, and detailed comparisons in
   domain assertions. Do not hide the operation under test inside setup.
-- When adding or changing test locals, use operation-specific names such as
-  `get_operation_response`, `get_operation_response_data` and
-  `get_operation_response_json` for HTTP response, parsed model and raw JSON.
-  Keep existing public helper/fixture interfaces; avoid unrelated bulk renaming.
+- Name local request and response variables after the client operation and entity,
+  such as `get_operations_response_data`. Use `<operation>_request` for a request
+  body, `<operation>_query` for query parameters, `<operation>_response` for a raw
+  HTTP response, `<operation>_response_data` for a parsed response model and
+  `<operation>_response_json` for decoded JSON. Avoid bare `request`, `response`,
+  `response_data`, `response_json` or `query` locals in tests.
+  Name prepared ORM entities by role and representation, such as
+  `matching_operation_model` and `other_card_operation_model`. For several calls,
+  distinguish their meaningful role or stage. Keep existing client/assertion
+  parameters and public helper/fixture interfaces; avoid unrelated bulk renaming.
 - Keep changes small and reviewable. Explain relevant data flow, library behavior
   and tradeoffs alongside the change; exhaustive walkthroughs are not a prerequisite
   for implementation.
@@ -144,7 +150,7 @@ python -m pytest -m regression --alluredir=./allure-results
 - Edit protobuf sources and regenerate through `scripts/protos.sh` when required;
   inspect the script first. Do not hand-edit `protos/gen/`.
 
-## Delivery and local guidance
+## Delivery
 
 - The current agreed delivery mode is direct work on `main`, without feature
   branches or PRs, unless the user changes it. Respect branch protections.
@@ -156,11 +162,6 @@ python -m pytest -m regression --alluredir=./allure-results
   After push, verify the published SHA on the intended remote branch.
 - Discussion, explanation and preparation-only requests do not authorize publishing
   code. Follow narrower task instructions when present.
-- Personal Markdown/Mermaid learning notes under `docs/learning/` remain local and
-  Git-excluded; verify the exclusion before writing them. Missing private notes
-  must not block work. Do not add them to commits or public artifacts.
-- Local AQA context is a separate task; do not bootstrap it automatically.
 
-Keep reusable AQA procedures in available Skills and personal rules in global
-instructions. This file supplies repository context and conventions, not a separate
-planning, debugging or review workflow.
+Keep documentation for published behavior and commands current within the scope
+of the change. This file defines project-specific context and conventions.
