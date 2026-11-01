@@ -1,0 +1,20 @@
+"DESCRIPTION","DURATION IN MS","NAME","PARENT SUITE","START TIME","STATUS","STOP TIME","SUB SUITE","SUITE","TEST CLASS","TEST METHOD"
+"","19","[gRPC] Get account details. User with active debit card account","tests.suites.grpc","2026-11-01","passed","2026-11-01","TestGatewayGRPC","test_gateway","",""
+"","30","[gRPC][Postgres] Filter by card id. In progress purchase operation","tests.suites.grpc","2026-11-01","passed","2026-11-01","TestOperationsGRPC","test_operations","",""
+"","16","[HTTP][Postgres] Filter by card id. In progress purchase operation","tests.suites.http","2026-11-01","passed","2026-11-01","TestOperationsHTTP","test_operations","",""
+"Проверяет исключение операций другого счёта того же пользователя.","12","[HTTP][Postgres] Filter by account id. Completed purchase operation","tests.suites.http","2026-11-01","passed","2026-11-01","TestOperationsHTTP","test_operations","",""
+"","511","[gRPC][Kafka] Operation events. Completed purchase operation","tests.suites.grpc","2026-11-01","passed","2026-11-01","TestOperationsGRPC","test_operations","",""
+"Проверяет исключение операций другого счёта того же пользователя.","12","[gRPC][Postgres] Filter by account id. Completed purchase operation","tests.suites.grpc","2026-11-01","passed","2026-11-01","TestOperationsGRPC","test_operations","",""
+"","549","[gRPC][Kafka] Operation events. In progress purchase operation","tests.suites.grpc","2026-11-01","passed","2026-11-01","TestOperationsGRPC","test_operations","",""
+"","516","[HTTP][Kafka] Operation events. Completed purchase operation","tests.suites.http","2026-11-01","passed","2026-11-01","TestOperationsHTTP","test_operations","",""
+"","25","[HTTP] Get account details. User with active debit card account","tests.suites.http","2026-11-01","passed","2026-11-01","TestGatewayHTTP","test_gateway","",""
+"
+        Сценарий:
+        Пользователь с активным кредитным счётом
+        запрашивает агрегированные данные через gateway-service.
+
+        Управляющая переменная теста — сценарий.
+        Все данные внешнего мира выбираются через него.
+        ","67","[HTTP] Get user details. User with active credit card account","tests.suites.http","2026-11-01","passed","2026-11-01","TestGatewayHTTP","test_gateway","",""
+"","25","[gRPC] Get user details. User with active credit card account","tests.suites.grpc","2026-11-01","passed","2026-11-01","TestGatewayGRPC","test_gateway","",""
+"","554","[HTTP][Kafka] Operation events. In progress purchase operation","tests.suites.http","2026-11-01","passed","2026-11-01","TestOperationsHTTP","test_operations","",""

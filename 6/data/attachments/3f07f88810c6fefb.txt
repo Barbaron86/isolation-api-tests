@@ -1,0 +1,30 @@
+INFO     sqlalchemy.engine.Engine:base.py:2698 BEGIN (implicit)
+INFO     sqlalchemy.engine.Engine:base.py:1842 INSERT INTO operations (id, type, status, amount, user_id, card_id, account_id, category, created_at) VALUES (%(id)s::UUID, %(type)s, %(status)s, %(amount)s, %(user_id)s::UUID, %(card_id)s::UUID, %(account_id)s::UUID, %(category)s, %(created_at)s)
+INFO     sqlalchemy.engine.Engine:base.py:1842 [cached since 1.786s ago] {'id': UUID('4539e466-3031-41b0-8b80-d9e24eef175a'), 'type': <OperationTestType.PURCHASE: 'PURCHASE'>, 'status': <OperationTestStatus.COMPLETED: 'COMPLETED'>, 'amount': 135.47, 'user_id': UUID('9d0231a2-2272-47da-a572-7303660240bf'), 'card_id': UUID('321f8a97-4954-4792-974d-18ea3fb959ea'), 'account_id': UUID('4b27fd39-f5f4-4461-9021-f916cb1181ac'), 'category': 'restaurants', 'created_at': datetime.datetime(2025, 4, 22, 20, 42, 4, 847599)}
+INFO     sqlalchemy.engine.Engine:base.py:1842 SELECT operations.id, operations.type, operations.status, operations.amount, operations.user_id, operations.card_id, operations.account_id, operations.category, operations.created_at 
+FROM operations 
+WHERE operations.id = %(pk_1)s::UUID
+INFO     sqlalchemy.engine.Engine:base.py:1842 [cached since 1.785s ago] {'pk_1': UUID('4539e466-3031-41b0-8b80-d9e24eef175a')}
+INFO     sqlalchemy.engine.Engine:base.py:2704 COMMIT
+INFO     sqlalchemy.engine.Engine:base.py:2698 BEGIN (implicit)
+INFO     sqlalchemy.engine.Engine:base.py:1842 INSERT INTO operations (id, type, status, amount, user_id, card_id, account_id, category, created_at) VALUES (%(id)s::UUID, %(type)s, %(status)s, %(amount)s, %(user_id)s::UUID, %(card_id)s::UUID, %(account_id)s::UUID, %(category)s, %(created_at)s)
+INFO     sqlalchemy.engine.Engine:base.py:1842 [cached since 1.789s ago] {'id': UUID('55a65e8c-0852-44a0-96c1-04492c9cea2f'), 'type': <OperationTestType.PURCHASE: 'PURCHASE'>, 'status': <OperationTestStatus.COMPLETED: 'COMPLETED'>, 'amount': 599.57, 'user_id': UUID('9d0231a2-2272-47da-a572-7303660240bf'), 'card_id': UUID('a36860de-4dea-4058-8f9c-4320822ba8a5'), 'account_id': UUID('6090abb3-4810-4c7d-97cd-153a585940b4'), 'category': 'taxi', 'created_at': datetime.datetime(1978, 2, 8, 8, 51, 2, 567782)}
+INFO     sqlalchemy.engine.Engine:base.py:1842 SELECT operations.id, operations.type, operations.status, operations.amount, operations.user_id, operations.card_id, operations.account_id, operations.category, operations.created_at 
+FROM operations 
+WHERE operations.id = %(pk_1)s::UUID
+INFO     sqlalchemy.engine.Engine:base.py:1842 [cached since 1.787s ago] {'pk_1': UUID('55a65e8c-0852-44a0-96c1-04492c9cea2f')}
+INFO     sqlalchemy.engine.Engine:base.py:2704 COMMIT
+INFO     OPERATION_HTTP_TEST_CLIENT:logger_event_hook.py:35 GET http://127.0.0.1:8002/api/v1/operations?userId=9d0231a2-2272-47da-a572-7303660240bf&accountId=4b27fd39-f5f4-4461-9021-f916cb1181ac - Waiting for response
+INFO     OPERATION_HTTP_TEST_CLIENT:logger_event_hook.py:45 GET http://127.0.0.1:8002/api/v1/operations?userId=9d0231a2-2272-47da-a572-7303660240bf&accountId=4b27fd39-f5f4-4461-9021-f916cb1181ac - Status 200
+INFO     OPERATIONS_ASSERTIONS:operations.py:78 Check get operations response from models
+INFO     BASE_ASSERTIONS:base.py:27 Check that "operations count" equals to 1
+INFO     OPERATIONS_ASSERTIONS:operations.py:43 Check operation from model
+INFO     BASE_ASSERTIONS:base.py:27 Check that "id" equals to 4539e466-3031-41b0-8b80-d9e24eef175a
+INFO     BASE_ASSERTIONS:base.py:27 Check that "type" equals to PURCHASE
+INFO     BASE_ASSERTIONS:base.py:27 Check that "status" equals to COMPLETED
+INFO     BASE_ASSERTIONS:base.py:27 Check that "amount" equals to 135.47
+INFO     BASE_ASSERTIONS:base.py:27 Check that "user_id" equals to 9d0231a2-2272-47da-a572-7303660240bf
+INFO     BASE_ASSERTIONS:base.py:27 Check that "card_id" equals to 321f8a97-4954-4792-974d-18ea3fb959ea
+INFO     BASE_ASSERTIONS:base.py:27 Check that "category" equals to restaurants
+INFO     BASE_ASSERTIONS:base.py:27 Check that "created_at" equals to 2025-04-22 20:42:04.847599
+INFO     BASE_ASSERTIONS:base.py:27 Check that "account_id" equals to 4b27fd39-f5f4-4461-9021-f916cb1181ac
