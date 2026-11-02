@@ -30,7 +30,8 @@ Read only the pointers relevant to the task. Paths below are repository-relative
   are `gateway`, `operations` and `regression`; reuse existing test classes,
   Allure features, stories, titles and steps.
 - HTTP `*_api` methods return raw responses for status, headers and negative-case
-  checks. Convenience methods validate successful responses and return test models.
+  checks. Convenience methods assert their exact successful status before Pydantic
+  parsing and return test models; use them for ordinary successful scenarios.
   gRPC clients use generated protobuf messages; inspect their signatures rather
   than assuming HTTP response semantics.
 - Keep tests focused on the scenario and operation under test. Put prerequisite
@@ -78,7 +79,14 @@ Read only the pointers relevant to the task. Paths below are repository-relative
 
 - For HTTP tests, assert the expected status before parsing a successful response.
   `raise_for_status()` accepts successful status codes, not one exact expected code.
+  Happy-path client facades own this protocol check and Pydantic parsing; tests
+  call the facade and check domain expectations. Calling the existing protocol
+  assertion from a test client is allowed; keep business expectations in tests
+  and domain assertions.
   Use raw `*_api` methods when the scenario needs protocol-level assertions.
+  For example, an expected 404 needs the raw method, not a successful facade.
+  Reuse `tests/assertions/http/base.py::assert_status_code` with `HTTPStatus`
+  constants. The current happy-path facades require `HTTPStatus.OK` before parsing.
 - Pydantic validates declared types and constraints; domain assertions check
   expected identities, values, collection membership and required postconditions.
   Inspect raw JSON when exact wire types or missing/null distinctions matter.

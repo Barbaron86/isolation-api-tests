@@ -1,5 +1,3 @@
-import sys
-
 import allure
 import pytest
 
@@ -11,6 +9,7 @@ from tests.clients.grpc.operations.client import OperationsGRPCTestClient
 from tests.clients.kafka.operations.producer import OperationsKafkaProducerTestClient
 from tests.clients.postgres.operations.repository import OperationsPostgresTestRepository
 from tests.tools.allure import AllureTag, AllureStory, AllureFeature
+from tests.tools.fakers import fake
 
 
 @pytest.mark.operations
@@ -43,6 +42,58 @@ class TestOperationsGRPC:
             [matching_operation_model],
         )
 
+    @allure.tag(AllureTag.GRPC, AllureTag.POSTGRES, AllureTag.OPERATIONS_SERVICE)
+    @allure.story(AllureStory.OPERATION_FILTERS)
+    @allure.title("[gRPC][Postgres] Filter by user id. Multiple completed purchase operations")
+    def test_filter_by_user_id_multiple_completed_purchase_operations(
+        self,
+        operations_grpc_test_client: OperationsGRPCTestClient,
+        operations_postgres_test_repository: OperationsPostgresTestRepository,
+    ) -> None:
+        """Проверяет выдачу обеих покупок пользователя без чужой операции.
+
+        Args:
+            operations_grpc_test_client: gRPC-клиент Operations.
+            operations_postgres_test_repository: Подготовка операций с учётом очистки.
+        """
+        first_matching_operation_model = operations_postgres_test_repository.create_completed_purchase_operation()
+        second_matching_operation_model = operations_postgres_test_repository.create_completed_purchase_operation(
+            user_id=first_matching_operation_model.user_id,
+        )
+        operations_postgres_test_repository.create_completed_purchase_operation()
+
+        get_operations_response_data = operations_grpc_test_client.get_operations(
+            user_id=first_matching_operation_model.user_id,
+        )
+
+        assert_get_operations_response_from_models(
+            get_operations_response_data,
+            [second_matching_operation_model, first_matching_operation_model],
+        )
+
+    @allure.tag(AllureTag.GRPC, AllureTag.POSTGRES, AllureTag.OPERATIONS_SERVICE)
+    @allure.story(AllureStory.OPERATION_FILTERS)
+    @allure.title("[gRPC][Postgres] Filter by user id. No operations")
+    def test_filter_by_user_id_without_operations(
+        self,
+        operations_grpc_test_client: OperationsGRPCTestClient,
+        operations_postgres_test_repository: OperationsPostgresTestRepository,
+    ) -> None:
+        """Проверяет пустую выдачу при наличии только чужой покупки.
+
+        Args:
+            operations_grpc_test_client: gRPC-клиент Operations.
+            operations_postgres_test_repository: Подготовка операций с учётом очистки.
+        """
+        requested_user_id = fake.uuid()
+        operations_postgres_test_repository.create_completed_purchase_operation()
+
+        get_operations_response_data = operations_grpc_test_client.get_operations(
+            user_id=requested_user_id,
+        )
+
+        assert_get_operations_response_from_models(get_operations_response_data, [])
+
     @allure.tag(AllureTag.GRPC, AllureTag.KAFKA, AllureTag.OPERATIONS_SERVICE)
     @allure.story(AllureStory.OPERATION_EVENTS)
     @allure.title("[gRPC][Kafka] Operation events. In progress purchase operation")
@@ -62,10 +113,6 @@ class TestOperationsGRPC:
 
         assert_get_operations_response_from_events(response, [event])
 
-    # @pytest.mark.skipif(
-    #     sys.platform == "win32",
-    #     reason="psycopg2 + Windows Unicode limitation"
-    # )
     @allure.tag(AllureTag.GRPC, AllureTag.POSTGRES, AllureTag.OPERATIONS_SERVICE)
     @allure.story(AllureStory.OPERATION_FILTERS)
     @allure.title("[gRPC][Postgres] Filter by card id. In progress purchase operation")
@@ -73,7 +120,7 @@ class TestOperationsGRPC:
             self,
             operations_grpc_test_client: OperationsGRPCTestClient,
             operations_postgres_test_repository: OperationsPostgresTestRepository
-    ):
+    ) -> None:
         """Проверяет, что фильтр карты исключает другую покупку пользователя.
 
         Args:
@@ -110,10 +157,6 @@ class TestOperationsGRPC:
 
         assert_get_operations_response_from_events(response, [event])
 
-    # @pytest.mark.skipif(
-    #     sys.platform == "win32",
-    #     reason="psycopg2 + Windows Unicode limitation"
-    # )
     @allure.tag(AllureTag.GRPC, AllureTag.POSTGRES, AllureTag.OPERATIONS_SERVICE)
     @allure.story(AllureStory.OPERATION_FILTERS)
     @allure.title("[gRPC][Postgres] Filter by account id. Completed purchase operation")
@@ -121,7 +164,7 @@ class TestOperationsGRPC:
             self,
             operations_grpc_test_client: OperationsGRPCTestClient,
             operations_postgres_test_repository: OperationsPostgresTestRepository
-    ):
+    ) -> None:
         """Проверяет, что фильтр счёта исключает другую покупку пользователя.
 
         Args:

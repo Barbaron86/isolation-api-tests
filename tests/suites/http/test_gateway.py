@@ -6,7 +6,7 @@ import pytest
 # и скрывают всю логику сравнения вложенных сущностей.
 from tests.assertions.http.gateway import (
     assert_get_user_details_response_user_with_active_credit_card_account,
-    assert_get_account_details_response_user_with_active_debit_card_account
+    assert_get_account_details_response_user_with_active_debit_card_account,
 )
 
 # HTTP API-клиент gateway-service тестового слоя.
@@ -65,34 +65,37 @@ class TestGatewayHTTP:
     def test_get_user_details_user_with_active_credit_card_account(
             self,
             gateway_http_test_client: GatewayHTTPTestClient,
-    ):
+    ) -> None:
         """Проверяет пользователя и счета по мок-сценарию активного кредитного счёта.
 
         Args:
             gateway_http_test_client: Фикстура клиента Gateway HTTP API.
         """
-        response = gateway_http_test_client.get_user_details(
-            RequestContext(
+        get_user_details_response_data = gateway_http_test_client.get_user_details(
+            context=RequestContext(
                 scenario=Scenario.USER_WITH_ACTIVE_CREDIT_CARD_ACCOUNT
-            )
+            ),
         )
 
         assert_get_user_details_response_user_with_active_credit_card_account(
-            response
+            get_user_details_response_data
         )
 
     @allure.story(AllureStory.GET_ACCOUNT_DETAILS)
     @allure.title("[HTTP] Get account details. User with active debit card account")
-    def test_get_account_details_user_with_active_debit_card_account(self,
-                                                                     gateway_http_test_client: GatewayHTTPTestClient):
+    def test_get_account_details_user_with_active_debit_card_account(
+        self,
+        gateway_http_test_client: GatewayHTTPTestClient,
+    ) -> None:
         """Проверяет счёт и карты по мок-сценарию активного дебетового счёта.
 
         Args:
             gateway_http_test_client: Фикстура клиента Gateway HTTP API.
         """
-        response = gateway_http_test_client.get_account_details(
-            RequestContext(
+        get_account_details_response_data = gateway_http_test_client.get_account_details(
+            context=RequestContext(
                 scenario=Scenario.USER_WITH_ACTIVE_DEBIT_CARD_ACCOUNT
-            )
+            ),
         )
-        assert_get_account_details_response_user_with_active_debit_card_account(response)
+
+        assert_get_account_details_response_user_with_active_debit_card_account(get_account_details_response_data)

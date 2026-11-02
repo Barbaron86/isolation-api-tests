@@ -107,3 +107,25 @@ teardown execution.
 The cleanup fixture delegates the retention decision to `should_keep_test_data`
 and diagnostics to `report_test_data`. The whole reporting call is protected by
 `try/finally`, so a reporting failure does not prevent required cleanup.
+
+## API response checks
+
+The HTTP test clients' convenience methods check the exact status with
+`assert_status_code` and `HTTPStatus.OK`, then parse the response with Pydantic.
+Successful tests prepare data, call a convenience method and run domain assertions.
+Raw `*_api` methods return the response for negative cases, such as an expected 404,
+or explicit status/header checks.
+
+Operations filter cases cover card/account filters, user-only selection, multiple
+matching operations and an empty result while another user's operation exists.
+ORM-backed HTTP/gRPC assertions compare the complete collection by operation ID,
+including count, duplicate IDs and entity fields, without depending on result order.
+
+## CI report environment
+
+[write_allure_environment.py](scripts/write_allure_environment.py) creates
+`allure-results/environment.properties` in the test runner environment.
+The workflow runs it after dependency installation and before pytest.
+`TEST_MARKER` and `TEST_COMPOSE_FILE` are defined once in the test job and shared
+by the execution commands and report metadata. The existing results artifact
+passes this file to the Allure report generator.

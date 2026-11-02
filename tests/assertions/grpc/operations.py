@@ -84,8 +84,18 @@ def assert_get_operations_response_from_models(
         actual: GetOperationsResponse,
         expected: list[OperationsTestModel]
 ) -> None:
+    """Сравнивает полный набор операций с ORM-моделями независимо от порядка.
+
+    Args:
+        actual: Ответ gRPC API со списком операций.
+        expected: Подготовленные тестом операции с уникальными ID.
+    """
     logger.info("Check get operations response from model")
 
     assert_equal(len(actual.operations), len(expected), "count operations")
-    for index, model in enumerate(expected):
-        assert_operation_from_model(actual.operations[index], model)
+    operations_by_id = {operation.id: operation for operation in actual.operations}
+    expected_operation_ids = {str(model.id) for model in expected}
+    assert_equal(len(operations_by_id), len(actual.operations), "unique operation ids")
+    assert_equal(set(operations_by_id), expected_operation_ids, "operation ids")
+    for model in expected:
+        assert_operation_from_model(operations_by_id[str(model.id)], model)

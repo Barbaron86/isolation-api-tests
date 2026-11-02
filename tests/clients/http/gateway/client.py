@@ -1,8 +1,10 @@
 import uuid
+from http import HTTPStatus
 
 import allure
 from httpx import Response
 
+from tests.assertions.http.base import assert_status_code
 from tests.clients.http.client import HTTPTestClient, build_http_test_client
 from tests.config import test_settings
 from tests.context.base import RequestContext
@@ -64,44 +66,39 @@ class GatewayHTTPTestClient(HTTPTestClient):
         )
 
     def get_user_details(self, context: RequestContext) -> GetUserDetailsResponseTestSchema:
-        # Здесь мы сознательно не передаём "реальный" user_id.
-        #
-        # Почему это корректно:
-        # - gateway-service ожидает id в URL, это часть его контракта;
-        # - но в нашей архитектуре изоляционных тестов внешний мир
-        #   (users/cards/accounts) моделируется по сценарию;
-        # - значит, детерминированность достигается не "подбором id",
-        #   а явной установкой x-test-scenario.
-        #
-        # ID здесь нужен только для соблюдения сигнатуры и маршрута.
+        """Получает агрегат пользователя по сценарию с проверкой HTTP-ответа.
+
+        Сценарные моки выбирают данные независимо от случайного ID в URL.
+
+        Args:
+            context: Сценарий, передаваемый Gateway и его зависимостям.
+
+        Returns:
+            Проверенная модель ответа с пользователем и счетами.
+
+        Raises:
+            AssertionError: Если статус ответа отличается от HTTPStatus.OK.
+            pydantic.ValidationError: Если тело не соответствует модели ответа.
+        """
         response = self.get_user_details_api(fake.uuid(), context)
-
-        # Мы намеренно делаем raise_for_status() внутри фасадного метода.
-        #
-        # Это сознательное упрощение ради фокуса курса:
-        # - если статус неуспешный, тест должен падать сразу и явно;
-        # - затем мы валидируем успешный ответ доменной схемой.
-        #
-        # Альтернативный подход (тоже корректный):
-        # - вернуть Response в тест,
-        # - явно проверить статус через ассерты,
-        # - и только затем валидировать модель.
-        #
-        # В курсе мы не размываем внимание протокольными проверками,
-        # а фокусируемся на изоляции и сценарной воспроизводимости.
-        response.raise_for_status()
-
-        # Преобразуем JSON-ответ gateway-service в типизированную
-        # Pydantic-схему тестового слоя.
-        #
-        # Здесь фиксируется контракт на уровне тестов:
-        # структура ответа должна быть доменно корректной,
-        # иначе тест падает на валидации.
+        assert_status_code(response.status_code, HTTPStatus.OK)
         return GetUserDetailsResponseTestSchema.model_validate_json(response.text)
 
     def get_account_details(self, context: RequestContext) -> GetAccountDetailsResponseTestSchema:
+        """Получает агрегат счёта по сценарию с проверкой HTTP-ответа.
+
+        Args:
+            context: Сценарий, передаваемый Gateway и его зависимостям.
+
+        Returns:
+            Проверенная модель ответа со счётом и картами.
+
+        Raises:
+            AssertionError: Если статус ответа отличается от HTTPStatus.OK.
+            pydantic.ValidationError: Если тело не соответствует модели ответа.
+        """
         response = self.get_account_details_api(fake.uuid(), context)
-        response.raise_for_status()
+        assert_status_code(response.status_code, HTTPStatus.OK)
         return GetAccountDetailsResponseTestSchema.model_validate_json(response.text)
 
 
