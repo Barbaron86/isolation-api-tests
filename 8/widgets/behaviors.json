@@ -1,0 +1,1 @@
+{"total":2,"items":[{"uid":"f8d3946a999485a42189b368da5ff236","name":"Operations Service","statistic":{"failed":1,"broken":0,"skipped":0,"passed":1,"unknown":0,"total":2}},{"uid":"2796eec86132619da0ff974f024dee11","name":"Gateway Service","statistic":{"failed":0,"broken":0,"skipped":0,"passed":2,"unknown":0,"total":2}}]}
