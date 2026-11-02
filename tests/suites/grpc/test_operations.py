@@ -17,6 +17,32 @@ from tests.tools.allure import AllureTag, AllureStory, AllureFeature
 @pytest.mark.regression
 @allure.feature(AllureFeature.OPERATIONS_SERVICE)
 class TestOperationsGRPC:
+    @allure.tag(AllureTag.GRPC, AllureTag.POSTGRES, AllureTag.OPERATIONS_SERVICE)
+    @allure.story(AllureStory.OPERATION_FILTERS)
+    @allure.title("[gRPC][Postgres] Filter by user id. Completed purchase operation")
+    def test_filter_by_user_id_completed_purchase_operation(
+        self,
+        operations_grpc_test_client: OperationsGRPCTestClient,
+        operations_postgres_test_repository: OperationsPostgresTestRepository,
+    ) -> None:
+        """Проверяет userId без карты и счёта при наличии покупки другого пользователя.
+
+        Args:
+            operations_grpc_test_client: gRPC-клиент Operations.
+            operations_postgres_test_repository: Подготовка операций с учётом очистки.
+        """
+        matching_operation_model = operations_postgres_test_repository.create_completed_purchase_operation()
+        operations_postgres_test_repository.create_completed_purchase_operation()
+
+        get_operations_response_data = operations_grpc_test_client.get_operations(
+            user_id=matching_operation_model.user_id,
+        )
+
+        assert_get_operations_response_from_models(
+            get_operations_response_data,
+            [matching_operation_model],
+        )
+
     @allure.tag(AllureTag.GRPC, AllureTag.KAFKA, AllureTag.OPERATIONS_SERVICE)
     @allure.story(AllureStory.OPERATION_EVENTS)
     @allure.title("[gRPC][Kafka] Operation events. In progress purchase operation")
@@ -25,8 +51,12 @@ class TestOperationsGRPC:
             operations_grpc_test_client: OperationsGRPCTestClient,
             operations_kafka_producer_test_client: OperationsKafkaProducerTestClient
     ):
-        # Полный event-driven флоу через gRPC API:
-        # событие → асинхронный процессинг → чтение результата через gRPC.
+        """Проверяет выдачу покупки IN_PROGRESS, отправленной через Kafka.
+
+        Args:
+            operations_grpc_test_client: gRPC-клиент Operations.
+            operations_kafka_producer_test_client: Клиент публикации событий операций.
+        """
         event = operations_kafka_producer_test_client.produce_in_progress_purchase_operation_event()
         response = operations_grpc_test_client.get_operations(user_id=event.user_id)
 
@@ -44,10 +74,14 @@ class TestOperationsGRPC:
             operations_grpc_test_client: OperationsGRPCTestClient,
             operations_postgres_test_repository: OperationsPostgresTestRepository
     ):
-        # Проверка фильтрации gRPC API без участия Kafka.
-        # Используется контролируемый сидинг базы данных.
+        """Проверяет, что фильтр карты исключает другую покупку пользователя.
+
+        Args:
+            operations_grpc_test_client: gRPC-клиент Operations.
+            operations_postgres_test_repository: Подготовка операций с учётом очистки.
+        """
         matching_operation_model = operations_postgres_test_repository.create_in_progress_purchase_operation()
-        other_card_operation_model = operations_postgres_test_repository.create_in_progress_purchase_operation(
+        operations_postgres_test_repository.create_in_progress_purchase_operation(
             user_id=matching_operation_model.user_id)
 
         get_operations_response_data = operations_grpc_test_client.get_operations(
@@ -65,6 +99,12 @@ class TestOperationsGRPC:
             operations_grpc_test_client: OperationsGRPCTestClient,
             operations_kafka_producer_test_client: OperationsKafkaProducerTestClient
     ):
+        """Проверяет выдачу покупки COMPLETED, отправленной через Kafka.
+
+        Args:
+            operations_grpc_test_client: gRPC-клиент Operations.
+            operations_kafka_producer_test_client: Клиент публикации событий операций.
+        """
         event = operations_kafka_producer_test_client.produce_completed_purchase_operation_event()
         response = operations_grpc_test_client.get_operations(user_id=event.user_id)
 
@@ -82,9 +122,14 @@ class TestOperationsGRPC:
             operations_grpc_test_client: OperationsGRPCTestClient,
             operations_postgres_test_repository: OperationsPostgresTestRepository
     ):
-        """Проверяет исключение операций другого счёта того же пользователя."""
+        """Проверяет, что фильтр счёта исключает другую покупку пользователя.
+
+        Args:
+            operations_grpc_test_client: gRPC-клиент Operations.
+            operations_postgres_test_repository: Подготовка операций с учётом очистки.
+        """
         matching_operation_model = operations_postgres_test_repository.create_completed_purchase_operation()
-        other_account_operation_model = operations_postgres_test_repository.create_completed_purchase_operation(
+        operations_postgres_test_repository.create_completed_purchase_operation(
             user_id=matching_operation_model.user_id,
         )
 

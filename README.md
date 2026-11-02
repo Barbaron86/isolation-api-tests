@@ -74,3 +74,36 @@ docker-compose up -d
 - Operations gRPC: localhost:9002
 - Kafka UI: http://localhost:8081
 - pgAdmin: http://localhost:5050
+
+## Operations test data cleanup
+
+Run from the repository root using the project's Python environment and a prepared
+stand. The filter tests seed PostgreSQL directly. Each inserted row is registered
+for deletion by primary key after that test, including setup or assertion failures:
+
+```shell
+python -m pytest tests/suites/http/test_operations.py tests/suites/grpc/test_operations.py -k filter
+```
+
+To keep a failing test's records for investigation, add:
+
+```shell
+python -m pytest tests/suites/http/test_operations.py tests/suites/grpc/test_operations.py -k filter --keep-test-data-on-failure
+```
+
+Passing and skipped tests still perform registered cleanup with this flag. When
+cleanup is skipped, the registered actions and test nodeid are reported under
+**Cleanup skipped**. These identifiers do not confirm that rows exist: an INSERT
+may already have been rolled back. Database contents are not queried by reporting.
+Use `-s` (already configured by this project) to view console logging; the Allure
+attachment is available independently of console capture.
+In PyCharm, put the flag in the pytest run configuration's **Additional Arguments**.
+The decision uses setup/call results available when the cleanup fixture finishes;
+later teardown failures cannot restore already deleted records. Retained rows
+require explicit removal after investigation. Existing rows and Kafka-created
+operations are outside this cleanup. A forcibly terminated process cannot guarantee
+teardown execution.
+
+The cleanup fixture delegates the retention decision to `should_keep_test_data`
+and diagnostics to `report_test_data`. The whole reporting call is protected by
+`try/finally`, so a reporting failure does not prevent required cleanup.

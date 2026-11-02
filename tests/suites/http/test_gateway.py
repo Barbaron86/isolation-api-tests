@@ -66,39 +66,17 @@ class TestGatewayHTTP:
             self,
             gateway_http_test_client: GatewayHTTPTestClient,
     ):
-        """
-        Сценарий:
-        Пользователь с активным кредитным счётом
-        запрашивает агрегированные данные через gateway-service.
+        """Проверяет пользователя и счета по мок-сценарию активного кредитного счёта.
 
-        Управляющая переменная теста — сценарий.
-        Все данные внешнего мира выбираются через него.
+        Args:
+            gateway_http_test_client: Фикстура клиента Gateway HTTP API.
         """
-
-        # Выполняем HTTP-вызов gateway-service.
-        #
-        # RequestContext явно задаёт сценарий:
-        # USER_WITH_ACTIVE_CREDIT_CARD_ACCOUNT.
-        #
-        # Gateway-service не интерпретирует сценарий как бизнес-логику,
-        # а просто прокидывает его в HTTP-интеграции,
-        # где сценарий используется мок-сервисами.
         response = gateway_http_test_client.get_user_details(
             RequestContext(
                 scenario=Scenario.USER_WITH_ACTIVE_CREDIT_CARD_ACCOUNT
             )
         )
 
-        # Проверка результата выполняется доменным ассертoм.
-        #
-        # Ассерт:
-        # - знает структуру ответа gateway;
-        # - проверяет пользователя и его счета;
-        # - использует фиксированный сценарный снапшот данных;
-        # - формирует читаемый Allure-отчёт.
-        #
-        # Тест не сравнивает JSON, не перебирает поля
-        # и не знает, откуда взялись ожидаемые данные.
         assert_get_user_details_response_user_with_active_credit_card_account(
             response
         )
@@ -107,6 +85,11 @@ class TestGatewayHTTP:
     @allure.title("[HTTP] Get account details. User with active debit card account")
     def test_get_account_details_user_with_active_debit_card_account(self,
                                                                      gateway_http_test_client: GatewayHTTPTestClient):
+        """Проверяет счёт и карты по мок-сценарию активного дебетового счёта.
+
+        Args:
+            gateway_http_test_client: Фикстура клиента Gateway HTTP API.
+        """
         response = gateway_http_test_client.get_account_details(
             RequestContext(
                 scenario=Scenario.USER_WITH_ACTIVE_DEBIT_CARD_ACCOUNT

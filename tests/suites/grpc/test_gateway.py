@@ -30,6 +30,11 @@ class TestGatewayGRPC:
             self,
             gateway_grpc_test_client: GatewayGRPCTestClient,
     ):
+        """Проверяет пользователя и счета по мок-сценарию активного кредитного счёта.
+
+        Args:
+            gateway_grpc_test_client: Фикстура клиента Gateway gRPC API.
+        """
         response = gateway_grpc_test_client.get_user_details(
             RequestContext(
                 scenario=Scenario.USER_WITH_ACTIVE_CREDIT_CARD_ACCOUNT
@@ -47,6 +52,11 @@ class TestGatewayGRPC:
             gateway_grpc_test_client: GatewayGRPCTestClient
 
     ):
+        """Проверяет счёт и карты по мок-сценарию активного дебетового счёта.
+
+        Args:
+            gateway_grpc_test_client: Фикстура клиента Gateway gRPC API.
+        """
         response = gateway_grpc_test_client.get_account_details(
             RequestContext(scenario=Scenario.USER_WITH_ACTIVE_DEBIT_CARD_ACCOUNT)
         )

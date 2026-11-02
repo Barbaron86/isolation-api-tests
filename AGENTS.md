@@ -36,6 +36,9 @@ Read only the pointers relevant to the task. Paths below are repository-relative
 - Keep tests focused on the scenario and operation under test. Put prerequisite
   data in fixtures/factories, transport in clients, and detailed comparisons in
   domain assertions. Do not hide the operation under test inside setup.
+- Give each API test a concise Google-style docstring describing its scenario
+  and expected behavior, with fixture parameters documented in Args. Avoid
+  duplicating the description with tutorial comments inside the test body.
 - Name local request and response variables after the client operation and entity,
   such as `get_operations_response_data`. Use `<operation>_request` for a request
   body, `<operation>_query` for query parameters, `<operation>_response` for a raw
@@ -92,9 +95,16 @@ Read only the pointers relevant to the task. Paths below are repository-relative
 
 ### Resource ownership and asynchronous processing
 
-- Inspect fixture scope and teardown explicitly. Current Operations fixtures commit
-  prepared rows; they do not automatically delete them after a test. Unique IDs
-  separate data but do not provide cleanup or transaction rollback for the test.
+- Operations PostgreSQL fixtures register each inserted row with a function-scoped
+  cleanup manager after successful flush and before commit. Default teardown
+  deletes only registered primary keys, including setup/call failures.
+- Use `--keep-test-data-on-failure` to skip registered cleanup on setup/call errors
+  for investigation; passing/skipped tests still clean up. Reports list nodeid
+  and registered actions, without verifying row existence. Keep retention policy
+  separate from reporting. Put mandatory cleanup in a finally block around
+  reporting. Later teardown errors cannot
+  change a cleanup decision already taken. Kafka-created rows are outside this
+  lifecycle; repositories constructed without a manager require caller cleanup.
 - When changing resource lifecycle, close clients/channels and clean only entities
   owned by the current test/run, including partial setup and failure paths.
   Preserve the original failure and useful diagnostics.
@@ -136,9 +146,9 @@ python -m pytest -m regression --alluredir=./allure-results
   checks; Compose changes need configuration validation; behavioral changes need
   focused execution and the relevant regression scope. Do not run application tests
   solely for a documentation change.
-- Report the actual commands, failures, skips and unverified behavior. Some
-  Operations filter tests are skipped on Windows; do not count them as executed
-  or remove the skip without investigating its cause.
+- Report actual commands, failures, skips and unverified behavior. Check current
+  markers before claiming a test ran. The HTTP/gRPC filter tests require a
+  prepared PostgreSQL and Operations stand.
 - Test imports, collection and execution can create clients, logs and Allure output.
   Do not clear reports, install packages, migrate data or provision services during
   a read-only task.
