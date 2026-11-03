@@ -50,6 +50,21 @@ jobs:
       - name: Run isolation tests
         run: python -m pytest -m "$TEST_MARKER" --alluredir=./allure-results
 
+      - name: Collect test stand diagnostics
+        if: always()
+        continue-on-error: true
+        run: python scripts/collect_stand_diagnostics.py --compose-file "$TEST_COMPOSE_FILE"
+
+      - name: Upload test stand diagnostics
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@v6
+        with:
+          name: stand-diagnostics
+          path: stand-diagnostics
+          retention-days: 3
+          if-no-files-found: warn
+
       # Тома одноразового CI-стенда удаляются после запуска.
       - name: Stop test services
         if: always()
