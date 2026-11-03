@@ -17,14 +17,17 @@ def assert_operation_from_event(
         actual: OperationTestSchema,
         expected: OperationEventTestSchema
 ) -> None:
+    """Сравнивает все доменные поля операции с отправленным событием.
+
+    В событии нет operation ID: его генерирует приложение. Формат ID проверяет
+    модель ответа, а уникальность проверяется при сравнении всей коллекции.
+
+    Args:
+        actual: Операция из HTTP-ответа.
+        expected: Независимое событие, отправленное тестом.
+    """
     logger.info("Check operation from event")
 
-    # Проверка операции, ожидаемые данные для которой
-    # получены из события Kafka.
-    #
-    # Мы сравниваем только доменные атрибуты,
-    # которые должны сохраниться при прохождении
-    # event-driven процессинга.
     assert_equal(actual.type, expected.type, "type")
     assert_equal(actual.status, expected.status, "status")
     assert_equal(actual.amount, expected.amount, "amount")
@@ -40,13 +43,14 @@ def assert_operation_from_model(
         actual: OperationTestSchema,
         expected: OperationsTestModel
 ) -> None:
+    """Сравнивает HTTP-операцию, включая ID, с подготовленной записью БД.
+
+    Args:
+        actual: Операция, возвращённая API.
+        expected: Модель, сохранённая при подготовке теста.
+    """
     logger.info("Check operation from model")
 
-    # Проверка операции, ожидаемые данные для которой
-    # получены из модели базы данных.
-    #
-    # В этом сценарии идентификатор операции
-    # является частью контракта и должен совпадать.
     assert_equal(actual.id, expected.id, "id")
     assert_equal(actual.type, expected.type, "type")
     assert_equal(actual.status, expected.status, "status")
@@ -63,11 +67,25 @@ def assert_get_operations_response_from_events(
         actual: GetOperationsResponseTestSchema,
         expected: list[OperationEventTestSchema]
 ) -> None:
+    """Сравнивает события с полным набором операций независимо от порядка.
+
+    Args:
+        actual: Разобранный HTTP-ответ API.
+        expected: Отправленные события с уникальными парами пользователя и карты.
+    """
     logger.info("Check get operations response from events")
 
     assert_equal(len(actual.operations), len(expected), "operations count")
-    for index, event in enumerate(expected):
-        assert_operation_from_event(actual.operations[index], event)
+    operations_by_key = {
+        (operation.user_id, operation.card_id): operation for operation in actual.operations
+    }
+    events_by_key = {(event.user_id, event.card_id): event for event in expected}
+    assert_equal(len(operations_by_key), len(actual.operations), "unique operation keys")
+    assert_equal(len(events_by_key), len(expected), "unique event keys")
+    assert_equal(len({operation.id for operation in actual.operations}), len(actual.operations), "unique operation ids")
+    assert_equal(set(operations_by_key), set(events_by_key), "operation event keys")
+    for key, event in events_by_key.items():
+        assert_operation_from_event(operations_by_key[key], event)
 
 
 @allure.step("Check get operations response from models")
