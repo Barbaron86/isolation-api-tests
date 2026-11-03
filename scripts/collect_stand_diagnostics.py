@@ -1,4 +1,4 @@
-"""Собирает ограниченную диагностику Compose без окружения и payload событий."""
+"""Сохраняет состояние контейнеров Compose и результат его сбора."""
 
 import argparse
 from pathlib import Path

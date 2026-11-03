@@ -209,20 +209,21 @@ The workflow runs it after dependency installation and before pytest.
 by the execution commands and report metadata. The existing results artifact
 passes this file to the Allure report generator.
 
-Before stopping the stand, CI collects allowlisted container state and technical
-log messages using `scripts/collect_stand_diagnostics.py`. The separate
-`stand-diagnostics` artifact is retained for 3 days and excludes raw payloads,
-environment variables and arbitrary log text. `collection.txt` records input and
-saved line counts per service, plus collection error types, exit codes or timeouts.
-Reusing the output directory removes each previous source file before reading
-that source, so a failed command cannot leave an old state or log as current data.
-Unknown log formats are omitted; these files are a technical summary, not complete
-container logs. Collection/upload failures do not prevent teardown or replace the
-test failure.
+Before stopping the stand, CI runs `scripts/collect_stand_diagnostics.py`.
+The separate `stand-diagnostics` artifact is retained for 3 days and contains
+only `state.json` (service, process state, exit code and health) and
+`collection.txt` (collection outcome, error type and any command exit code or
+timeout). Container logs, environment variables and event payloads are not
+collected. The snapshot can identify a stopped or unhealthy container; it does
+not explain failures inside the application.
+
+The previous `state.json` is removed before collection. Other files in a reused
+output directory are preserved; CI uploads only the two named files.
+Collection/upload failures do not prevent teardown or replace the test failure.
 
 The two stand commands parse CLI arguments and delegate to [scripts/stand](scripts/stand/):
 [compose.py](scripts/stand/compose.py) runs bounded Docker commands,
 [readiness.py](scripts/stand/readiness.py) checks infrastructure and host-side APIs,
-[log_filter.py](scripts/stand/log_filter.py) recognizes supported technical messages,
-and [diagnostics.py](scripts/stand/diagnostics.py) writes the artifact.
+and [diagnostics.py](scripts/stand/diagnostics.py) writes the state snapshot and
+collection result.
 Readiness failures report the blocking service or API endpoint.

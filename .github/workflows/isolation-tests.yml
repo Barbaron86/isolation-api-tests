@@ -61,7 +61,9 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: stand-diagnostics
-          path: stand-diagnostics
+          path: |
+            stand-diagnostics/state.json
+            stand-diagnostics/collection.txt
           retention-days: 3
           if-no-files-found: warn
 
