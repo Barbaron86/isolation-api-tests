@@ -1,0 +1,18 @@
+INFO     sqlalchemy.engine.Engine:base.py:2698 BEGIN (implicit)
+INFO     sqlalchemy.engine.Engine:base.py:1842 INSERT INTO operations (id, type, status, amount, user_id, card_id, account_id, category, created_at) VALUES (%(id)s::UUID, %(type)s, %(status)s, %(amount)s, %(user_id)s::UUID, %(card_id)s::UUID, %(account_id)s::UUID, %(category)s, %(created_at)s)
+INFO     sqlalchemy.engine.Engine:base.py:1842 [cached since 0.05879s ago] {'id': UUID('2d8e5953-f959-473f-a5c2-7c84eff5304f'), 'type': <OperationTestType.PURCHASE: 'PURCHASE'>, 'status': <OperationTestStatus.COMPLETED: 'COMPLETED'>, 'amount': 26.71, 'user_id': UUID('e90eb34b-e0ca-460a-87ca-1b5a2e4a9953'), 'card_id': UUID('6fcbfa9f-0b68-4fe2-b714-81194e84ede1'), 'account_id': UUID('16763259-c598-4256-a106-a9a9a356c20d'), 'category': 'internet', 'created_at': datetime.datetime(1995, 6, 25, 18, 42, 3, 889674)}
+INFO     sqlalchemy.engine.Engine:base.py:1842 SELECT operations.id, operations.type, operations.status, operations.amount, operations.user_id, operations.card_id, operations.account_id, operations.category, operations.created_at 
+FROM operations 
+WHERE operations.id = %(pk_1)s::UUID
+INFO     sqlalchemy.engine.Engine:base.py:1842 [cached since 0.05693s ago] {'pk_1': UUID('2d8e5953-f959-473f-a5c2-7c84eff5304f')}
+INFO     sqlalchemy.engine.Engine:base.py:2704 COMMIT
+INFO     OPERATIONS_GRPC_TEST_CLIENT:logger_interceptor.py:54 REQUEST: /contracts.services.operations.OperationsService/GetOperations
+INFO     OPERATIONS_GRPC_TEST_CLIENT:logger_interceptor.py:65 RESPONSE: /contracts.services.operations.OperationsService/GetOperations
+INFO     GRPC_OPERATIONS_ASSERTIONS:operations.py:123 Check get operations response from model
+INFO     BASE_ASSERTIONS:base.py:27 Check that "count operations" equals to 0
+INFO     BASE_ASSERTIONS:base.py:27 Check that "unique operation ids" equals to 0
+INFO     BASE_ASSERTIONS:base.py:27 Check that "operation ids" equals to set()
+INFO     sqlalchemy.engine.Engine:base.py:2698 BEGIN (implicit)
+INFO     sqlalchemy.engine.Engine:base.py:1842 DELETE FROM operations WHERE operations.id = %(id_1)s::UUID
+INFO     sqlalchemy.engine.Engine:base.py:1842 [cached since 0.02828s ago] {'id_1': UUID('2d8e5953-f959-473f-a5c2-7c84eff5304f')}
+INFO     sqlalchemy.engine.Engine:base.py:2704 COMMIT
