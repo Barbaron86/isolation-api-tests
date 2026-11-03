@@ -1,10 +1,12 @@
-"""Подготовка операций в PostgreSQL для тестов чтения и фильтрации API."""
+"""Подготовка, чтение ID и точечное удаление тестовых операций в PostgreSQL."""
 
 from collections.abc import Callable
+from math import ceil, isfinite
+from time import monotonic
 from uuid import UUID
 
 import allure
-from sqlalchemy import delete
+from sqlalchemy import delete, select, text
 from sqlalchemy.orm import Session, sessionmaker
 
 from tests.clients.postgres.operations.model import OperationsTestModel
@@ -16,17 +18,13 @@ from tests.types.operations import OperationTestType, OperationTestStatus
 
 
 class OperationsPostgresTestRepository(PostgresTestRepository[OperationsTestModel]):
-    """Создаёт тестовые записи в таблице operations.
+    """Подготавливает, находит и удаляет тестовые операции в PostgreSQL.
 
-    Методы формируют ORM-модель покупки и передают её базовому методу create.
-    Каждый успешный вызов сохраняет одну запись и фиксирует транзакцию до
-    возврата модели. Сессия записи закрывается базовым репозиторием.
-
-    Подготовка напрямую в БД позволяет проверять чтение и фильтрацию API
-    независимо от обработки Kafka-событий. С переданным cleanup_manager
-    регистрирует удаление каждой вставленной строки по точному ID. Политику
-    очистки или сохранения для отладки выбирает фикстура pytest.
-    Без менеджера последующим удалением управляет вызывающий код.
+    Создание фиксирует отдельную транзакцию; чтение ID фильтрует по полной
+    тройке user/card/account, удаление использует только точный первичный ключ.
+    При наличии cleanup_manager метод create регистрирует удаление после flush.
+    Без менеджера за последующее удаление отвечает вызывающий код; решение
+    о сохранении данных при ошибке принимает pytest-фикстура.
 
     Attributes:
         session_factory: Фабрика сессий SQLAlchemy, переданная базовому
@@ -54,45 +52,38 @@ class OperationsPostgresTestRepository(PostgresTestRepository[OperationsTestMode
         *,
         on_created: Callable[[OperationsTestModel], None] | None = None,
     ) -> OperationsTestModel:
-        """Сохраняет операцию и регистрирует удаление после успешного INSERT.
+        """Вставляет операцию; при наличии manager регистрирует её удаление.
+
+        Регистрация идёт после успешного flush, перед on_created, refresh и
+        commit. Ошибка следующих этапов не теряет уже зарегистрированное
+        удаление. Конфликтующий INSERT не регистрирует чужую существующую строку.
 
         Args:
             instance: Новая операция с заданным UUID.
             on_created: Дополнительный callback базового интерфейса create.
-                Вызывается после автоматической регистрации очистки, до commit.
+                Вызывается после регистрации при наличии manager, до refresh
+                и commit.
 
         Returns:
             Модель после успешного commit и закрытия сессии.
 
         Raises:
             Exception: Ошибка вставки, регистрации, обновления модели или
-                завершения транзакции. Вставленная строка уже учтена менеджером
-                при ошибке после flush; конфликтующий INSERT не регистрируется.
+                завершения транзакции. Очистка учтена только при наличии manager
+                и успешной регистрации в нём.
         """
         def register_and_notify(created_instance: OperationsTestModel) -> None:
-            """Регистрирует удаление перед вызовом пользовательского callback.
-
-            Args:
-                created_instance: Операция после успешного INSERT.
-            """
-            self._register_cleanup(created_instance)
+            """Регистрирует удаление при наличии manager, затем вызывает on_created."""
+            if self._cleanup_manager is not None:
+                self._cleanup_manager.add(
+                    self.delete_by_id,
+                    created_instance.id,
+                    description=f"Operations row id={created_instance.id}",
+                )
             if on_created is not None:
                 on_created(created_instance)
 
         return super().create(instance, on_created=register_and_notify)
-
-    def _register_cleanup(self, instance: OperationsTestModel) -> None:
-        """Запоминает удаление вставленной строки до завершения транзакции.
-
-        Args:
-            instance: Операция, для которой успешно выполнен flush.
-        """
-        if self._cleanup_manager is not None:
-            self._cleanup_manager.add(
-                self.delete_by_id,
-                instance.id,
-                description=f"Operations row id={instance.id}",
-            )
 
     @allure.step("Delete operation by id: {operation_id}")
     def delete_by_id(self, operation_id: UUID) -> None:
@@ -111,6 +102,52 @@ class OperationsPostgresTestRepository(PostgresTestRepository[OperationsTestMode
         with self.session_write() as session:
             session.execute(delete(OperationsTestModel).where(OperationsTestModel.id == operation_id))
 
+    def get_ids_by_owner(
+        self, *, user_id: UUID, card_id: UUID, account_id: UUID, timeout: float | None = None
+    ) -> set[UUID]:
+        """Читает точные ID операций полной группы владельца.
+
+        Args:
+            user_id: Пользователь, заданный тестовым событием.
+            card_id: Карта, заданная тестовым событием.
+            account_id: Счёт, заданный тестовым событием.
+            timeout: Оставшийся бюджет чтения в секундах. После получения
+                соединения его остаток задаёт локальный statement_timeout.
+                Ожидание пула и подключение имеют отдельные пределы engine;
+                произвольный сетевой сбой не ограничен жёстким общим дедлайном.
+                При None действует серверный предел, заданный фабрикой engine.
+
+        Returns:
+            Первичные ключи строк, одновременно совпавших по трём полям.
+
+        Raises:
+            ValueError: Если передан неположительный или неконечный бюджет.
+            TimeoutError: Если бюджет исчерпан при получении соединения.
+            sqlalchemy.exc.SQLAlchemyError: При ошибке подключения или запроса,
+                включая серверную отмену по statement_timeout.
+        """
+        if timeout is not None and (not isfinite(timeout) or timeout <= 0):
+            raise ValueError("Operations discovery timeout must be finite and positive")
+        deadline = None if timeout is None else monotonic() + timeout
+        with self.session_read() as session:
+            if deadline is not None and session.get_bind().dialect.name == "postgresql":
+                session.connection()
+                remaining = deadline - monotonic()
+                if remaining <= 0:
+                    raise TimeoutError("Operations discovery budget exhausted during connection checkout")
+                session.execute(
+                    text("SELECT set_config('statement_timeout', :statement_timeout, true)"),
+                    {"statement_timeout": f"{max(1, ceil(remaining * 1000))}ms"},
+                )
+            operation_ids = session.scalars(
+                select(OperationsTestModel.id).where(
+                    OperationsTestModel.user_id == user_id,
+                    OperationsTestModel.card_id == card_id,
+                    OperationsTestModel.account_id == account_id,
+                )
+            )
+            return set(operation_ids)
+
     @allure.step("Create in progress purchase operation")
     def create_in_progress_purchase_operation(
         self,
@@ -119,9 +156,7 @@ class OperationsPostgresTestRepository(PostgresTestRepository[OperationsTestMode
     ) -> OperationsTestModel:
         """Создаёт и сохраняет покупку со статусом IN_PROGRESS.
 
-        Переданные идентификаторы позволяют подготовить несколько операций
-        одного пользователя или одной карты. Остальные поля заполняются
-        генератором тестовых данных. Тип операции всегда PURCHASE.
+        Неуказанные поля заполняются генератором тестовых данных.
 
         Args:
             card_id: Идентификатор карты. При None генерируется случайный UUID.
@@ -157,9 +192,7 @@ class OperationsPostgresTestRepository(PostgresTestRepository[OperationsTestMode
     ) -> OperationsTestModel:
         """Создаёт и сохраняет новую покупку со статусом COMPLETED.
 
-        Переданные идентификаторы позволяют подготовить несколько операций
-        одного пользователя или одного счёта. Остальные поля заполняются
-        генератором тестовых данных. Тип операции всегда PURCHASE.
+        Неуказанные поля заполняются генератором тестовых данных.
 
         Args:
             user_id: Идентификатор пользователя. При None генерируется
@@ -193,9 +226,8 @@ def get_operations_postgres_test_repository(
 ) -> OperationsPostgresTestRepository:
     """Создаёт репозиторий с настроенной фабрикой сессий Operations.
 
-    Каждый вызов возвращает новый объект репозитория, использующий общую
-    operations_test_session_factory. Созданием и закрытием сессий управляют
-    методы базового репозитория при выполнении операций с БД.
+    Возвращает новый репозиторий с общей operations_test_session_factory.
+    Его методы создают и закрывают сессию на каждую операцию с БД.
 
     Args:
         cleanup_manager: Реестр одного теста для удаления вставленных операций.

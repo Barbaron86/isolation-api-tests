@@ -16,7 +16,7 @@ class CleanupAction:
     """
 
     description: str
-    callback: Callable[[], None]
+    callback: Callable[[], object]
 
 
 class CleanupManager:
@@ -33,7 +33,7 @@ class CleanupManager:
 
     def add(
         self,
-        callback: Callable[..., None],
+        callback: Callable[..., object],
         *args: Any,
         description: str,
         **kwargs: Any,
@@ -41,7 +41,8 @@ class CleanupManager:
         """Запоминает вызов, не выполняя его при регистрации.
 
         Args:
-            callback: Метод или функция очистки.
+            callback: Синхронный метод или функция; результат игнорируется.
+                Coroutine callbacks не поддерживаются и не ожидаются.
             *args: Позиционные аргументы будущего вызова.
             description: Описание ресурса без паролей и содержимого записи.
             **kwargs: Именованные аргументы будущего вызова.
@@ -54,11 +55,15 @@ class CleanupManager:
         return tuple(action.description for action in self._actions)
 
     def cleanup(self) -> None:
-        """Выполняет все действия LIFO и опустошает реестр.
+        """Выполняет действия динамического стека LIFO до опустошения.
 
+        Действия, добавленные callback во время очистки, выполняются раньше
+        оставшихся старых действий. Обычные исключения не прерывают очистку.
         Повторный вызов пустого менеджера ничего не делает. Неуспешное действие
         также снимается с регистрации: автоматического повторного удаления нет.
-        Прерывание процесса и KeyboardInterrupt не подавляются.
+        BaseException, включая KeyboardInterrupt и SystemExit, прерывает обход:
+        ещё не начатые действия остаются в реестре. Аварийное завершение процесса
+        не гарантирует очистку.
 
         Raises:
             ExceptionGroup: Если хотя бы одно действие завершилось ошибкой.

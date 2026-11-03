@@ -15,8 +15,8 @@ ModelT = TypeVar("ModelT", bound=BaseTestModel)
 class PostgresTestRepository(Generic[ModelT]):
     """Выполняет операции ORM через короткоживущие сессии.
 
-    Каждая запись фиксируется отдельно. Закрытие сессии и последующий rollback
-    другой транзакции не удаляют уже сохранённые строки.
+    Каждый блок session_write фиксирует отдельную транзакцию. Закрытие сессии
+    и rollback последующего вызова не удаляют ранее сохранённые строки.
 
     Attributes:
         session_factory: Настроенная фабрика сессий SQLAlchemy.
@@ -53,8 +53,8 @@ class PostgresTestRepository(Generic[ModelT]):
             Сессия, которая будет закрыта после commit или rollback.
 
         Raises:
-            Exception: Передаёт ошибку операции или commit после попытки
-                rollback. SQLAlchemy также может сообщить ошибку закрытия.
+            Exception: Ошибка операции или commit вызывает rollback.
+                Собственная ошибка rollback или close может заменить исходную.
         """
         session = self.session_factory()
         try:

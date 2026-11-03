@@ -1,83 +1,48 @@
+from math import ceil
+
 from sqlalchemy import create_engine
+from sqlalchemy.engine import make_url
 from sqlalchemy.orm import sessionmaker, Session
 
 from tests.tools.config.postgres import PostgresClientTestConfig
 
 
 def get_postgres_test_session_factory(config: PostgresClientTestConfig) -> sessionmaker[Session]:
-    """
-    Фабрика создания sessionmaker для тестового слоя.
+    """Создаёт фабрику с ограничениями пула, подключения и SQL-запроса.
 
-    Это единственное место, где:
-    - создаётся SQLAlchemy engine;
-    - применяется конфигурация подключения к Postgres;
-    - фиксируется поведение ORM-сессий в тестах.
+    Пределы относятся к отдельным этапам, а не к общей длительности вызова.
+    Синхронный драйвер не гарантирует жёсткий сетевой дедлайн; например,
+    statement_timeout действует на сервере и не прерывает потерю ответа в сети.
 
-    Тестовый код и repository:
-    - не знают, откуда берётся DSN;
-    - не читают переменные окружения напрямую;
-    - работают только с типизированной конфигурацией тестового окружения.
+    Args:
+        config: DSN, логирование и отдельные пределы PostgreSQL.
+
+    Returns:
+        Фабрика с общим для её потребителей engine. Repository создаёт отдельную
+        Session на вызов, управляет транзакцией и закрывает её. Отключённый autoflush
+        оставляет момент INSERT явным; expire_on_commit=False позволяет читать
+        подготовленную ORM-модель после commit. Готовую Session между потоками
+        или процессами не разделяют.
     """
+    connection_options = " ".join(make_url(str(config.dsn)).normalized_query.get("options", ()))
+    statement_timeout_ms = max(1, ceil(config.statement_timeout * 1000))
+    connection_options = f"{connection_options} -c statement_timeout={statement_timeout_ms}".strip()
 
     engine = create_engine(
-        # DSN приводим к строке явно, чтобы:
-        # - избежать неявных преобразований;
-        # - зафиксировать контракт между конфигурацией и SQLAlchemy.
         url=str(config.dsn),
-
-        # echo управляет логированием SQL-запросов.
-        #
-        # В тестовом окружении это полезно для отладки:
-        # при падении теста можно увидеть, какие запросы
-        # реально выполнялись.
-        #
-        # Включается и выключается конфигурацией,
-        # а не кодом клиентов.
         echo=config.echo,
-
-        # future=True включает "2.0-style" поведение SQLAlchemy.
-        #
-        # Это делает API более явным и предсказуемым
-        # и избавляет от неявных legacy-поведенческих особенностей.
         future=True,
-
-        # pool_pre_ping=True заставляет SQLAlchemy
-        # проверять соединение перед использованием.
-        #
-        # Это защищает тесты от падений из-за "протухших"
-        # соединений в пуле, что особенно актуально
-        # при длительном запуске тестов.
         pool_pre_ping=True,
+        pool_timeout=config.pool_timeout,
+        connect_args={
+            "connect_timeout": config.connect_timeout,
+            "options": connection_options,
+        },
     )
 
     return sessionmaker(
-        # Привязываем sessionmaker к конкретному engine.
-        # Repository не знает деталей подключения —
-        # он работает только с фабрикой сессий.
         bind=engine,
-
-        # autoflush=False отключает автоматический flush
-        # перед выполнением запросов.
-        #
-        # В тестах мы хотим:
-        # - явно контролировать момент записи в БД;
-        # - избегать неочевидных побочных эффектов
-        #   при чтении данных.
         autoflush=False,
-
-        # autocommit=False фиксирует явную транзакционную модель.
-        #
-        # Все изменения либо коммитятся явно,
-        # либо откатываются при ошибке.
         autocommit=False,
-
-        # expire_on_commit=False запрещает "протухание"
-        # объектов после commit.
-        #
-        # Это важно в тестах, где мы часто:
-        # - создаём объект;
-        # - коммитим транзакцию;
-        # - сразу используем этот объект
-        #   для дальнейших проверок.
         expire_on_commit=False,
     )
