@@ -22,10 +22,13 @@ Read only the pointers relevant to the task. Paths below are repository-relative
 | Assertions / examples | [tests/assertions/base.py](tests/assertions/base.py), domain helpers under [tests/assertions/](tests/assertions/), and suites under [tests/suites/](tests/suites/). Assertions compose response, aggregate and entity checks. |
 | Mocks / scenarios | [tests/mock/](tests/mock/), [tests/context/base.py](tests/context/base.py), [tests/context/scenario.py](tests/context/scenario.py): JSON scenarios selected through `x-test-scenario`. [libs/context/](libs/context/) handles application-side context. |
 | Kafka / PostgreSQL | [Kafka producer](tests/clients/kafka/producer.py), [operation events](tests/clients/kafka/operations/producer.py), [test repositories](tests/clients/postgres/), and [Operations infrastructure](services/operations/services/). Database initialization lives in [migrations/postgres/](migrations/postgres/); Alembic migrations in [services/operations/migrations/](services/operations/migrations/). |
-| pytest / Allure / CI | [pytest.ini](pytest.ini), [tests/tools/allure.py](tests/tools/allure.py), and [isolation-tests.yml](.github/workflows/isolation-tests.yml): selection, reporting and CI commands. |
+| pytest / Allure / CI | [pytest.ini](pytest.ini), [tests/tools/allure.py](tests/tools/allure.py), and [isolation-tests.yml](.github/workflows/isolation-tests.yml): selection, reporting and CI commands. [scripts/stand/](scripts/stand/) separates Compose commands, readiness decisions, technical log filtering and diagnostic artifacts; the two stand CLI scripts delegate to these modules. |
 
 ## Local conventions
 
+- Use English for runtime diagnostics, exception messages and Allure step/title
+  templates. Use logging for diagnostics rather than print calls. Keep
+  explanatory Google-style docstrings in Russian.
 - Tests live under `tests/suites/<protocol>/test_<service>.py`. Registered markers
   are `gateway`, `operations` and `regression`; reuse existing test classes,
   Allure features, stories, titles and steps.
@@ -111,8 +114,13 @@ Read only the pointers relevant to the task. Paths below are repository-relative
   and registered actions, without verifying row existence. Keep retention policy
   separate from reporting. Put mandatory cleanup in a finally block around
   reporting. Later teardown errors cannot
-  change a cleanup decision already taken. Kafka-created rows are outside this
-  lifecycle; repositories constructed without a manager require caller cleanup.
+  change a cleanup decision already taken. Repositories constructed without a
+  manager require caller cleanup.
+- Kafka fixtures snapshot existing IDs and register deferred discovery before
+  publishing. Cleanup finds new IDs only for the test-owned user/card/account
+  combination and registers exact primary-key deletions with the same manager.
+  Preserve the baseline. Shared ownership is unsupported; late writes after the
+  reconciliation deadline remain an explicit limitation and need diagnostics.
 - When changing resource lifecycle, close clients/channels and clean only entities
   owned by the current test/run, including partial setup and failure paths.
   Preserve the original failure and useful diagnostics.
@@ -121,9 +129,22 @@ Read only the pointers relevant to the task. Paths below are repository-relative
   bounded deadline; a fixed sleep is not evidence of completed processing.
 - Do not republish an event while polling for its result. Avoid unrestricted
   retries that hide a delivery failure or service defect.
-- Introduce locking or parallel execution only after identifying shared state and
+- Use explicit `wait_for_operations` only for asynchronous scenarios; ordinary
+  `get_operations` remains one request. Both clients delegate the bounded count
+  loop to [operations_waiter.py](tests/tools/operations_waiter.py) through the
+  existing facade. Wait for count, then run domain assertions.
+  Protocol/schema/RPC errors and extra rows are failures, not retry conditions.
+  Event collections use controlled `(user_id, card_id)` pairs for matching and
+  check unique operation IDs. This pairing is a test-data precondition, not a
+  business identity or ordering guarantee.
+- Introduce locking only after identifying shared state and
   reproducing the relevant race. A thread lock does not isolate pytest processes,
   shared database records or messages in a Kafka topic.
+- Explicit two-worker execution is supported; local and CI defaults remain
+  sequential. Independent Operations tests require distinct user IDs, including
+  user-only reads. `Fake.uuid()` is independent of Faker seeds. Keep managers,
+  trackers and wrappers holding test-bound cleanup callbacks function-scoped;
+  prepare the stand and report environment once outside workers.
 
 ### Review expectations
 
@@ -150,6 +171,10 @@ python -m pytest -m regression --alluredir=./allure-results
 - pytest does not start the stand. Check readiness of required APIs/mocks, Kafka,
   PostgreSQL and successful initialization/migrations before integration tests.
   Follow README for image building and stand startup within task authorization.
+  Run `python scripts/wait_for_stand.py --compose-file docker-compose.yaml`
+  against the prepared local stand. Consumer readiness requires assigned
+  partitions and initialized positions; process start alone is insufficient.
+  Capture sanitized stand diagnostics before stopping a failing CI stand.
 - Choose checks appropriate to the change. Documentation needs link/content/diff
   checks; Compose changes need configuration validation; behavioral changes need
   focused execution and the relevant regression scope. Do not run application tests
