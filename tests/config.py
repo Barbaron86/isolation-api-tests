@@ -1,3 +1,6 @@
+"""Настройки клиентов и ограниченного ожидания асинхронных Operations-сценариев."""
+
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from tests.tools.config.grpc import GRPCClientTestConfig
@@ -9,11 +12,12 @@ from tests.tools.config.postgres import PostgresClientTestConfig
 
 
 class TestSettings(BaseSettings):
-    """
-    Корневая конфигурация тестового окружения.
+    """Загружает настройки тестового слоя из окружения и tests/.env.
 
-    Является единой точкой входа для всех настроек,
-    используемых в тестах и клиентах.
+    Attributes:
+        kafka_delivery_timeout: Срок подтверждения доставки одного события, секунды.
+        operations_processing_timeout: Срок появления операций через API, секунды.
+        operations_poll_interval: Пауза между чтениями неполной выборки, секунды.
     """
 
     model_config = SettingsConfigDict(
@@ -35,13 +39,9 @@ class TestSettings(BaseSettings):
     operations_grpc_client: GRPCClientTestConfig
     operations_kafka_client: KafkaClientTestConfig
 
-    operations_processing_wait_timeout: float
-    """
-    Таймаут ожидания асинхронной обработки операций.
-
-    Используется в event-driven тестах для ожидания
-    обработки событий перед синхронными проверками.
-    """
+    kafka_delivery_timeout: float = Field(default=10.0, gt=0, allow_inf_nan=False)
+    operations_processing_timeout: float = Field(default=10.0, gt=0, allow_inf_nan=False)
+    operations_poll_interval: float = Field(default=0.25, gt=0, allow_inf_nan=False)
 
 
 test_settings = TestSettings()

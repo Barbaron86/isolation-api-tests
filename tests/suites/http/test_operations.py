@@ -31,8 +31,9 @@ class TestOperationsHTTP:
             operations_kafka_producer_test_client: Клиент публикации событий операций.
         """
         operation_event = operations_kafka_producer_test_client.produce_in_progress_purchase_operation_event()
-        get_operations_response_data = operations_http_test_client.get_operations(
+        get_operations_response_data = operations_http_test_client.wait_for_operations(
             user_id=operation_event.user_id,
+            expected_count=1,
         )
 
         assert_get_operations_response_from_events(get_operations_response_data, [operation_event])
@@ -152,8 +153,9 @@ class TestOperationsHTTP:
             operations_kafka_producer_test_client: Клиент публикации событий операций.
         """
         operation_event = operations_kafka_producer_test_client.produce_completed_purchase_operation_event()
-        get_operations_response_data = operations_http_test_client.get_operations(
+        get_operations_response_data = operations_http_test_client.wait_for_operations(
             user_id=operation_event.user_id,
+            expected_count=1,
         )
 
         assert_get_operations_response_from_events(get_operations_response_data, [operation_event])
