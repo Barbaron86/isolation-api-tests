@@ -1,4 +1,7 @@
+"""Запуск Kafka-обработки Operations с локальным сигналом готовности."""
+
 import asyncio
+from pathlib import Path
 
 from services.operations.app.controllers.kafka import handle_operation_events
 from services.operations.services.kafka.consumer import (
@@ -10,9 +13,13 @@ from services.operations.services.postgres.repositories.operations import get_op
 
 
 async def consume():
+    """Создаёт топики и запускает consumer после удаления старого readiness."""
+    readiness_file = Path("/tmp/operations-kafka.ready")
+    readiness_file.unlink(missing_ok=True)
     operations_repository = get_operations_repository()
     operations_kafka_admin_client = get_operations_kafka_admin_client()
     operations_kafka_consumer_client = get_operations_kafka_consumer_client()
+    operations_kafka_consumer_client.readiness_file = readiness_file
 
     for topic in OperationsKafkaTopic:
         operations_kafka_admin_client.create_topic(

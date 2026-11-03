@@ -24,6 +24,12 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    healthcheck:
+      test: [ "CMD-SHELL", "kafka-topics --bootstrap-server localhost:9092 --list >/dev/null 2>&1" ]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
     container_name: kafka
 
 
@@ -57,9 +63,10 @@ services:
     volumes:
       - ./scripts:/scripts
       - ./migrations/postgres:/docker-entrypoint-initdb.d
-    command: >
-      bash -c "apt-get update && apt-get install -y dos2unix && dos2unix /scripts/postgres.sh && bash /scripts/postgres.sh"
-    depends_on: [ "postgres" ]
+    command: [ "bash", "-o", "pipefail", "-c", "tr -d '\\r' < /scripts/postgres.sh | bash" ]
+    depends_on:
+      postgres:
+        condition: service_healthy
     environment:
       PGPASSWORD: root
     container_name: postgres-init
@@ -107,18 +114,34 @@ services:
     <<: *python-service
     ports: [ "8002:8002" ]
     command: "services.operations.server.http"
+    depends_on:
+      postgres-migrator-operations:
+        condition: service_completed_successfully
     container_name: "http-operations"
 
   grpc-operations:
     <<: *python-service
     ports: [ "9002:9002" ]
     command: "services.operations.server.grpc"
+    depends_on:
+      postgres-migrator-operations:
+        condition: service_completed_successfully
     container_name: "grpc-operations"
 
   kafka-operations:
     <<: *python-service
     command: "services.operations.server.kafka"
-    depends_on: [ "kafka" ]
+    depends_on:
+      kafka:
+        condition: service_healthy
+      postgres-migrator-operations:
+        condition: service_completed_successfully
+    healthcheck:
+      test: [ "CMD", "python", "-c", "from pathlib import Path; raise SystemExit(not Path('/tmp/operations-kafka.ready').is_file())" ]
+      interval: 2s
+      timeout: 3s
+      retries: 35
+      start_period: 5s
     container_name: "kafka-operations"
 
 volumes:

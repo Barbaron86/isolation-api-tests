@@ -40,6 +40,9 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Wait for test stand readiness
+        run: python scripts/wait_for_stand.py --compose-file "$TEST_COMPOSE_FILE" --timeout 180
+
       # Метаданные собираются в среде тестов и передаются вместе с allure-results.
       - name: Write Allure environment
         run: python scripts/write_allure_environment.py
