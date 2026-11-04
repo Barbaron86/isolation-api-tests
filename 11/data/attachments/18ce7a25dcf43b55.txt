@@ -1,0 +1,7 @@
+Test: tests/suites/http/test_operations.py::TestOperationsHTTP::test_filter_by_user_id_completed_purchase_operation
+
+Registered cleanup actions:
+- Operations row id=1d5b2625-d7ec-41ff-88da-e4d376bd55a1
+- Operations row id=87daf30d-1a39-48a6-9fea-fb80ced84a91
+
+Row existence is not verified.

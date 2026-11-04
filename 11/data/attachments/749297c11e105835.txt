@@ -1,0 +1,40 @@
+INFO     sqlalchemy.engine.Engine:base.py:2698 BEGIN (implicit)
+INFO     sqlalchemy.engine.Engine:base.py:1842 SELECT set_config('statement_timeout', %(statement_timeout)s, true)
+INFO     sqlalchemy.engine.Engine:base.py:1842 [cached since 12.22s ago] {'statement_timeout': '10000ms'}
+INFO     sqlalchemy.engine.Engine:base.py:1842 SELECT operations.id 
+FROM operations 
+WHERE operations.user_id = %(user_id_1)s::UUID AND operations.card_id = %(card_id_1)s::UUID AND operations.account_id = %(account_id_1)s::UUID
+INFO     sqlalchemy.engine.Engine:base.py:1842 [cached since 12.22s ago] {'user_id_1': UUID('ce4633b9-6310-4ad7-a6ff-40551376ec1a'), 'card_id_1': UUID('1a782949-e53b-45e3-9ec4-b883283ecdd2'), 'account_id_1': UUID('4e68ef03-54d0-4a45-a208-ff2f2396152c')}
+INFO     sqlalchemy.engine.Engine:base.py:2701 ROLLBACK
+INFO     OPERATIONS_KAFKA_PRODUCER_TEST_CLIENT:producer.py:74 Kafka message enqueued: topic=operations-service.operation-event.inbox
+INFO     OPERATIONS_KAFKA_PRODUCER_TEST_CLIENT:producer.py:129 Kafka delivery confirmed: topic=operations-service.operation-event.inbox partition=0 offset=11 elapsed=0.052s
+INFO     OPERATION_HTTP_TEST_CLIENT:logger_event_hook.py:35 GET http://127.0.0.1:8002/api/v1/operations?userId=ce4633b9-6310-4ad7-a6ff-40551376ec1a - Waiting for response
+INFO     OPERATION_HTTP_TEST_CLIENT:logger_event_hook.py:45 GET http://127.0.0.1:8002/api/v1/operations?userId=ce4633b9-6310-4ad7-a6ff-40551376ec1a - Status 200
+INFO     BASE_ASSERTIONS:base.py:27 Check that "HTTP status code" equals to 200
+INFO     OPERATIONS_ASSERTIONS:operations.py:76 Check get operations response from events
+INFO     BASE_ASSERTIONS:base.py:27 Check that "operations count" equals to 1
+INFO     BASE_ASSERTIONS:base.py:27 Check that "unique operation keys" equals to 1
+INFO     BASE_ASSERTIONS:base.py:27 Check that "unique event keys" equals to 1
+INFO     BASE_ASSERTIONS:base.py:27 Check that "unique operation ids" equals to 1
+INFO     BASE_ASSERTIONS:base.py:27 Check that "operation event keys" equals to {(UUID('ce4633b9-6310-4ad7-a6ff-40551376ec1a'), UUID('1a782949-e53b-45e3-9ec4-b883283ecdd2'))}
+INFO     OPERATIONS_ASSERTIONS:operations.py:29 Check operation from event
+INFO     BASE_ASSERTIONS:base.py:27 Check that "type" equals to PURCHASE
+INFO     BASE_ASSERTIONS:base.py:27 Check that "status" equals to COMPLETED
+INFO     BASE_ASSERTIONS:base.py:27 Check that "amount" equals to 817.77
+INFO     BASE_ASSERTIONS:base.py:27 Check that "user_id" equals to ce4633b9-6310-4ad7-a6ff-40551376ec1a
+INFO     BASE_ASSERTIONS:base.py:27 Check that "card_id" equals to 1a782949-e53b-45e3-9ec4-b883283ecdd2
+INFO     BASE_ASSERTIONS:base.py:27 Check that "category" equals to catalog
+INFO     BASE_ASSERTIONS:base.py:27 Check that "created_at" equals to 2015-02-03 17:40:32.215744
+INFO     BASE_ASSERTIONS:base.py:27 Check that "account_id" equals to 4e68ef03-54d0-4a45-a208-ff2f2396152c
+INFO     sqlalchemy.engine.Engine:base.py:2698 BEGIN (implicit)
+INFO     sqlalchemy.engine.Engine:base.py:1842 SELECT set_config('statement_timeout', %(statement_timeout)s, true)
+INFO     sqlalchemy.engine.Engine:base.py:1842 [cached since 12.29s ago] {'statement_timeout': '10000ms'}
+INFO     sqlalchemy.engine.Engine:base.py:1842 SELECT operations.id 
+FROM operations 
+WHERE operations.user_id = %(user_id_1)s::UUID AND operations.card_id = %(card_id_1)s::UUID AND operations.account_id = %(account_id_1)s::UUID
+INFO     sqlalchemy.engine.Engine:base.py:1842 [cached since 12.29s ago] {'user_id_1': UUID('ce4633b9-6310-4ad7-a6ff-40551376ec1a'), 'card_id_1': UUID('1a782949-e53b-45e3-9ec4-b883283ecdd2'), 'account_id_1': UUID('4e68ef03-54d0-4a45-a208-ff2f2396152c')}
+INFO     sqlalchemy.engine.Engine:base.py:2701 ROLLBACK
+INFO     sqlalchemy.engine.Engine:base.py:2698 BEGIN (implicit)
+INFO     sqlalchemy.engine.Engine:base.py:1842 DELETE FROM operations WHERE operations.id = %(id_1)s::UUID
+INFO     sqlalchemy.engine.Engine:base.py:1842 [cached since 12.34s ago] {'id_1': UUID('7f3cadf5-72c5-484e-b339-65ce2fad4cc2')}
+INFO     sqlalchemy.engine.Engine:base.py:2704 COMMIT

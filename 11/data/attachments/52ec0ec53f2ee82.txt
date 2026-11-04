@@ -1,0 +1,7 @@
+Test: tests/suites/grpc/test_operations.py::TestOperationsGRPC::test_operation_events_filters_by_card_id
+
+Registered cleanup actions:
+- Kafka Operations owner user=5c3bb93c-d19c-4cee-b83f-54441c20fb23 card=2d3d4102-6853-4917-ac25-b8822b689c71 account=1407502b-6396-48e6-905b-96f615d947d2
+- Kafka Operations owner user=5c3bb93c-d19c-4cee-b83f-54441c20fb23 card=5bf88ee6-8a09-4e24-ab9d-a0707ffb01d8 account=1407502b-6396-48e6-905b-96f615d947d2
+
+Row existence is not verified.

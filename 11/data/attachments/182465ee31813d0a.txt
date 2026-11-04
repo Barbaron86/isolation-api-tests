@@ -1,0 +1,13 @@
+INFO     GATEWAY_HTTP_TEST_CLIENT:logger_event_hook.py:35 GET http://127.0.0.1:8001/api/v1/gateway/user-details/6e0a581c-57d4-4b81-9c67-14a4134ea02a - Waiting for response
+INFO     GATEWAY_HTTP_TEST_CLIENT:logger_event_hook.py:45 GET http://127.0.0.1:8001/api/v1/gateway/user-details/6e0a581c-57d4-4b81-9c67-14a4134ea02a - Status 200
+INFO     BASE_ASSERTIONS:base.py:27 Check that "HTTP status code" equals to 200
+INFO     GATEWAY_ASSERTIONS:gateway.py:136 Check get user details response
+INFO     GATEWAY_ASSERTIONS:gateway.py:72 Check user details
+INFO     USERS_ASSERTIONS:users.py:12 Check user
+INFO     BASE_ASSERTIONS:base.py:27 Check that "id" equals to 6e0a581c-57d4-4b81-9c67-14a4134ea02a
+INFO     BASE_ASSERTIONS:base.py:27 Check that "email" equals to pavel.smirnov@example.com
+INFO     BASE_ASSERTIONS:base.py:27 Check that "last_name" equals to Смирнов
+INFO     BASE_ASSERTIONS:base.py:27 Check that "first_name" equals to Павел
+INFO     BASE_ASSERTIONS:base.py:27 Check that "middle_name" equals to Олегович
+INFO     BASE_ASSERTIONS:base.py:27 Check that "phone_number" equals to +79001112233
+INFO     BASE_ASSERTIONS:base.py:27 Check that "accounts count" equals to 0

@@ -1,0 +1,4 @@
+INFO     GATEWAY_HTTP_TEST_CLIENT:logger_event_hook.py:35 GET http://127.0.0.1:8001/api/v1/gateway/account-details/00000000-0000-4000-8000-000000000098 - Waiting for response
+INFO     GATEWAY_HTTP_TEST_CLIENT:logger_event_hook.py:45 GET http://127.0.0.1:8001/api/v1/gateway/account-details/00000000-0000-4000-8000-000000000098 - Status 404
+INFO     BASE_ASSERTIONS:base.py:27 Check that "HTTP status code" equals to 404
+INFO     BASE_ASSERTIONS:base.py:51 Check that "Gateway error detail" contains 'Account with id 00000000-0000-4000-8000-000000000098 not found'
