@@ -82,6 +82,9 @@ Read only the pointers relevant to the task. Paths below are repository-relative
   related collection. Their prepared IDs differ from the populated scenarios.
   Scenario JSONs are operation- and protocol-specific; adding an enum member does
   not make it available in every HTTP/gRPC mock operation.
+- USER_WITH_MULTIPLE_ACCOUNTS and ACCOUNT_WITH_MIXED_CARDS prepare matching and
+  nonmatching records for HTTP Gateway. Keep expected IDs independent of responses;
+  verify exact membership, unique IDs and entity fields without assuming list order.
 - HTTP dependency-failure scenarios explicitly return 503 from Users.GetUser,
   Accounts.GetAccounts, Cards.GetCards or Accounts.GetAccount. Prepare a normal
   first-dependency response when the second call must fail. These are constant

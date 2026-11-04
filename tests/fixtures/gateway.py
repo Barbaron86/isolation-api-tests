@@ -53,6 +53,26 @@ def account_without_cards_id() -> UUID:
 
 
 @pytest.fixture
+def user_with_multiple_accounts_id() -> UUID:
+    """Задаёт ID пользователя с несколькими счетами в HTTP-сценарии.
+
+    Returns:
+        Независимый от ответа UUID владельца двух подходящих счетов.
+    """
+    return UUID("f936dd1a-294f-46b5-9b13-b2a84453fed0")
+
+
+@pytest.fixture
+def account_with_mixed_cards_id() -> UUID:
+    """Задаёт ID счёта с картами среди записей разных счетов в HTTP-моке.
+
+    Returns:
+        UUID подготовленного дебетового счёта пользователя с несколькими счетами.
+    """
+    return UUID("7f86a8d5-2d3e-4e16-99ef-b06c53f4ea41")
+
+
+@pytest.fixture
 def unknown_user_id() -> UUID:
     """Задаёт ID пользователя, отсутствующий в HTTP-мок-сценариях.
 

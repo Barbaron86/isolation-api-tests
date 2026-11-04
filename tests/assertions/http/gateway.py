@@ -69,63 +69,40 @@ def assert_gateway_not_found_response(actual: Response, *, expected_detail: str)
 
 @allure.step("Check user details")
 def assert_user_details(actual: UserDetailsTestSchema, expected: UserDetailsTestSchema) -> None:
+    """Сравнивает пользователя и состав его счетов независимо от порядка.
+
+    Args:
+        actual: Полученный агрегат пользователя и счетов.
+        expected: Независимо подготовленные поля пользователя и ожидаемые счета.
+    """
     logger.info("Check user details")
-
-    # UserDetails — агрегат верхнего уровня:
-    # пользователь + связанные с ним счета.
-    #
-    # Проверка строится композиционно:
-    # сначала проверяется пользователь как отдельная доменная сущность,
-    # затем — список счетов.
-    #
-    # Такой порядок отражает бизнес-смысл данных,
-    # а не случайную структуру JSON-ответа.
     assert_user(actual.user, expected.user)
-
-    # Количество счетов — часть контракта сценария.
-    # Мы явно фиксируем ожидание по длине списка,
-    # чтобы не "молча" пройти лишние или недостающие элементы.
     assert_equal(len(actual.accounts), len(expected.accounts), "accounts count")
-
-    # Далее мы проходимся по списку счетов циклом.
-    #
-    # Это допустимо и безопасно в рамках курса,
-    # потому что:
-    # - данные приходят из сценарных моков;
-    # - набор счетов детерминирован и фиксирован;
-    # - порядок элементов стабилен и не флакает.
-    #
-    # В реальных системах с нефиксированным порядком
-    # здесь потребовалась бы сортировка или матчинг по ключам,
-    # но в изоляционном контуре курса это сознательно не нужно.
-    for index, account in enumerate(expected.accounts):
-        assert_account(actual.accounts[index], account)
+    accounts_by_id = {account.id: account for account in actual.accounts}
+    expected_account_ids = {account.id for account in expected.accounts}
+    assert_equal(len(accounts_by_id), len(actual.accounts), "unique account ids")
+    assert_equal(set(accounts_by_id), expected_account_ids, "account ids")
+    for account in expected.accounts:
+        assert_account(accounts_by_id[account.id], account)
 
 
 @allure.step("Check account details")
 def assert_account_details(actual: AccountDetailsTestSchema, expected: AccountDetailsTestSchema) -> None:
+    """Сравнивает счёт и состав его карт независимо от порядка.
+
+    Args:
+        actual: Полученный агрегат счёта и карт.
+        expected: Независимо подготовленные поля счёта и ожидаемые карты.
+    """
     logger.info("Check account details")
-
-    # AccountDetails — агрегат:
-    # счёт + связанные с ним карты.
-    #
-    # Проверка начинается с базовой сущности счёта,
-    # так как именно она задаёт контекст для всех карт.
     assert_account(actual.account, expected.account)
-
-    # Аналогично проверке счетов пользователя,
-    # количество карт является частью сценарного контракта.
     assert_equal(len(actual.cards), len(expected.cards), "cards count")
-
-    # Циклическая проверка списка карт допустима по тем же причинам:
-    # - данные приходят из фиксированных моков;
-    # - сценарий задаёт стабильный порядок;
-    # - результат не зависит от времени или внешнего состояния.
-    #
-    # Это позволяет писать проверки прямо и читаемо,
-    # без усложнения логики теста.
-    for index, card in enumerate(expected.cards):
-        assert_card(actual.cards[index], card)
+    cards_by_id = {card.id: card for card in actual.cards}
+    expected_card_ids = {card.id for card in expected.cards}
+    assert_equal(len(cards_by_id), len(actual.cards), "unique card ids")
+    assert_equal(set(cards_by_id), expected_card_ids, "card ids")
+    for card in expected.cards:
+        assert_card(cards_by_id[card.id], card)
 
 
 @allure.step("Check get user details response")
@@ -298,6 +275,103 @@ def assert_get_account_details_response_account_without_cards(
                 balance=2500.5,
             ),
             cards=[],
+        )
+    )
+    assert_get_account_details_response(actual, expected)
+
+
+@allure.step("Check get user details response. User with multiple accounts")
+def assert_get_user_details_response_user_with_multiple_accounts(
+        actual: GetUserDetailsResponseTestSchema,
+        *,
+        expected_user_id: UUID,
+) -> None:
+    """Проверяет пользователя и два его счёта без записи другого владельца.
+
+    Args:
+        actual: Разобранный успешный HTTP-ответ Gateway.
+        expected_user_id: ID подготовленного пользователя из запроса теста.
+    """
+    expected = GetUserDetailsResponseTestSchema(
+        details=UserDetailsTestSchema(
+            user=UserTestSchema(
+                id=expected_user_id,
+                email="maria.orlova@example.com",
+                last_name="Орлова",
+                first_name="Мария",
+                middle_name="Сергеевна",
+                phone_number="+79002223344",
+            ),
+            accounts=[
+                AccountTestSchema(
+                    id="7f86a8d5-2d3e-4e16-99ef-b06c53f4ea41",
+                    type=AccountTestType.DEBIT_CARD,
+                    status=AccountTestStatus.ACTIVE,
+                    user_id=expected_user_id,
+                    balance=1200.5,
+                ),
+                AccountTestSchema(
+                    id="c194ea82-e487-4c80-b9a4-42f6ed4ed822",
+                    type=AccountTestType.CREDIT_CARD,
+                    status=AccountTestStatus.ACTIVE,
+                    user_id=expected_user_id,
+                    balance=-3500.75,
+                ),
+            ],
+        )
+    )
+    assert_get_user_details_response(actual, expected)
+
+
+@allure.step("Check get account details response. Cards belong to requested account")
+def assert_get_account_details_response_account_with_mixed_cards(
+        actual: GetAccountDetailsResponseTestSchema,
+        *,
+        expected_account_id: UUID,
+        expected_user_id: UUID,
+) -> None:
+    """Проверяет счёт и его две карты без карты другого счёта.
+
+    Args:
+        actual: Разобранный успешный HTTP-ответ Gateway.
+        expected_account_id: ID подготовленного счёта из запроса теста.
+        expected_user_id: Независимый ID владельца подготовленного счёта.
+    """
+    expected = GetAccountDetailsResponseTestSchema(
+        details=AccountDetailsTestSchema(
+            account=AccountTestSchema(
+                id=expected_account_id,
+                type=AccountTestType.DEBIT_CARD,
+                status=AccountTestStatus.ACTIVE,
+                user_id=expected_user_id,
+                balance=1200.5,
+            ),
+            cards=[
+                CardTestSchema(
+                    id="ea6c9b9b-0bb8-4c67-b001-760b59cf907c",
+                    pin="1234",
+                    cvv="123",
+                    type=CardTestType.VIRTUAL,
+                    status=CardTestStatus.ACTIVE,
+                    account_id=expected_account_id,
+                    card_number="4242424242424242",
+                    card_holder="MARIA ORLOVA",
+                    expiry_date=date(2029, 4, 30),
+                    payment_system=CardTestPaymentSystem.VISA,
+                ),
+                CardTestSchema(
+                    id="8c3c69bc-a9f5-4819-bd84-a58c1c55d6c9",
+                    pin="2345",
+                    cvv="234",
+                    type=CardTestType.PHYSICAL,
+                    status=CardTestStatus.ACTIVE,
+                    account_id=expected_account_id,
+                    card_number="5555555555554444",
+                    card_holder="MARIA ORLOVA",
+                    expiry_date=date(2030, 6, 30),
+                    payment_system=CardTestPaymentSystem.MASTERCARD,
+                ),
+            ],
         )
     )
     assert_get_account_details_response(actual, expected)

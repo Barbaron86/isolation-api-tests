@@ -1,0 +1,40 @@
+{
+  "cards": [
+    {
+      "id": "8c3c69bc-a9f5-4819-bd84-a58c1c55d6c9",
+      "pin": "2345",
+      "cvv": "234",
+      "type": "PHYSICAL",
+      "status": "ACTIVE",
+      "accountId": "7f86a8d5-2d3e-4e16-99ef-b06c53f4ea41",
+      "cardNumber": "5555555555554444",
+      "cardHolder": "MARIA ORLOVA",
+      "expiryDate": "2030-06-30",
+      "paymentSystem": "MASTERCARD"
+    },
+    {
+      "id": "11111111-aaaa-4bbb-8ccc-222222222222",
+      "pin": "1234",
+      "cvv": "456",
+      "type": "VIRTUAL",
+      "status": "ACTIVE",
+      "accountId": "99999999-aaaa-4bbb-8ccc-000000000001",
+      "cardNumber": "4111111111111111",
+      "cardHolder": "IVAN PETROV",
+      "expiryDate": "2027-12-31",
+      "paymentSystem": "VISA"
+    },
+    {
+      "id": "ea6c9b9b-0bb8-4c67-b001-760b59cf907c",
+      "pin": "1234",
+      "cvv": "123",
+      "type": "VIRTUAL",
+      "status": "ACTIVE",
+      "accountId": "7f86a8d5-2d3e-4e16-99ef-b06c53f4ea41",
+      "cardNumber": "4242424242424242",
+      "cardHolder": "MARIA ORLOVA",
+      "expiryDate": "2029-04-30",
+      "paymentSystem": "VISA"
+    }
+  ]
+}

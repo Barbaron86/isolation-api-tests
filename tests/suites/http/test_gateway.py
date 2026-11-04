@@ -11,6 +11,8 @@ from tests.assertions.http.gateway import (
     assert_get_account_details_response_user_with_active_debit_card_account,
     assert_get_user_details_response_user_without_accounts,
     assert_get_account_details_response_account_without_cards,
+    assert_get_user_details_response_user_with_multiple_accounts,
+    assert_get_account_details_response_account_with_mixed_cards,
 )
 
 from tests.clients.http.gateway.client import GatewayHTTPTestClient
@@ -75,6 +77,29 @@ class TestGatewayHTTP:
         assert_get_user_details_response_user_without_accounts(
             get_user_details_response_data,
             expected_user_id=user_without_accounts_id,
+        )
+
+    @allure.story(AllureStory.GET_USER_DETAILS)
+    @allure.title("[HTTP] Get user details. User with multiple accounts")
+    def test_get_user_details_user_with_multiple_accounts(
+            self,
+            gateway_http_test_client: GatewayHTTPTestClient,
+            user_with_multiple_accounts_id: UUID,
+    ) -> None:
+        """Проверяет оба счёта пользователя и исключение счёта другого владельца.
+
+        Args:
+            gateway_http_test_client: Фикстура клиента Gateway HTTP API.
+            user_with_multiple_accounts_id: ID владельца двух подготовленных счетов.
+        """
+        get_user_details_response_data = gateway_http_test_client.get_user_details(
+            user_id=user_with_multiple_accounts_id,
+            context=RequestContext(scenario=Scenario.USER_WITH_MULTIPLE_ACCOUNTS),
+        )
+
+        assert_get_user_details_response_user_with_multiple_accounts(
+            get_user_details_response_data,
+            expected_user_id=user_with_multiple_accounts_id,
         )
 
     @allure.story(AllureStory.GET_USER_DETAILS)
@@ -148,6 +173,32 @@ class TestGatewayHTTP:
         assert_get_account_details_response_account_without_cards(
             get_account_details_response_data,
             expected_account_id=account_without_cards_id,
+        )
+
+    @allure.story(AllureStory.GET_ACCOUNT_DETAILS)
+    @allure.title("[HTTP] Get account details. Cards belong to requested account")
+    def test_get_account_details_cards_belong_to_account(
+            self,
+            gateway_http_test_client: GatewayHTTPTestClient,
+            account_with_mixed_cards_id: UUID,
+            user_with_multiple_accounts_id: UUID,
+    ) -> None:
+        """Проверяет две карты запрошенного счёта и исключение карты другого счёта.
+
+        Args:
+            gateway_http_test_client: Фикстура клиента Gateway HTTP API.
+            account_with_mixed_cards_id: ID подготовленного дебетового счёта.
+            user_with_multiple_accounts_id: ID владельца подготовленного счёта.
+        """
+        get_account_details_response_data = gateway_http_test_client.get_account_details(
+            account_id=account_with_mixed_cards_id,
+            context=RequestContext(scenario=Scenario.ACCOUNT_WITH_MIXED_CARDS),
+        )
+
+        assert_get_account_details_response_account_with_mixed_cards(
+            get_account_details_response_data,
+            expected_account_id=account_with_mixed_cards_id,
+            expected_user_id=user_with_multiple_accounts_id,
         )
 
     @allure.story(AllureStory.GET_ACCOUNT_DETAILS)

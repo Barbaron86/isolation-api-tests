@@ -1,0 +1,25 @@
+{
+  "accounts": [
+    {
+      "id": "c194ea82-e487-4c80-b9a4-42f6ed4ed822",
+      "type": "CREDIT_CARD",
+      "status": "ACTIVE",
+      "userId": "f936dd1a-294f-46b5-9b13-b2a84453fed0",
+      "balance": -3500.75
+    },
+    {
+      "id": "99999999-aaaa-4bbb-8ccc-000000000001",
+      "type": "CREDIT_CARD",
+      "status": "ACTIVE",
+      "userId": "8b0e7c2a-1b6a-4e5d-9f1a-1b3f2a7c9e21",
+      "balance": -15230.75
+    },
+    {
+      "id": "7f86a8d5-2d3e-4e16-99ef-b06c53f4ea41",
+      "type": "DEBIT_CARD",
+      "status": "ACTIVE",
+      "userId": "f936dd1a-294f-46b5-9b13-b2a84453fed0",
+      "balance": 1200.5
+    }
+  ]
+}
