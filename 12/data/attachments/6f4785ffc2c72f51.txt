@@ -1,0 +1,14 @@
+INFO     GATEWAY_HTTP_TEST_CLIENT:logger_event_hook.py:35 GET http://127.0.0.1:8001/api/v1/gateway/account-details/a7c43c93-7f5e-4bea-935d-9206715e8742 - Waiting for response
+INFO     GATEWAY_HTTP_TEST_CLIENT:logger_event_hook.py:45 GET http://127.0.0.1:8001/api/v1/gateway/account-details/a7c43c93-7f5e-4bea-935d-9206715e8742 - Status 200
+INFO     BASE_ASSERTIONS:base.py:25 Check that "HTTP status code" equals 200
+INFO     GATEWAY_ASSERTIONS:gateway.py:129 Check get account details response
+INFO     GATEWAY_ASSERTIONS:gateway.py:97 Check account details
+INFO     ACCOUNTS_ASSERTIONS:accounts.py:12 Check account
+INFO     BASE_ASSERTIONS:base.py:25 Check that "id" equals a7c43c93-7f5e-4bea-935d-9206715e8742
+INFO     BASE_ASSERTIONS:base.py:25 Check that "type" equals DEBIT_CARD
+INFO     BASE_ASSERTIONS:base.py:25 Check that "status" equals ACTIVE
+INFO     BASE_ASSERTIONS:base.py:25 Check that "user_id" equals e8a351ec-3c79-46b4-a152-95b0aac90d3f
+INFO     BASE_ASSERTIONS:base.py:25 Check that "balance" equals 2500.5
+INFO     BASE_ASSERTIONS:base.py:25 Check that "cards count" equals 0
+INFO     BASE_ASSERTIONS:base.py:25 Check that "unique card ids" equals 0
+INFO     BASE_ASSERTIONS:base.py:25 Check that "card ids" equals set()

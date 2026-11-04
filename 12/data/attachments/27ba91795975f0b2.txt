@@ -1,0 +1,89 @@
+INFO     sqlalchemy.engine.Engine:base.py:2698 BEGIN (implicit)
+INFO     sqlalchemy.engine.Engine:base.py:1842 SELECT set_config('statement_timeout', %(statement_timeout)s, true)
+INFO     sqlalchemy.engine.Engine:base.py:1842 [cached since 13.17s ago] {'statement_timeout': '10000ms'}
+INFO     sqlalchemy.engine.Engine:base.py:1842 SELECT operations.id 
+FROM operations 
+WHERE operations.user_id = %(user_id_1)s::UUID AND operations.card_id = %(card_id_1)s::UUID AND operations.account_id = %(account_id_1)s::UUID
+INFO     sqlalchemy.engine.Engine:base.py:1842 [cached since 13.17s ago] {'user_id_1': UUID('35ceec40-bef0-45a6-b857-95713413390a'), 'card_id_1': UUID('ad5921bc-abdb-4470-8283-dec67247401b'), 'account_id_1': UUID('68e06ae2-3017-4f03-b78b-f913a1082bb0')}
+INFO     sqlalchemy.engine.Engine:base.py:2701 ROLLBACK
+INFO     OPERATIONS_KAFKA_PRODUCER_TEST_CLIENT:producer.py:74 Kafka message enqueued: topic=operations-service.operation-event.inbox
+INFO     OPERATIONS_KAFKA_PRODUCER_TEST_CLIENT:producer.py:129 Kafka delivery confirmed: topic=operations-service.operation-event.inbox partition=0 offset=18 elapsed=0.051s
+INFO     sqlalchemy.engine.Engine:base.py:2698 BEGIN (implicit)
+INFO     sqlalchemy.engine.Engine:base.py:1842 SELECT set_config('statement_timeout', %(statement_timeout)s, true)
+INFO     sqlalchemy.engine.Engine:base.py:1842 [cached since 13.23s ago] {'statement_timeout': '9999ms'}
+INFO     sqlalchemy.engine.Engine:base.py:1842 SELECT operations.id 
+FROM operations 
+WHERE operations.user_id = %(user_id_1)s::UUID AND operations.card_id = %(card_id_1)s::UUID AND operations.account_id = %(account_id_1)s::UUID
+INFO     sqlalchemy.engine.Engine:base.py:1842 [cached since 13.23s ago] {'user_id_1': UUID('35ceec40-bef0-45a6-b857-95713413390a'), 'card_id_1': UUID('eae8b3e2-0811-43d0-b2f3-389321e0ca46'), 'account_id_1': UUID('ec15d673-9ee7-4f57-b6b3-bb1d7af16779')}
+INFO     sqlalchemy.engine.Engine:base.py:2701 ROLLBACK
+INFO     OPERATIONS_KAFKA_PRODUCER_TEST_CLIENT:producer.py:74 Kafka message enqueued: topic=operations-service.operation-event.inbox
+INFO     OPERATIONS_KAFKA_PRODUCER_TEST_CLIENT:producer.py:129 Kafka delivery confirmed: topic=operations-service.operation-event.inbox partition=0 offset=19 elapsed=0.001s
+INFO     OPERATION_HTTP_TEST_CLIENT:logger_event_hook.py:35 GET http://127.0.0.1:8002/api/v1/operations?userId=35ceec40-bef0-45a6-b857-95713413390a - Waiting for response
+INFO     OPERATION_HTTP_TEST_CLIENT:logger_event_hook.py:45 GET http://127.0.0.1:8002/api/v1/operations?userId=35ceec40-bef0-45a6-b857-95713413390a - Status 200
+INFO     BASE_ASSERTIONS:base.py:25 Check that "HTTP status code" equals 200
+INFO     OPERATIONS_ASSERTIONS:operations.py:76 Check get operations response from events
+INFO     BASE_ASSERTIONS:base.py:25 Check that "operations count" equals 2
+INFO     BASE_ASSERTIONS:base.py:25 Check that "unique operation keys" equals 2
+INFO     BASE_ASSERTIONS:base.py:25 Check that "unique event keys" equals 2
+INFO     BASE_ASSERTIONS:base.py:25 Check that "unique operation ids" equals 2
+INFO     BASE_ASSERTIONS:base.py:25 Check that "operation event keys" equals {(UUID('35ceec40-bef0-45a6-b857-95713413390a'), UUID('ad5921bc-abdb-4470-8283-dec67247401b')), (UUID('35ceec40-bef0-45a6-b857-95713413390a'), UUID('eae8b3e2-0811-43d0-b2f3-389321e0ca46'))}
+INFO     OPERATIONS_ASSERTIONS:operations.py:29 Check operation from event
+INFO     BASE_ASSERTIONS:base.py:25 Check that "type" equals PURCHASE
+INFO     BASE_ASSERTIONS:base.py:25 Check that "status" equals IN_PROGRESS
+INFO     BASE_ASSERTIONS:base.py:25 Check that "amount" equals 101.0
+INFO     BASE_ASSERTIONS:base.py:25 Check that "user_id" equals 35ceec40-bef0-45a6-b857-95713413390a
+INFO     BASE_ASSERTIONS:base.py:25 Check that "card_id" equals ad5921bc-abdb-4470-8283-dec67247401b
+INFO     BASE_ASSERTIONS:base.py:25 Check that "category" equals supermarkets
+INFO     BASE_ASSERTIONS:base.py:25 Check that "created_at" equals 2026-01-15 10:00:00
+INFO     BASE_ASSERTIONS:base.py:25 Check that "account_id" equals 68e06ae2-3017-4f03-b78b-f913a1082bb0
+INFO     OPERATIONS_ASSERTIONS:operations.py:29 Check operation from event
+INFO     BASE_ASSERTIONS:base.py:25 Check that "type" equals PURCHASE
+INFO     BASE_ASSERTIONS:base.py:25 Check that "status" equals COMPLETED
+INFO     BASE_ASSERTIONS:base.py:25 Check that "amount" equals 202.0
+INFO     BASE_ASSERTIONS:base.py:25 Check that "user_id" equals 35ceec40-bef0-45a6-b857-95713413390a
+INFO     BASE_ASSERTIONS:base.py:25 Check that "card_id" equals eae8b3e2-0811-43d0-b2f3-389321e0ca46
+INFO     BASE_ASSERTIONS:base.py:25 Check that "category" equals taxi
+INFO     BASE_ASSERTIONS:base.py:25 Check that "created_at" equals 2026-01-15 10:01:00
+INFO     BASE_ASSERTIONS:base.py:25 Check that "account_id" equals ec15d673-9ee7-4f57-b6b3-bb1d7af16779
+INFO     OPERATION_HTTP_TEST_CLIENT:logger_event_hook.py:35 GET http://127.0.0.1:8002/api/v1/operations?userId=35ceec40-bef0-45a6-b857-95713413390a&accountId=68e06ae2-3017-4f03-b78b-f913a1082bb0 - Waiting for response
+INFO     OPERATION_HTTP_TEST_CLIENT:logger_event_hook.py:45 GET http://127.0.0.1:8002/api/v1/operations?userId=35ceec40-bef0-45a6-b857-95713413390a&accountId=68e06ae2-3017-4f03-b78b-f913a1082bb0 - Status 200
+INFO     BASE_ASSERTIONS:base.py:25 Check that "HTTP status code" equals 200
+INFO     OPERATIONS_ASSERTIONS:operations.py:76 Check get operations response from events
+INFO     BASE_ASSERTIONS:base.py:25 Check that "operations count" equals 1
+INFO     BASE_ASSERTIONS:base.py:25 Check that "unique operation keys" equals 1
+INFO     BASE_ASSERTIONS:base.py:25 Check that "unique event keys" equals 1
+INFO     BASE_ASSERTIONS:base.py:25 Check that "unique operation ids" equals 1
+INFO     BASE_ASSERTIONS:base.py:25 Check that "operation event keys" equals {(UUID('35ceec40-bef0-45a6-b857-95713413390a'), UUID('ad5921bc-abdb-4470-8283-dec67247401b'))}
+INFO     OPERATIONS_ASSERTIONS:operations.py:29 Check operation from event
+INFO     BASE_ASSERTIONS:base.py:25 Check that "type" equals PURCHASE
+INFO     BASE_ASSERTIONS:base.py:25 Check that "status" equals IN_PROGRESS
+INFO     BASE_ASSERTIONS:base.py:25 Check that "amount" equals 101.0
+INFO     BASE_ASSERTIONS:base.py:25 Check that "user_id" equals 35ceec40-bef0-45a6-b857-95713413390a
+INFO     BASE_ASSERTIONS:base.py:25 Check that "card_id" equals ad5921bc-abdb-4470-8283-dec67247401b
+INFO     BASE_ASSERTIONS:base.py:25 Check that "category" equals supermarkets
+INFO     BASE_ASSERTIONS:base.py:25 Check that "created_at" equals 2026-01-15 10:00:00
+INFO     BASE_ASSERTIONS:base.py:25 Check that "account_id" equals 68e06ae2-3017-4f03-b78b-f913a1082bb0
+INFO     sqlalchemy.engine.Engine:base.py:2698 BEGIN (implicit)
+INFO     sqlalchemy.engine.Engine:base.py:1842 SELECT set_config('statement_timeout', %(statement_timeout)s, true)
+INFO     sqlalchemy.engine.Engine:base.py:1842 [cached since 13.29s ago] {'statement_timeout': '10000ms'}
+INFO     sqlalchemy.engine.Engine:base.py:1842 SELECT operations.id 
+FROM operations 
+WHERE operations.user_id = %(user_id_1)s::UUID AND operations.card_id = %(card_id_1)s::UUID AND operations.account_id = %(account_id_1)s::UUID
+INFO     sqlalchemy.engine.Engine:base.py:1842 [cached since 13.29s ago] {'user_id_1': UUID('35ceec40-bef0-45a6-b857-95713413390a'), 'card_id_1': UUID('eae8b3e2-0811-43d0-b2f3-389321e0ca46'), 'account_id_1': UUID('ec15d673-9ee7-4f57-b6b3-bb1d7af16779')}
+INFO     sqlalchemy.engine.Engine:base.py:2701 ROLLBACK
+INFO     sqlalchemy.engine.Engine:base.py:2698 BEGIN (implicit)
+INFO     sqlalchemy.engine.Engine:base.py:1842 DELETE FROM operations WHERE operations.id = %(id_1)s::UUID
+INFO     sqlalchemy.engine.Engine:base.py:1842 [cached since 13.35s ago] {'id_1': UUID('a2c4a782-8fb8-406e-a50f-ba40c87c3e46')}
+INFO     sqlalchemy.engine.Engine:base.py:2704 COMMIT
+INFO     sqlalchemy.engine.Engine:base.py:2698 BEGIN (implicit)
+INFO     sqlalchemy.engine.Engine:base.py:1842 SELECT set_config('statement_timeout', %(statement_timeout)s, true)
+INFO     sqlalchemy.engine.Engine:base.py:1842 [cached since 13.29s ago] {'statement_timeout': '10000ms'}
+INFO     sqlalchemy.engine.Engine:base.py:1842 SELECT operations.id 
+FROM operations 
+WHERE operations.user_id = %(user_id_1)s::UUID AND operations.card_id = %(card_id_1)s::UUID AND operations.account_id = %(account_id_1)s::UUID
+INFO     sqlalchemy.engine.Engine:base.py:1842 [cached since 13.29s ago] {'user_id_1': UUID('35ceec40-bef0-45a6-b857-95713413390a'), 'card_id_1': UUID('ad5921bc-abdb-4470-8283-dec67247401b'), 'account_id_1': UUID('68e06ae2-3017-4f03-b78b-f913a1082bb0')}
+INFO     sqlalchemy.engine.Engine:base.py:2701 ROLLBACK
+INFO     sqlalchemy.engine.Engine:base.py:2698 BEGIN (implicit)
+INFO     sqlalchemy.engine.Engine:base.py:1842 DELETE FROM operations WHERE operations.id = %(id_1)s::UUID
+INFO     sqlalchemy.engine.Engine:base.py:1842 [cached since 13.35s ago] {'id_1': UUID('49947962-09fa-4664-8a4d-60110ddc2e21')}
+INFO     sqlalchemy.engine.Engine:base.py:2704 COMMIT

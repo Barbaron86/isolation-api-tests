@@ -1,0 +1,4 @@
+INFO     GATEWAY_HTTP_TEST_CLIENT:logger_event_hook.py:35 GET http://127.0.0.1:8001/api/v1/gateway/account-details/99999999-aaaa-4bbb-8ccc-000000000001 - Waiting for response
+INFO     GATEWAY_HTTP_TEST_CLIENT:logger_event_hook.py:45 GET http://127.0.0.1:8001/api/v1/gateway/account-details/99999999-aaaa-4bbb-8ccc-000000000001 - Status 503
+INFO     BASE_ASSERTIONS:base.py:25 Check that "HTTP status code" equals 503
+INFO     BASE_ASSERTIONS:base.py:49 Check that "Gateway error detail" contains <GatewayTestErrorReason.ACCOUNTS_SERVICE_UNAVAILABLE: 'Accounts service unavailable'>

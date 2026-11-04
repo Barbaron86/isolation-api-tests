@@ -1,0 +1,40 @@
+INFO     sqlalchemy.engine.Engine:base.py:2698 BEGIN (implicit)
+INFO     sqlalchemy.engine.Engine:base.py:1842 SELECT set_config('statement_timeout', %(statement_timeout)s, true)
+INFO     sqlalchemy.engine.Engine:base.py:1842 [cached since 12.33s ago] {'statement_timeout': '10000ms'}
+INFO     sqlalchemy.engine.Engine:base.py:1842 SELECT operations.id 
+FROM operations 
+WHERE operations.user_id = %(user_id_1)s::UUID AND operations.card_id = %(card_id_1)s::UUID AND operations.account_id = %(account_id_1)s::UUID
+INFO     sqlalchemy.engine.Engine:base.py:1842 [cached since 12.33s ago] {'user_id_1': UUID('2ab5c879-cec1-48d2-a540-1e751ff21ec5'), 'card_id_1': UUID('a88e3a79-67d3-439e-a8fa-45b0b9cf5e66'), 'account_id_1': UUID('c825edab-7c22-42ba-b92c-63b8c0ba696e')}
+INFO     sqlalchemy.engine.Engine:base.py:2701 ROLLBACK
+INFO     OPERATIONS_KAFKA_PRODUCER_TEST_CLIENT:producer.py:74 Kafka message enqueued: topic=operations-service.operation-event.inbox
+INFO     OPERATIONS_KAFKA_PRODUCER_TEST_CLIENT:producer.py:129 Kafka delivery confirmed: topic=operations-service.operation-event.inbox partition=0 offset=10 elapsed=0.049s
+INFO     OPERATION_HTTP_TEST_CLIENT:logger_event_hook.py:35 GET http://127.0.0.1:8002/api/v1/operations?userId=2ab5c879-cec1-48d2-a540-1e751ff21ec5 - Waiting for response
+INFO     OPERATION_HTTP_TEST_CLIENT:logger_event_hook.py:45 GET http://127.0.0.1:8002/api/v1/operations?userId=2ab5c879-cec1-48d2-a540-1e751ff21ec5 - Status 200
+INFO     BASE_ASSERTIONS:base.py:25 Check that "HTTP status code" equals 200
+INFO     OPERATIONS_ASSERTIONS:operations.py:76 Check get operations response from events
+INFO     BASE_ASSERTIONS:base.py:25 Check that "operations count" equals 1
+INFO     BASE_ASSERTIONS:base.py:25 Check that "unique operation keys" equals 1
+INFO     BASE_ASSERTIONS:base.py:25 Check that "unique event keys" equals 1
+INFO     BASE_ASSERTIONS:base.py:25 Check that "unique operation ids" equals 1
+INFO     BASE_ASSERTIONS:base.py:25 Check that "operation event keys" equals {(UUID('2ab5c879-cec1-48d2-a540-1e751ff21ec5'), UUID('a88e3a79-67d3-439e-a8fa-45b0b9cf5e66'))}
+INFO     OPERATIONS_ASSERTIONS:operations.py:29 Check operation from event
+INFO     BASE_ASSERTIONS:base.py:25 Check that "type" equals PURCHASE
+INFO     BASE_ASSERTIONS:base.py:25 Check that "status" equals IN_PROGRESS
+INFO     BASE_ASSERTIONS:base.py:25 Check that "amount" equals 284.8
+INFO     BASE_ASSERTIONS:base.py:25 Check that "user_id" equals 2ab5c879-cec1-48d2-a540-1e751ff21ec5
+INFO     BASE_ASSERTIONS:base.py:25 Check that "card_id" equals a88e3a79-67d3-439e-a8fa-45b0b9cf5e66
+INFO     BASE_ASSERTIONS:base.py:25 Check that "category" equals government
+INFO     BASE_ASSERTIONS:base.py:25 Check that "created_at" equals 1996-09-27 08:47:17.828469
+INFO     BASE_ASSERTIONS:base.py:25 Check that "account_id" equals c825edab-7c22-42ba-b92c-63b8c0ba696e
+INFO     sqlalchemy.engine.Engine:base.py:2698 BEGIN (implicit)
+INFO     sqlalchemy.engine.Engine:base.py:1842 SELECT set_config('statement_timeout', %(statement_timeout)s, true)
+INFO     sqlalchemy.engine.Engine:base.py:1842 [cached since 12.44s ago] {'statement_timeout': '10000ms'}
+INFO     sqlalchemy.engine.Engine:base.py:1842 SELECT operations.id 
+FROM operations 
+WHERE operations.user_id = %(user_id_1)s::UUID AND operations.card_id = %(card_id_1)s::UUID AND operations.account_id = %(account_id_1)s::UUID
+INFO     sqlalchemy.engine.Engine:base.py:1842 [cached since 12.44s ago] {'user_id_1': UUID('2ab5c879-cec1-48d2-a540-1e751ff21ec5'), 'card_id_1': UUID('a88e3a79-67d3-439e-a8fa-45b0b9cf5e66'), 'account_id_1': UUID('c825edab-7c22-42ba-b92c-63b8c0ba696e')}
+INFO     sqlalchemy.engine.Engine:base.py:2701 ROLLBACK
+INFO     sqlalchemy.engine.Engine:base.py:2698 BEGIN (implicit)
+INFO     sqlalchemy.engine.Engine:base.py:1842 DELETE FROM operations WHERE operations.id = %(id_1)s::UUID
+INFO     sqlalchemy.engine.Engine:base.py:1842 [cached since 12.5s ago] {'id_1': UUID('f83dcd2f-d022-4f34-a72e-27948a668727')}
+INFO     sqlalchemy.engine.Engine:base.py:2704 COMMIT

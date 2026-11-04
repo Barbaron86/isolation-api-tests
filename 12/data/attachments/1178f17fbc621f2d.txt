@@ -1,0 +1,22 @@
+INFO     GATEWAY_HTTP_TEST_CLIENT:logger_event_hook.py:35 GET http://127.0.0.1:8001/api/v1/gateway/user-details/8b0e7c2a-1b6a-4e5d-9f1a-1b3f2a7c9e21 - Waiting for response
+INFO     GATEWAY_HTTP_TEST_CLIENT:logger_event_hook.py:45 GET http://127.0.0.1:8001/api/v1/gateway/user-details/8b0e7c2a-1b6a-4e5d-9f1a-1b3f2a7c9e21 - Status 200
+INFO     BASE_ASSERTIONS:base.py:25 Check that "HTTP status code" equals 200
+INFO     GATEWAY_ASSERTIONS:gateway.py:147 Check get user details response. User with active credit card account
+INFO     GATEWAY_ASSERTIONS:gateway.py:113 Check get user details response
+INFO     GATEWAY_ASSERTIONS:gateway.py:78 Check user details
+INFO     USERS_ASSERTIONS:users.py:12 Check user
+INFO     BASE_ASSERTIONS:base.py:25 Check that "id" equals 8b0e7c2a-1b6a-4e5d-9f1a-1b3f2a7c9e21
+INFO     BASE_ASSERTIONS:base.py:25 Check that "email" equals anna.ivanova@example.com
+INFO     BASE_ASSERTIONS:base.py:25 Check that "last_name" equals Иванова
+INFO     BASE_ASSERTIONS:base.py:25 Check that "first_name" equals Анна
+INFO     BASE_ASSERTIONS:base.py:25 Check that "middle_name" equals Алексеевна
+INFO     BASE_ASSERTIONS:base.py:25 Check that "phone_number" equals +79005554433
+INFO     BASE_ASSERTIONS:base.py:25 Check that "accounts count" equals 1
+INFO     BASE_ASSERTIONS:base.py:25 Check that "unique account ids" equals 1
+INFO     BASE_ASSERTIONS:base.py:25 Check that "account ids" equals {UUID('99999999-aaaa-4bbb-8ccc-000000000001')}
+INFO     ACCOUNTS_ASSERTIONS:accounts.py:12 Check account
+INFO     BASE_ASSERTIONS:base.py:25 Check that "id" equals 99999999-aaaa-4bbb-8ccc-000000000001
+INFO     BASE_ASSERTIONS:base.py:25 Check that "type" equals CREDIT_CARD
+INFO     BASE_ASSERTIONS:base.py:25 Check that "status" equals ACTIVE
+INFO     BASE_ASSERTIONS:base.py:25 Check that "user_id" equals 8b0e7c2a-1b6a-4e5d-9f1a-1b3f2a7c9e21
+INFO     BASE_ASSERTIONS:base.py:25 Check that "balance" equals -15230.75

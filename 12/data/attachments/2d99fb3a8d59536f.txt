@@ -1,0 +1,40 @@
+INFO     sqlalchemy.engine.Engine:base.py:2698 BEGIN (implicit)
+INFO     sqlalchemy.engine.Engine:base.py:1842 SELECT set_config('statement_timeout', %(statement_timeout)s, true)
+INFO     sqlalchemy.engine.Engine:base.py:1842 [cached since 12.58s ago] {'statement_timeout': '10000ms'}
+INFO     sqlalchemy.engine.Engine:base.py:1842 SELECT operations.id 
+FROM operations 
+WHERE operations.user_id = %(user_id_1)s::UUID AND operations.card_id = %(card_id_1)s::UUID AND operations.account_id = %(account_id_1)s::UUID
+INFO     sqlalchemy.engine.Engine:base.py:1842 [cached since 12.58s ago] {'user_id_1': UUID('d46c6f36-2c51-4202-ac60-32e3f5fa6c5b'), 'card_id_1': UUID('3df2f0a2-33fb-4ba2-a156-078ffae05834'), 'account_id_1': UUID('25064182-55e1-4807-bfe9-da2b618236d0')}
+INFO     sqlalchemy.engine.Engine:base.py:2701 ROLLBACK
+INFO     OPERATIONS_KAFKA_PRODUCER_TEST_CLIENT:producer.py:74 Kafka message enqueued: topic=operations-service.operation-event.inbox
+INFO     OPERATIONS_KAFKA_PRODUCER_TEST_CLIENT:producer.py:129 Kafka delivery confirmed: topic=operations-service.operation-event.inbox partition=0 offset=11 elapsed=0.053s
+INFO     OPERATION_HTTP_TEST_CLIENT:logger_event_hook.py:35 GET http://127.0.0.1:8002/api/v1/operations?userId=d46c6f36-2c51-4202-ac60-32e3f5fa6c5b - Waiting for response
+INFO     OPERATION_HTTP_TEST_CLIENT:logger_event_hook.py:45 GET http://127.0.0.1:8002/api/v1/operations?userId=d46c6f36-2c51-4202-ac60-32e3f5fa6c5b - Status 200
+INFO     BASE_ASSERTIONS:base.py:25 Check that "HTTP status code" equals 200
+INFO     OPERATIONS_ASSERTIONS:operations.py:76 Check get operations response from events
+INFO     BASE_ASSERTIONS:base.py:25 Check that "operations count" equals 1
+INFO     BASE_ASSERTIONS:base.py:25 Check that "unique operation keys" equals 1
+INFO     BASE_ASSERTIONS:base.py:25 Check that "unique event keys" equals 1
+INFO     BASE_ASSERTIONS:base.py:25 Check that "unique operation ids" equals 1
+INFO     BASE_ASSERTIONS:base.py:25 Check that "operation event keys" equals {(UUID('d46c6f36-2c51-4202-ac60-32e3f5fa6c5b'), UUID('3df2f0a2-33fb-4ba2-a156-078ffae05834'))}
+INFO     OPERATIONS_ASSERTIONS:operations.py:29 Check operation from event
+INFO     BASE_ASSERTIONS:base.py:25 Check that "type" equals PURCHASE
+INFO     BASE_ASSERTIONS:base.py:25 Check that "status" equals COMPLETED
+INFO     BASE_ASSERTIONS:base.py:25 Check that "amount" equals 573.0
+INFO     BASE_ASSERTIONS:base.py:25 Check that "user_id" equals d46c6f36-2c51-4202-ac60-32e3f5fa6c5b
+INFO     BASE_ASSERTIONS:base.py:25 Check that "card_id" equals 3df2f0a2-33fb-4ba2-a156-078ffae05834
+INFO     BASE_ASSERTIONS:base.py:25 Check that "category" equals beauty
+INFO     BASE_ASSERTIONS:base.py:25 Check that "created_at" equals 1979-01-12 14:39:40.565707
+INFO     BASE_ASSERTIONS:base.py:25 Check that "account_id" equals 25064182-55e1-4807-bfe9-da2b618236d0
+INFO     sqlalchemy.engine.Engine:base.py:2698 BEGIN (implicit)
+INFO     sqlalchemy.engine.Engine:base.py:1842 SELECT set_config('statement_timeout', %(statement_timeout)s, true)
+INFO     sqlalchemy.engine.Engine:base.py:1842 [cached since 12.65s ago] {'statement_timeout': '10000ms'}
+INFO     sqlalchemy.engine.Engine:base.py:1842 SELECT operations.id 
+FROM operations 
+WHERE operations.user_id = %(user_id_1)s::UUID AND operations.card_id = %(card_id_1)s::UUID AND operations.account_id = %(account_id_1)s::UUID
+INFO     sqlalchemy.engine.Engine:base.py:1842 [cached since 12.65s ago] {'user_id_1': UUID('d46c6f36-2c51-4202-ac60-32e3f5fa6c5b'), 'card_id_1': UUID('3df2f0a2-33fb-4ba2-a156-078ffae05834'), 'account_id_1': UUID('25064182-55e1-4807-bfe9-da2b618236d0')}
+INFO     sqlalchemy.engine.Engine:base.py:2701 ROLLBACK
+INFO     sqlalchemy.engine.Engine:base.py:2698 BEGIN (implicit)
+INFO     sqlalchemy.engine.Engine:base.py:1842 DELETE FROM operations WHERE operations.id = %(id_1)s::UUID
+INFO     sqlalchemy.engine.Engine:base.py:1842 [cached since 12.71s ago] {'id_1': UUID('382e7894-af72-4561-88b4-5c27303663e6')}
+INFO     sqlalchemy.engine.Engine:base.py:2704 COMMIT
