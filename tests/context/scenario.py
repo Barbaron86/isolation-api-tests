@@ -12,3 +12,7 @@ class Scenario(StrEnum):
     USER_WITH_ACTIVE_CREDIT_CARD_ACCOUNT = "user_with_active_credit_card_account"
     USER_WITHOUT_ACCOUNTS = "user_without_accounts"
     ACCOUNT_WITHOUT_CARDS = "account_without_cards"
+    USERS_SERVICE_UNAVAILABLE = "users_service_unavailable"
+    ACCOUNTS_LIST_UNAVAILABLE = "accounts_list_unavailable"
+    CARDS_SERVICE_UNAVAILABLE = "cards_service_unavailable"
+    ACCOUNT_DETAILS_UNAVAILABLE = "account_details_unavailable"

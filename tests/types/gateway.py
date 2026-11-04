@@ -2,11 +2,15 @@ from enum import StrEnum
 
 
 class GatewayTestErrorReason(StrEnum):
-    """Шаблоны сообщений об отсутствующих пользователях и счетах.
+    """Задаёт сообщения ошибок Users, Accounts и Cards для тестовых моков.
 
-    Моки и тесты подставляют запрошенный ID через str.format().
-    Формат повторяет сообщения Operations и описывает поведение тестового стенда.
+    В шаблоны NOT_FOUND вызывающий код подставляет ID через str.format().
+    Остальные значения задают причины моделируемых ответов 503. Это конвенция
+    тестового стенда, а не контракт внешних сервисов.
     """
 
     USER_NOT_FOUND = "User with id {user_id} not found"
     ACCOUNT_NOT_FOUND = "Account with id {account_id} not found"
+    USERS_SERVICE_UNAVAILABLE = "Users service unavailable"
+    ACCOUNTS_SERVICE_UNAVAILABLE = "Accounts service unavailable"
+    CARDS_SERVICE_UNAVAILABLE = "Cards service unavailable"

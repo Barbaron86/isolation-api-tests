@@ -1,9 +1,11 @@
+from http import HTTPStatus
 from uuid import UUID
 
 import allure
 import pytest
 
 from tests.assertions.http.gateway import (
+    assert_gateway_error_response,
     assert_gateway_not_found_response,
     assert_get_user_details_response_user_with_active_credit_card_account,
     assert_get_account_details_response_user_with_active_debit_card_account,
@@ -171,4 +173,90 @@ class TestGatewayHTTP:
         assert_gateway_not_found_response(
             get_account_details_response,
             expected_detail=GatewayTestErrorReason.ACCOUNT_NOT_FOUND.format(account_id=unknown_account_id),
+        )
+
+    @pytest.mark.parametrize(
+        "scenario,expected_detail",
+        [
+            pytest.param(
+                Scenario.USERS_SERVICE_UNAVAILABLE,
+                GatewayTestErrorReason.USERS_SERVICE_UNAVAILABLE,
+                id="users-unavailable",
+            ),
+            pytest.param(
+                Scenario.ACCOUNTS_LIST_UNAVAILABLE,
+                GatewayTestErrorReason.ACCOUNTS_SERVICE_UNAVAILABLE,
+                id="accounts-list-unavailable",
+            ),
+        ],
+    )
+    @allure.story(AllureStory.GET_USER_DETAILS)
+    @allure.title("[HTTP] Get user details. Dependency unavailable: {scenario}")
+    def test_get_user_details_dependency_unavailable(
+            self,
+            gateway_http_test_client: GatewayHTTPTestClient,
+            active_credit_account_user_id: UUID,
+            scenario: Scenario,
+            expected_detail: GatewayTestErrorReason,
+    ) -> None:
+        """Проверяет 503 и причину сбоя Users либо получения списка счетов.
+
+        Args:
+            gateway_http_test_client: Фикстура клиента Gateway HTTP API.
+            active_credit_account_user_id: ID подготовленного пользователя.
+            scenario: Параметр, выбирающий сбой одной зависимости.
+            expected_detail: Ожидаемая причина ошибки выбранного сервиса.
+        """
+        get_user_details_response = gateway_http_test_client.get_user_details_api(
+            user_id=active_credit_account_user_id,
+            context=RequestContext(scenario=scenario),
+        )
+
+        assert_gateway_error_response(
+            get_user_details_response,
+            expected_status=HTTPStatus.SERVICE_UNAVAILABLE,
+            expected_detail=expected_detail,
+        )
+
+    @pytest.mark.parametrize(
+        "scenario,expected_detail",
+        [
+            pytest.param(
+                Scenario.CARDS_SERVICE_UNAVAILABLE,
+                GatewayTestErrorReason.CARDS_SERVICE_UNAVAILABLE,
+                id="cards-unavailable",
+            ),
+            pytest.param(
+                Scenario.ACCOUNT_DETAILS_UNAVAILABLE,
+                GatewayTestErrorReason.ACCOUNTS_SERVICE_UNAVAILABLE,
+                id="account-details-unavailable",
+            ),
+        ],
+    )
+    @allure.story(AllureStory.GET_ACCOUNT_DETAILS)
+    @allure.title("[HTTP] Get account details. Dependency unavailable: {scenario}")
+    def test_get_account_details_dependency_unavailable(
+            self,
+            gateway_http_test_client: GatewayHTTPTestClient,
+            active_debit_account_id: UUID,
+            scenario: Scenario,
+            expected_detail: GatewayTestErrorReason,
+    ) -> None:
+        """Проверяет 503 и причину сбоя Cards либо получения самого счёта.
+
+        Args:
+            gateway_http_test_client: Фикстура клиента Gateway HTTP API.
+            active_debit_account_id: ID подготовленного счёта.
+            scenario: Параметр, выбирающий сбой одной зависимости.
+            expected_detail: Ожидаемая причина ошибки выбранного сервиса.
+        """
+        get_account_details_response = gateway_http_test_client.get_account_details_api(
+            account_id=active_debit_account_id,
+            context=RequestContext(scenario=scenario),
+        )
+
+        assert_gateway_error_response(
+            get_account_details_response,
+            expected_status=HTTPStatus.SERVICE_UNAVAILABLE,
+            expected_detail=expected_detail,
         )

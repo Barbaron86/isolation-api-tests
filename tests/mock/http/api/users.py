@@ -51,8 +51,14 @@ async def get_user_view(
         Подготовленный пользователь выбранного сценария.
 
     Raises:
-        HTTPException: Со статусом 404, если сценарий не содержит запрошенного ID.
+        HTTPException: Со статусом 503 в сценарии сбоя Users либо 404,
+            если сценарий не содержит запрошенного ID.
     """
+    if scenario == Scenario.USERS_SERVICE_UNAVAILABLE:
+        raise HTTPException(
+            status_code=HTTPStatus.SERVICE_UNAVAILABLE,
+            detail=GatewayTestErrorReason.USERS_SERVICE_UNAVAILABLE,
+        )
     get_user_response_data = await loader.load_http(
         file=f"get_user/{scenario}.json",
         model=GetUserResponseTestSchema

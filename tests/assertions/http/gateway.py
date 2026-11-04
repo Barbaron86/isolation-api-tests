@@ -26,6 +26,25 @@ from tests.types.cards import CardTestPaymentSystem, CardTestStatus, CardTestTyp
 logger = get_test_logger("GATEWAY_ASSERTIONS")
 
 
+@allure.step("Check Gateway error response: {expected_status}, {expected_detail}")
+def assert_gateway_error_response(
+        actual: Response, *, expected_status: HTTPStatus, expected_detail: str,
+) -> None:
+    """Проверяет статус и причину ошибки зависимости в ответе Gateway.
+
+    Статус проверяется до JSON. Причина ищется внутри строкового detail,
+    поскольку Gateway добавляет к ответу зависимости контекст вызова.
+
+    Args:
+        actual: Сырой ответ raw-метода Gateway HTTP-клиента.
+        expected_status: Ожидаемый HTTP-статус моделируемой ошибки.
+        expected_detail: Причина из подготовки сценария, включая ID при not-found.
+
+    Raises:
+        AssertionError: Если статус, тип detail или причина не соответствуют ожиданию.
+    """
+    assert_status_code(actual.status_code, expected_status)
+    assert_string_contains(actual.json()["detail"], expected_detail, "Gateway error detail")
 
 
 @allure.step("Check Gateway not-found response: {expected_detail}")
@@ -43,8 +62,9 @@ def assert_gateway_not_found_response(actual: Response, *, expected_detail: str)
     Raises:
         AssertionError: Если статус, тип detail или причина не соответствуют ожиданию.
     """
-    assert_status_code(actual.status_code, HTTPStatus.NOT_FOUND)
-    assert_string_contains(actual.json()["detail"], expected_detail, "Gateway error detail")
+    assert_gateway_error_response(
+        actual, expected_status=HTTPStatus.NOT_FOUND, expected_detail=expected_detail,
+    )
 
 
 @allure.step("Check user details")

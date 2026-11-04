@@ -82,6 +82,10 @@ Read only the pointers relevant to the task. Paths below are repository-relative
   related collection. Their prepared IDs differ from the populated scenarios.
   Scenario JSONs are operation- and protocol-specific; adding an enum member does
   not make it available in every HTTP/gRPC mock operation.
+- HTTP dependency-failure scenarios explicitly return 503 from Users.GetUser,
+  Accounts.GetAccounts, Cards.GetCards or Accounts.GetAccount. Prepare a normal
+  first-dependency response when the second call must fail. These are constant
+  HTTP responses; connection failures and timeouts are separate scenarios.
 - Establish requirements before testing duplicate-event handling, idempotency,
   retry/DLQ policy or monetary restrictions. Supported enum values alone do not
   establish that every combination is a valid business scenario.
@@ -109,7 +113,9 @@ Read only the pointers relevant to the task. Paths below are repository-relative
   then the entity-specific reason with the requested ID inside detail, without
   the full client prefix. Mock messages and expectations use GatewayTestErrorReason;
   its not-found templates follow the local Operations message style. This does
-  not establish an external Users/Accounts/Cards contract.
+  not establish an external Users/Accounts/Cards contract. For modeled 503 cases,
+  use assert_gateway_error_response with HTTPStatus.SERVICE_UNAVAILABLE; the
+  not-found helper delegates to the same check with HTTPStatus.NOT_FOUND.
   Reuse assert_string_contains for string-fragment checks and assert_equal for
   equality; domain helpers compose these primitives with protocol assertions.
 - Preserve specific business rejection reasons. Avoid brittle comparisons of

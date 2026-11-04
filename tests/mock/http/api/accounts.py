@@ -36,7 +36,15 @@ async def get_accounts_view(
 
     Returns:
         Счета с совпавшим user_id либо пустой список, если совпадений нет.
+
+    Raises:
+        HTTPException: Со статусом 503 в сценарии сбоя списка счетов.
     """
+    if scenario == Scenario.ACCOUNTS_LIST_UNAVAILABLE:
+        raise HTTPException(
+            status_code=HTTPStatus.SERVICE_UNAVAILABLE,
+            detail=GatewayTestErrorReason.ACCOUNTS_SERVICE_UNAVAILABLE,
+        )
     get_accounts_response_data = await loader.load_http(
         file=f"get_accounts/{scenario}.json",
         model=GetAccountsResponseTestSchema
@@ -61,8 +69,14 @@ async def get_account_view(
         Подготовленный счёт выбранного сценария.
 
     Raises:
-        HTTPException: Со статусом 404, если сценарий не содержит запрошенного ID.
+        HTTPException: Со статусом 503 в сценарии сбоя деталей счёта либо 404,
+            если сценарий не содержит запрошенного ID.
     """
+    if scenario == Scenario.ACCOUNT_DETAILS_UNAVAILABLE:
+        raise HTTPException(
+            status_code=HTTPStatus.SERVICE_UNAVAILABLE,
+            detail=GatewayTestErrorReason.ACCOUNTS_SERVICE_UNAVAILABLE,
+        )
     get_account_response_data = await loader.load_http(
         file=f"get_account/{scenario}.json",
         model=GetAccountResponseTestSchema

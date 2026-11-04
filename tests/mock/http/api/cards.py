@@ -1,7 +1,8 @@
 import uuid
+from http import HTTPStatus
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 
 from tests.context.scenario import Scenario
 from tests.mock.http.tools import get_scenario_http
@@ -9,6 +10,7 @@ from tests.schema.cards import GetCardResponseTestSchema, GetCardsResponseTestSc
 from tests.tools.logger import get_test_logger
 from tests.tools.mock import MockLoader
 from tests.tools.routes import APITestRoutes
+from tests.types.gateway import GatewayTestErrorReason
 
 loader = MockLoader(
     root=Path("./tests/mock/http/data/cards"),
@@ -34,7 +36,15 @@ async def get_cards_view(
 
     Returns:
         Карты с совпавшим account_id либо пустой список, если совпадений нет.
+
+    Raises:
+        HTTPException: Со статусом 503 в сценарии сбоя Cards.
     """
+    if scenario == Scenario.CARDS_SERVICE_UNAVAILABLE:
+        raise HTTPException(
+            status_code=HTTPStatus.SERVICE_UNAVAILABLE,
+            detail=GatewayTestErrorReason.CARDS_SERVICE_UNAVAILABLE,
+        )
     get_cards_response_data = await loader.load_http(
         file=f"get_cards/{scenario}.json",
         model=GetCardsResponseTestSchema
