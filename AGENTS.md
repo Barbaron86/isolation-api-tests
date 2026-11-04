@@ -71,9 +71,17 @@ Read only the pointers relevant to the task. Paths below are repository-relative
   assertions. Keep the business sequence visible in the test.
 - For list and filter cases, include matching and nonmatching records, including
   another card/account for the same user and another user where relevant.
-- Existing Gateway mocks select responses by scenario and ignore requested IDs
-  when choosing data. Such cases do not prove correct downstream ID propagation;
-  add an observable request/identity check when that behavior is under test.
+- Gateway HTTP success tests pass explicit user_id/account_id through the facades.
+  The HTTP Users/Accounts detail mocks match requested IDs and return 404 for
+  absent entities. Accounts/Cards list mocks require userId/accountId and filter
+  scenario data by ownership. Expected identities and card/account links come
+  from test preparation, not the response. gRPC mocks still select scenario data
+  independently of requested IDs; those cases do not prove ID propagation.
+- USER_WITHOUT_ACCOUNTS and ACCOUNT_WITHOUT_CARDS cover successful HTTP Gateway
+  user-details/account-details respectively, with an existing entity and an empty
+  related collection. Their prepared IDs differ from the populated scenarios.
+  Scenario JSONs are operation- and protocol-specific; adding an enum member does
+  not make it available in every HTTP/gRPC mock operation.
 - Establish requirements before testing duplicate-event handling, idempotency,
   retry/DLQ policy or monetary restrictions. Supported enum values alone do not
   establish that every combination is a valid business scenario.
@@ -96,6 +104,14 @@ Read only the pointers relevant to the task. Paths below are repository-relative
 - For negative HTTP/gRPC cases, assert the applicable status and meaningful error
   details. Reuse or extend focused domain helpers; do not parse errors as successful
   responses, or accept any exception as proof of the expected failure.
+  Gateway HTTP not-found cases use raw methods and
+  assert_gateway_not_found_response: exact HTTPStatus.NOT_FOUND before JSON,
+  then the entity-specific reason with the requested ID inside detail, without
+  the full client prefix. Mock messages and expectations use GatewayTestErrorReason;
+  its not-found templates follow the local Operations message style. This does
+  not establish an external Users/Accounts/Cards contract.
+  Reuse assert_string_contains for string-fragment checks and assert_equal for
+  equality; domain helpers compose these primitives with protocol assertions.
 - Preserve specific business rejection reasons. Avoid brittle comparisons of
   framework/parser wording unless that wording is an explicit contract.
 - Extend `tests/assertions/base.py` and the relevant protocol/domain module.

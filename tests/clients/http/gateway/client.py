@@ -12,27 +12,15 @@ from tests.schema.gateway import (
     GetUserDetailsResponseTestSchema,
     GetAccountDetailsResponseTestSchema,
 )
-from tests.tools.fakers import fake
 from tests.tools.logger import get_test_logger
 from tests.tools.routes import APITestRoutes
 
 
 class GatewayHTTPTestClient(HTTPTestClient):
-    """
-    HTTP API-клиент тестового слоя для gateway-service.
+    """Вызывает HTTP API Gateway с контекстом выбранного мок-сценария.
 
-    Это специализированный клиент, построенный поверх HTTPTestClient.
-    Он знает HTTP-контракт gateway-service (пути и ответы), но остаётся
-    тестовым инструментом, а не частью бизнес-логики системы.
-
-    Ключевой смысл этого клиента в курсе:
-    тест обращается к gateway-service, а gateway-service "под капотом"
-    обращается к внешним интеграциям (users/cards/accounts),
-    которые в изоляционном контуре подменены мок-сервисами.
-
-    Поэтому входные идентификаторы (user_id / account_id) в этих вызовах
-    не являются управляющим параметром поведения — поведение определяется
-    сценарным контекстом (RequestContext -> x-test-scenario).
+    Raw-методы возвращают HTTPX Response. Успешные фасады проверяют точный
+    статус ответа и разбирают его в тестовую Pydantic-модель.
     """
 
     @allure.step("Get user details")
@@ -65,13 +53,14 @@ class GatewayHTTPTestClient(HTTPTestClient):
             context=context,
         )
 
-    def get_user_details(self, context: RequestContext) -> GetUserDetailsResponseTestSchema:
-        """Получает агрегат пользователя по сценарию с проверкой HTTP-ответа.
-
-        Сценарные моки выбирают данные независимо от случайного ID в URL.
+    def get_user_details(
+            self, context: RequestContext, *, user_id: uuid.UUID,
+    ) -> GetUserDetailsResponseTestSchema:
+        """Получает пользователя и его счета по явно переданному ID.
 
         Args:
             context: Сценарий, передаваемый Gateway и его зависимостям.
+            user_id: ID пользователя, которого тест запрашивает у Gateway.
 
         Returns:
             Проверенная модель ответа с пользователем и счетами.
@@ -80,15 +69,18 @@ class GatewayHTTPTestClient(HTTPTestClient):
             AssertionError: Если статус ответа отличается от HTTPStatus.OK.
             pydantic.ValidationError: Если тело не соответствует модели ответа.
         """
-        response = self.get_user_details_api(fake.uuid(), context)
+        response = self.get_user_details_api(user_id, context)
         assert_status_code(response.status_code, HTTPStatus.OK)
         return GetUserDetailsResponseTestSchema.model_validate_json(response.text)
 
-    def get_account_details(self, context: RequestContext) -> GetAccountDetailsResponseTestSchema:
-        """Получает агрегат счёта по сценарию с проверкой HTTP-ответа.
+    def get_account_details(
+            self, context: RequestContext, *, account_id: uuid.UUID,
+    ) -> GetAccountDetailsResponseTestSchema:
+        """Получает счёт и его карты по явно переданному ID.
 
         Args:
             context: Сценарий, передаваемый Gateway и его зависимостям.
+            account_id: ID счёта, который тест запрашивает у Gateway.
 
         Returns:
             Проверенная модель ответа со счётом и картами.
@@ -97,7 +89,7 @@ class GatewayHTTPTestClient(HTTPTestClient):
             AssertionError: Если статус ответа отличается от HTTPStatus.OK.
             pydantic.ValidationError: Если тело не соответствует модели ответа.
         """
-        response = self.get_account_details_api(fake.uuid(), context)
+        response = self.get_account_details_api(account_id, context)
         assert_status_code(response.status_code, HTTPStatus.OK)
         return GetAccountDetailsResponseTestSchema.model_validate_json(response.text)
 

@@ -1,7 +1,8 @@
 import uuid
+from http import HTTPStatus
 from pathlib import Path
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 
 from tests.context.scenario import Scenario
 from tests.mock.http.tools import get_scenario_http
@@ -9,6 +10,7 @@ from tests.schema.users import GetUserResponseTestSchema
 from tests.tools.logger import get_test_logger
 from tests.tools.mock import MockLoader
 from tests.tools.routes import APITestRoutes
+from tests.types.gateway import GatewayTestErrorReason
 
 # MockLoader — инфраструктурный компонент.
 # Его ответственность строго ограничена:
@@ -38,21 +40,26 @@ users_mock_router = APIRouter(
 async def get_user_view(
         user_id: uuid.UUID,
         scenario: Scenario = Depends(get_scenario_http),
-):
-    # user_id присутствует в сигнатуре,
-    # чтобы полностью соответствовать контракту users-service.
-    #
-    # Важно: мок не использует user_id для вычислений.
-    # Поведение мока определяется только сценарием,
-    # что гарантирует детерминизм и воспроизводимость тестов.
+) -> GetUserResponseTestSchema:
+    """Возвращает пользователя сценария только при совпадении запрошенного ID.
 
-    return await loader.load_http(
-        # Имя файла формируется на основе сценария.
-        # Это связывает внешний мир с тестовым сценарием,
-        # а не с параметрами конкретного запроса.
+    Args:
+        user_id: UUID из пути запроса к Users.
+        scenario: Селектор набора данных из x-test-scenario.
+
+    Returns:
+        Подготовленный пользователь выбранного сценария.
+
+    Raises:
+        HTTPException: Со статусом 404, если сценарий не содержит запрошенного ID.
+    """
+    get_user_response_data = await loader.load_http(
         file=f"get_user/{scenario}.json",
-
-        # Ответ валидируется тестовой схемой,
-        # что гарантирует контрактную корректность мока.
         model=GetUserResponseTestSchema
     )
+    if get_user_response_data.user.id != user_id:
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND,
+            detail=GatewayTestErrorReason.USER_NOT_FOUND.format(user_id=user_id),
+        )
+    return get_user_response_data

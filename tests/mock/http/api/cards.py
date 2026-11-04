@@ -1,7 +1,7 @@
 import uuid
 from pathlib import Path
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 
 from tests.context.scenario import Scenario
 from tests.mock.http.tools import get_scenario_http
@@ -23,11 +23,24 @@ cards_mock_router = APIRouter(
 
 @cards_mock_router.get("", response_model=GetCardsResponseTestSchema)
 async def get_cards_view(
+        account_id: uuid.UUID = Query(alias="accountId"),
         scenario: Scenario = Depends(get_scenario_http),
-):
-    return await loader.load_http(
+) -> GetCardsResponseTestSchema:
+    """Возвращает карты сценария, привязанные к запрошенному счёту.
+
+    Args:
+        account_id: Обязательный query-параметр accountId.
+        scenario: Селектор набора данных из x-test-scenario.
+
+    Returns:
+        Карты с совпавшим account_id либо пустой список, если совпадений нет.
+    """
+    get_cards_response_data = await loader.load_http(
         file=f"get_cards/{scenario}.json",
         model=GetCardsResponseTestSchema
+    )
+    return GetCardsResponseTestSchema(
+        cards=[card for card in get_cards_response_data.cards if card.account_id == account_id]
     )
 
 

@@ -1,101 +1,174 @@
+from uuid import UUID
+
 import allure
 import pytest
 
-# Доменные ассерты сценарного тестового слоя.
-# Эти функции инкапсулируют бизнес-проверки ответа gateway
-# и скрывают всю логику сравнения вложенных сущностей.
 from tests.assertions.http.gateway import (
+    assert_gateway_not_found_response,
     assert_get_user_details_response_user_with_active_credit_card_account,
     assert_get_account_details_response_user_with_active_debit_card_account,
+    assert_get_user_details_response_user_without_accounts,
+    assert_get_account_details_response_account_without_cards,
 )
 
-# HTTP API-клиент gateway-service тестового слоя.
-# Клиент:
-# - знает контракт gateway-service;
-# - принимает RequestContext;
-# - не содержит бизнес-логики и ассертов.
 from tests.clients.http.gateway.client import GatewayHTTPTestClient
 
-# RequestContext — формализованный способ управления внешним миром.
-# Через него тест задаёт сценарий, который будет прокинут в HTTP-заголовки.
 from tests.context.base import RequestContext
 from tests.context.scenario import Scenario
 
-# Семантические константы Allure.
-# Они позволяют явно указать:
-# - протокол (HTTP),
-# - сервис (gateway),
-# - бизнес-фичу и сценарий.
 from tests.tools.allure import AllureTag, AllureStory, AllureFeature
+from tests.types.gateway import GatewayTestErrorReason
 
 
-# Pytest-маркеры уровня тестового набора.
-#
-# @pytest.mark.gateway — тесты gateway-service
-# @pytest.mark.regression — регрессионный набор
-#
-# Эти маркеры используются для фильтрации запусков
-# и CI/CD сценариев.
 @pytest.mark.gateway
 @pytest.mark.regression
-# Allure-теги верхнего уровня.
-#
-# Здесь мы фиксируем:
-# - что тест относится к HTTP-протоколу,
-# - что тестирует gateway-service.
 @allure.tag(AllureTag.HTTP, AllureTag.GATEWAY_SERVICE)
-# Allure feature — бизнес-область теста.
-# В отчёте Allure все тесты gateway будут сгруппированы вместе.
 @allure.feature(AllureFeature.GATEWAY_SERVICE)
 class TestGatewayHTTP:
-    """
-    Сценарные HTTP тесты gateway-service.
-
-    Этот тестовый класс:
-    - не подготавливает данные;
-    - не управляет моками напрямую;
-    - не содержит логики маршрутизации или агрегации.
-
-    Он описывает сценарии взаимодействия с gateway
-    в условиях полностью детерминированного внешнего мира.
-    """
+    """Проверяет агрегаты Gateway через управляемые HTTP-моки."""
 
     @allure.story(AllureStory.GET_USER_DETAILS)
     @allure.title("[HTTP] Get user details. User with active credit card account")
     def test_get_user_details_user_with_active_credit_card_account(
             self,
             gateway_http_test_client: GatewayHTTPTestClient,
+            active_credit_account_user_id: UUID,
     ) -> None:
-        """Проверяет пользователя и счета по мок-сценарию активного кредитного счёта.
+        """Проверяет пользователя и его кредитный счёт по явно запрошенному ID.
 
         Args:
             gateway_http_test_client: Фикстура клиента Gateway HTTP API.
+            active_credit_account_user_id: Ожидаемый ID пользователя сценария.
         """
         get_user_details_response_data = gateway_http_test_client.get_user_details(
+            user_id=active_credit_account_user_id,
             context=RequestContext(
                 scenario=Scenario.USER_WITH_ACTIVE_CREDIT_CARD_ACCOUNT
             ),
         )
 
         assert_get_user_details_response_user_with_active_credit_card_account(
-            get_user_details_response_data
+            get_user_details_response_data,
+            expected_user_id=active_credit_account_user_id,
+        )
+
+    @allure.story(AllureStory.GET_USER_DETAILS)
+    @allure.title("[HTTP] Get user details. User without accounts")
+    def test_get_user_details_user_without_accounts(
+            self,
+            gateway_http_test_client: GatewayHTTPTestClient,
+            user_without_accounts_id: UUID,
+    ) -> None:
+        """Проверяет успешный ответ с пользователем и пустым списком счетов.
+
+        Args:
+            gateway_http_test_client: Фикстура клиента Gateway HTTP API.
+            user_without_accounts_id: ID существующего пользователя сценария.
+        """
+        get_user_details_response_data = gateway_http_test_client.get_user_details(
+            user_id=user_without_accounts_id,
+            context=RequestContext(scenario=Scenario.USER_WITHOUT_ACCOUNTS),
+        )
+
+        assert_get_user_details_response_user_without_accounts(
+            get_user_details_response_data,
+            expected_user_id=user_without_accounts_id,
+        )
+
+    @allure.story(AllureStory.GET_USER_DETAILS)
+    @allure.title("[HTTP] Get user details. User not found")
+    def test_get_user_details_user_not_found(
+            self,
+            gateway_http_test_client: GatewayHTTPTestClient,
+            unknown_user_id: UUID,
+    ) -> None:
+        """Проверяет передачу Gateway ошибки Users с причиной и запрошенным ID.
+
+        Users mock моделирует отсутствие пользователя ответом 404.
+
+        Args:
+            gateway_http_test_client: Фикстура клиента Gateway HTTP API.
+            unknown_user_id: Корректный UUID вне данных выбранного сценария.
+        """
+        get_user_details_response = gateway_http_test_client.get_user_details_api(
+            user_id=unknown_user_id,
+            context=RequestContext(scenario=Scenario.USER_WITH_ACTIVE_CREDIT_CARD_ACCOUNT),
+        )
+
+        assert_gateway_not_found_response(
+            get_user_details_response,
+            expected_detail=GatewayTestErrorReason.USER_NOT_FOUND.format(user_id=unknown_user_id),
         )
 
     @allure.story(AllureStory.GET_ACCOUNT_DETAILS)
     @allure.title("[HTTP] Get account details. User with active debit card account")
     def test_get_account_details_user_with_active_debit_card_account(
-        self,
-        gateway_http_test_client: GatewayHTTPTestClient,
+            self,
+            gateway_http_test_client: GatewayHTTPTestClient,
+            active_debit_account_id: UUID,
     ) -> None:
-        """Проверяет счёт и карты по мок-сценарию активного дебетового счёта.
+        """Проверяет запрошенный дебетовый счёт и принадлежность обеих карт.
 
         Args:
             gateway_http_test_client: Фикстура клиента Gateway HTTP API.
+            active_debit_account_id: Ожидаемый ID счёта выбранного сценария.
         """
         get_account_details_response_data = gateway_http_test_client.get_account_details(
+            account_id=active_debit_account_id,
             context=RequestContext(
                 scenario=Scenario.USER_WITH_ACTIVE_DEBIT_CARD_ACCOUNT
             ),
         )
 
-        assert_get_account_details_response_user_with_active_debit_card_account(get_account_details_response_data)
+        assert_get_account_details_response_user_with_active_debit_card_account(
+            get_account_details_response_data,
+            expected_account_id=active_debit_account_id,
+        )
+
+    @allure.story(AllureStory.GET_ACCOUNT_DETAILS)
+    @allure.title("[HTTP] Get account details. Account without cards")
+    def test_get_account_details_account_without_cards(
+            self,
+            gateway_http_test_client: GatewayHTTPTestClient,
+            account_without_cards_id: UUID,
+    ) -> None:
+        """Проверяет успешный ответ со счётом и пустым списком карт.
+
+        Args:
+            gateway_http_test_client: Фикстура клиента Gateway HTTP API.
+            account_without_cards_id: ID существующего счёта сценария.
+        """
+        get_account_details_response_data = gateway_http_test_client.get_account_details(
+            account_id=account_without_cards_id,
+            context=RequestContext(scenario=Scenario.ACCOUNT_WITHOUT_CARDS),
+        )
+
+        assert_get_account_details_response_account_without_cards(
+            get_account_details_response_data,
+            expected_account_id=account_without_cards_id,
+        )
+
+    @allure.story(AllureStory.GET_ACCOUNT_DETAILS)
+    @allure.title("[HTTP] Get account details. Account not found")
+    def test_get_account_details_account_not_found(
+            self,
+            gateway_http_test_client: GatewayHTTPTestClient,
+            unknown_account_id: UUID,
+    ) -> None:
+        """Проверяет передачу Gateway ошибки Accounts с причиной и запрошенным ID.
+
+        Accounts mock моделирует отсутствие счёта ответом 404.
+
+        Args:
+            gateway_http_test_client: Фикстура клиента Gateway HTTP API.
+            unknown_account_id: Корректный UUID вне данных выбранного сценария.
+        """
+        get_account_details_response = gateway_http_test_client.get_account_details_api(
+            account_id=unknown_account_id,
+            context=RequestContext(scenario=Scenario.USER_WITH_ACTIVE_DEBIT_CARD_ACCOUNT),
+        )
+
+        assert_gateway_not_found_response(
+            get_account_details_response,
+            expected_detail=GatewayTestErrorReason.ACCOUNT_NOT_FOUND.format(account_id=unknown_account_id),
+        )
