@@ -1,0 +1,41 @@
+INFO     sqlalchemy.engine.Engine:base.py:2698 BEGIN (implicit)
+INFO     sqlalchemy.engine.Engine:base.py:1842 SELECT set_config('statement_timeout', %(statement_timeout)s, true)
+INFO     sqlalchemy.engine.Engine:base.py:1842 [cached since 0.3485s ago] {'statement_timeout': '10000ms'}
+INFO     sqlalchemy.engine.Engine:base.py:1842 SELECT operations.id 
+FROM operations 
+WHERE operations.user_id = %(user_id_1)s::UUID AND operations.card_id = %(card_id_1)s::UUID AND operations.account_id = %(account_id_1)s::UUID
+INFO     sqlalchemy.engine.Engine:base.py:1842 [cached since 0.3481s ago] {'user_id_1': UUID('c7d3c790-9131-4d03-bb9a-6e38bcbdad9e'), 'card_id_1': UUID('379b9bcd-9faa-486f-86cf-1c8881063fe5'), 'account_id_1': UUID('074334ba-9441-4c09-929c-3c48c7346a7c')}
+INFO     sqlalchemy.engine.Engine:base.py:2701 ROLLBACK
+INFO     OPERATIONS_KAFKA_PRODUCER_TEST_CLIENT:producer.py:74 Kafka message enqueued: topic=operations-service.operation-event.inbox
+INFO     OPERATIONS_KAFKA_PRODUCER_TEST_CLIENT:producer.py:129 Kafka delivery confirmed: topic=operations-service.operation-event.inbox partition=0 offset=1 elapsed=0.051s
+INFO     OPERATIONS_GRPC_TEST_CLIENT:logger_interceptor.py:54 REQUEST: /contracts.services.operations.OperationsService/GetOperations
+INFO     OPERATIONS_GRPC_TEST_CLIENT:logger_interceptor.py:65 RESPONSE: /contracts.services.operations.OperationsService/GetOperations
+INFO     OPERATIONS_GRPC_TEST_CLIENT:logger_interceptor.py:54 REQUEST: /contracts.services.operations.OperationsService/GetOperations
+INFO     OPERATIONS_GRPC_TEST_CLIENT:logger_interceptor.py:65 RESPONSE: /contracts.services.operations.OperationsService/GetOperations
+INFO     GRPC_OPERATIONS_ASSERTIONS:operations.py:95 Check get operations response from event
+INFO     BASE_ASSERTIONS:base.py:25 Check that "count operations" equals 1
+INFO     BASE_ASSERTIONS:base.py:25 Check that "unique operation keys" equals 1
+INFO     BASE_ASSERTIONS:base.py:25 Check that "unique event keys" equals 1
+INFO     BASE_ASSERTIONS:base.py:25 Check that "unique operation ids" equals 1
+INFO     BASE_ASSERTIONS:base.py:25 Check that "operation event keys" equals {(UUID('c7d3c790-9131-4d03-bb9a-6e38bcbdad9e'), UUID('379b9bcd-9faa-486f-86cf-1c8881063fe5'))}
+INFO     GRPC_OPERATIONS_ASSERTIONS:operations.py:48 Check get operation from event
+INFO     BASE_ASSERTIONS:base.py:25 Check that "type" equals 4
+INFO     BASE_ASSERTIONS:base.py:25 Check that "status" equals 2
+INFO     BASE_ASSERTIONS:base.py:25 Check that "amount" equals 974.12
+INFO     BASE_ASSERTIONS:base.py:25 Check that "user_id" equals UUID('c7d3c790-9131-4d03-bb9a-6e38bcbdad9e')
+INFO     BASE_ASSERTIONS:base.py:25 Check that "card_id" equals UUID('379b9bcd-9faa-486f-86cf-1c8881063fe5')
+INFO     BASE_ASSERTIONS:base.py:25 Check that "category" equals 'beauty'
+INFO     BASE_ASSERTIONS:base.py:25 Check that "created_at" equals '1995-04-14 18:42:37'
+INFO     BASE_ASSERTIONS:base.py:25 Check that "account_id" equals UUID('074334ba-9441-4c09-929c-3c48c7346a7c')
+INFO     sqlalchemy.engine.Engine:base.py:2698 BEGIN (implicit)
+INFO     sqlalchemy.engine.Engine:base.py:1842 SELECT set_config('statement_timeout', %(statement_timeout)s, true)
+INFO     sqlalchemy.engine.Engine:base.py:1842 [cached since 0.6633s ago] {'statement_timeout': '10000ms'}
+INFO     sqlalchemy.engine.Engine:base.py:1842 SELECT operations.id 
+FROM operations 
+WHERE operations.user_id = %(user_id_1)s::UUID AND operations.card_id = %(card_id_1)s::UUID AND operations.account_id = %(account_id_1)s::UUID
+INFO     sqlalchemy.engine.Engine:base.py:1842 [cached since 0.6627s ago] {'user_id_1': UUID('c7d3c790-9131-4d03-bb9a-6e38bcbdad9e'), 'card_id_1': UUID('379b9bcd-9faa-486f-86cf-1c8881063fe5'), 'account_id_1': UUID('074334ba-9441-4c09-929c-3c48c7346a7c')}
+INFO     sqlalchemy.engine.Engine:base.py:2701 ROLLBACK
+INFO     sqlalchemy.engine.Engine:base.py:2698 BEGIN (implicit)
+INFO     sqlalchemy.engine.Engine:base.py:1842 DELETE FROM operations WHERE operations.id = %(id_1)s::UUID
+INFO     sqlalchemy.engine.Engine:base.py:1842 [cached since 0.7101s ago] {'id_1': UUID('95ba4086-5e7d-465a-a459-be644a4b93f0')}
+INFO     sqlalchemy.engine.Engine:base.py:2704 COMMIT

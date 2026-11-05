@@ -1,0 +1,21 @@
+INFO     GATEWAY_GRPC_TEST_CLIENT:logger_interceptor.py:54 REQUEST: /contracts.services.gateway.GatewayService/GetUserDetails
+INFO     GATEWAY_GRPC_TEST_CLIENT:logger_interceptor.py:65 RESPONSE: /contracts.services.gateway.GatewayService/GetUserDetails
+INFO     GRPC_GATEWAY_ASSERTIONS:gateway.py:128 Check get user details response. User with active credit card account
+INFO     GRPC_GATEWAY_ASSERTIONS:gateway.py:94 Check get user details response
+INFO     GRPC_GATEWAY_ASSERTIONS:gateway.py:53 Check user details
+INFO     GRPC_USERS_ASSERTIONS:users.py:12 Check user
+INFO     BASE_ASSERTIONS:base.py:25 Check that "id" equals '8b0e7c2a-1b6a-4e5d-9f1a-1b3f2a7c9e21'
+INFO     BASE_ASSERTIONS:base.py:25 Check that "email" equals 'anna.ivanova@example.com'
+INFO     BASE_ASSERTIONS:base.py:25 Check that "last_name" equals 'Иванова'
+INFO     BASE_ASSERTIONS:base.py:25 Check that "first_name" equals 'Анна'
+INFO     BASE_ASSERTIONS:base.py:25 Check that "middle_name" equals 'Алексеевна'
+INFO     BASE_ASSERTIONS:base.py:25 Check that "phone_number" equals '+79005554433'
+INFO     BASE_ASSERTIONS:base.py:25 Check that "accounts count" equals 1
+INFO     BASE_ASSERTIONS:base.py:25 Check that "unique account ids" equals 1
+INFO     BASE_ASSERTIONS:base.py:25 Check that "account ids" equals {'99999999-aaaa-4bbb-8ccc-000000000001'}
+INFO     GRPC_ACCOUNTS_ASSERTIONS:accounts.py:12 Check account
+INFO     BASE_ASSERTIONS:base.py:25 Check that "id" equals '99999999-aaaa-4bbb-8ccc-000000000001'
+INFO     BASE_ASSERTIONS:base.py:25 Check that "type" equals 2
+INFO     BASE_ASSERTIONS:base.py:25 Check that "status" equals 1
+INFO     BASE_ASSERTIONS:base.py:25 Check that "user_id" equals '8b0e7c2a-1b6a-4e5d-9f1a-1b3f2a7c9e21'
+INFO     BASE_ASSERTIONS:base.py:25 Check that "balance" equals -15230.75

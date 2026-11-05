@@ -1,0 +1,307 @@
+"DESCRIPTION","DURATION IN MS","NAME","PARENT SUITE","START TIME","STATUS","STOP TIME","SUB SUITE","SUITE","TEST CLASS","TEST METHOD"
+"Проверяет успешный ответ с пользователем и пустым списком счетов.
+
+        Args:
+            gateway_http_test_client: Фикстура клиента Gateway HTTP API.
+            user_without_accounts_id: ID существующего пользователя сценария.
+        ","59","[HTTP] Get user details. User without accounts","tests.suites.http","2026-11-05","passed","2026-11-05","TestGatewayHTTP","test_gateway","",""
+"Проверяет пользователя и его кредитный счёт по явно запрошенному ID.
+
+        Args:
+            gateway_http_test_client: Фикстура клиента Gateway HTTP API.
+            active_credit_account_user_id: Ожидаемый ID пользователя сценария.
+        ","64","[HTTP] Get user details. User with active credit card account","tests.suites.http","2026-11-05","passed","2026-11-05","TestGatewayHTTP","test_gateway","",""
+"Проверяет фильтр карты при двух уже обработанных покупках пользователя.
+
+        Args:
+            operations_grpc_test_client: gRPC-клиент Operations.
+            operations_kafka_producer_test_client: Публикация и учёт очистки событий.
+            same_user_purchase_events: Покупки одного счёта по разным картам.
+        ","123","[gRPC][Kafka] Operation events. Filter by card","tests.suites.grpc","2026-11-05","passed","2026-11-05","TestOperationsGRPC","test_operations","",""
+"Проверяет разделение пользователей после обработки обоих Kafka-событий.
+
+        Args:
+            operations_http_test_client: HTTP-клиент Operations.
+            operations_kafka_producer_test_client: Публикация и учёт очистки событий.
+            different_user_purchase_events: Покупки двух независимых пользователей.
+        ","159","[HTTP][Kafka] Operation events. Exclude another user","tests.suites.http","2026-11-05","passed","2026-11-05","TestOperationsHTTP","test_operations","",""
+"Проверяет 503 и причину сбоя Cards либо получения самого счёта.
+
+        Args:
+            gateway_http_test_client: Фикстура клиента Gateway HTTP API.
+            active_debit_account_id: ID подготовленного счёта.
+            scenario: Параметр, выбирающий сбой одной зависимости.
+            expected_detail: Ожидаемая причина ошибки выбранного сервиса.
+        ","2539","[HTTP] Get account details. Dependency unavailable: account_details_unavailable","tests.suites.http","2026-11-05","passed","2026-11-05","TestGatewayHTTP","test_gateway","",""
+"Проверяет фильтр счёта при двух уже обработанных покупках пользователя.
+
+        Args:
+            operations_grpc_test_client: gRPC-клиент Operations.
+            operations_kafka_producer_test_client: Публикация и учёт очистки событий.
+            different_account_purchase_events: Покупки разных счетов одного пользователя.
+        ","70","[gRPC][Kafka] Operation events. Filter by account","tests.suites.grpc","2026-11-05","passed","2026-11-05","TestOperationsGRPC","test_operations","",""
+"Проверяет 503 и причину сбоя Users либо получения списка счетов.
+
+        Args:
+            gateway_http_test_client: Фикстура клиента Gateway HTTP API.
+            active_credit_account_user_id: ID подготовленного пользователя.
+            scenario: Параметр, выбирающий сбой одной зависимости.
+            expected_detail: Ожидаемая причина ошибки выбранного сервиса.
+        ","2539","[HTTP] Get user details. Dependency unavailable: users_service_unavailable","tests.suites.http","2026-11-05","passed","2026-11-05","TestGatewayHTTP","test_gateway","",""
+"Проверяет UNAVAILABLE и причину сбоя Users либо списка счетов.
+
+        Args:
+            gateway_grpc_test_client: Клиент Gateway gRPC API.
+            active_credit_account_user_id: ID подготовленного пользователя.
+            scenario: Параметр, выбирающий сбой одной зависимости.
+            expected_detail: Ожидаемая причина ошибки выбранного сервиса.
+        ","5027","[gRPC] Get user details. Dependency unavailable: accounts_list_unavailable","tests.suites.grpc","2026-11-05","passed","2026-11-05","TestGatewayGRPC","test_gateway","",""
+"Проверяет выдачу покупки IN_PROGRESS, отправленной через Kafka.
+
+        Args:
+            operations_http_test_client: HTTP-клиент Operations.
+            operations_kafka_producer_test_client: Клиент публикации событий операций.
+        ","114","[HTTP][Kafka] Operation events. In progress purchase operation","tests.suites.http","2026-11-05","passed","2026-11-05","TestOperationsHTTP","test_operations","",""
+"Проверяет, что фильтр счёта исключает другую покупку пользователя.
+
+        Args:
+            operations_http_test_client: HTTP-клиент Operations.
+            operations_postgres_test_repository: Подготовка операций с учётом очистки.
+        ","12","[HTTP][Postgres] Filter by account id. Completed purchase operation","tests.suites.http","2026-11-05","passed","2026-11-05","TestOperationsHTTP","test_operations","",""
+"Проверяет выдачу обеих покупок пользователя без чужой операции.
+
+        Args:
+            operations_grpc_test_client: gRPC-клиент Operations.
+            operations_postgres_test_repository: Подготовка операций с учётом очистки.
+        ","15","[gRPC][Postgres] Filter by user id. Multiple completed purchase operations","tests.suites.grpc","2026-11-05","passed","2026-11-05","TestOperationsGRPC","test_operations","",""
+"Проверяет успешный ответ со счётом и пустым списком карт.
+
+        Args:
+            gateway_http_test_client: Фикстура клиента Gateway HTTP API.
+            account_without_cards_id: ID существующего счёта сценария.
+        ","22","[HTTP] Get account details. Account without cards","tests.suites.http","2026-11-05","passed","2026-11-05","TestGatewayHTTP","test_gateway","",""
+"Проверяет существующий счёт с пустым списком карт.
+
+        Args:
+            gateway_grpc_test_client: Клиент Gateway gRPC API.
+            account_without_cards_id: ID существующего счёта без карт.
+        ","15","[gRPC] Get account details. Account without cards","tests.suites.grpc","2026-11-05","passed","2026-11-05","TestGatewayGRPC","test_gateway","",""
+"Проверяет NOT_FOUND и ID отсутствующего счёта после успешного чтения карт.
+
+        Args:
+            gateway_grpc_test_client: Клиент Gateway gRPC API.
+            unknown_account_id: Корректный UUID, отсутствующий в выбранном сценарии.
+        ","14","[gRPC] Get account details. Account not found","tests.suites.grpc","2026-11-05","passed","2026-11-05","TestGatewayGRPC","test_gateway","",""
+"Проверяет 503 и причину сбоя Users либо получения списка счетов.
+
+        Args:
+            gateway_http_test_client: Фикстура клиента Gateway HTTP API.
+            active_credit_account_user_id: ID подготовленного пользователя.
+            scenario: Параметр, выбирающий сбой одной зависимости.
+            expected_detail: Ожидаемая причина ошибки выбранного сервиса.
+        ","2541","[HTTP] Get user details. Dependency unavailable: accounts_list_unavailable","tests.suites.http","2026-11-05","passed","2026-11-05","TestGatewayHTTP","test_gateway","",""
+"Проверяет запрошенный дебетовый счёт и принадлежность обеих карт.
+
+        Args:
+            gateway_http_test_client: Фикстура клиента Gateway HTTP API.
+            active_debit_account_id: Ожидаемый ID счёта выбранного сценария.
+        ","26","[HTTP] Get account details. User with active debit card account","tests.suites.http","2026-11-05","passed","2026-11-05","TestGatewayHTTP","test_gateway","",""
+"Проверяет UNAVAILABLE и причину сбоя Users либо списка счетов.
+
+        Args:
+            gateway_grpc_test_client: Клиент Gateway gRPC API.
+            active_credit_account_user_id: ID подготовленного пользователя.
+            scenario: Параметр, выбирающий сбой одной зависимости.
+            expected_detail: Ожидаемая причина ошибки выбранного сервиса.
+        ","5021","[gRPC] Get user details. Dependency unavailable: users_service_unavailable","tests.suites.grpc","2026-11-05","passed","2026-11-05","TestGatewayGRPC","test_gateway","",""
+"Проверяет, что фильтр карты исключает другую покупку пользователя.
+
+        Args:
+            operations_http_test_client: HTTP-клиент Operations.
+            operations_postgres_test_repository: Подготовка операций с учётом очистки.
+        ","52","[HTTP][Postgres] Filter by card id. In progress purchase operation","tests.suites.http","2026-11-05","passed","2026-11-05","TestOperationsHTTP","test_operations","",""
+"Проверяет фильтр счёта при двух уже обработанных покупках пользователя.
+
+        Args:
+            operations_http_test_client: HTTP-клиент Operations.
+            operations_kafka_producer_test_client: Публикация и учёт очистки событий.
+            different_account_purchase_events: Покупки разных счетов одного пользователя.
+        ","113","[HTTP][Kafka] Operation events. Filter by account","tests.suites.http","2026-11-05","passed","2026-11-05","TestOperationsHTTP","test_operations","",""
+"Проверяет UNAVAILABLE и причину сбоя Cards либо получения счёта.
+
+        Args:
+            gateway_grpc_test_client: Клиент Gateway gRPC API.
+            active_debit_account_id: ID подготовленного счёта.
+            scenario: Параметр, выбирающий сбой одной зависимости.
+            expected_detail: Ожидаемая причина ошибки выбранного сервиса.
+        ","5033","[gRPC] Get account details. Dependency unavailable: account_details_unavailable","tests.suites.grpc","2026-11-05","passed","2026-11-05","TestGatewayGRPC","test_gateway","",""
+"Проверяет, что фильтр счёта исключает другую покупку пользователя.
+
+        Args:
+            operations_grpc_test_client: gRPC-клиент Operations.
+            operations_postgres_test_repository: Подготовка операций с учётом очистки.
+        ","17","[gRPC][Postgres] Filter by account id. Completed purchase operation","tests.suites.grpc","2026-11-05","passed","2026-11-05","TestOperationsGRPC","test_operations","",""
+"Проверяет пользователя и его кредитный счёт по явно запрошенному ID.
+
+        Args:
+            gateway_grpc_test_client: Клиент Gateway gRPC API.
+            active_credit_account_user_id: Ожидаемый ID пользователя сценария.
+        ","28","[gRPC] Get user details. User with active credit card account","tests.suites.grpc","2026-11-05","passed","2026-11-05","TestGatewayGRPC","test_gateway","",""
+"Проверяет передачу Gateway ошибки Users с причиной и запрошенным ID.
+
+        Users mock моделирует отсутствие пользователя ответом 404.
+
+        Args:
+            gateway_http_test_client: Фикстура клиента Gateway HTTP API.
+            unknown_user_id: Корректный UUID вне данных выбранного сценария.
+        ","29","[HTTP] Get user details. User not found","tests.suites.http","2026-11-05","passed","2026-11-05","TestGatewayHTTP","test_gateway","",""
+"Проверяет пустую выдачу при наличии только чужой покупки.
+
+        Args:
+            operations_grpc_test_client: gRPC-клиент Operations.
+            operations_postgres_test_repository: Подготовка операций с учётом очистки.
+        ","7","[gRPC][Postgres] Filter by user id. No operations","tests.suites.grpc","2026-11-05","passed","2026-11-05","TestOperationsGRPC","test_operations","",""
+"Проверяет дебетовый счёт, владельца и привязанные к счёту карты.
+
+        Args:
+            gateway_grpc_test_client: Клиент Gateway gRPC API.
+            active_debit_account_id: Ожидаемый ID счёта сценария.
+        ","16","[gRPC] Get account details. User with active debit card account","tests.suites.grpc","2026-11-05","passed","2026-11-05","TestGatewayGRPC","test_gateway","",""
+"Проверяет userId без карты и счёта при наличии покупки другого пользователя.
+
+        Args:
+            operations_http_test_client: HTTP-клиент Operations.
+            operations_postgres_test_repository: Подготовка операций с учётом очистки.
+        ","13","[HTTP][Postgres] Filter by user id. Completed purchase operation","tests.suites.http","2026-11-05","passed","2026-11-05","TestOperationsHTTP","test_operations","",""
+"Проверяет разделение пользователей после обработки обоих Kafka-событий.
+
+        Args:
+            operations_grpc_test_client: gRPC-клиент Operations.
+            operations_kafka_producer_test_client: Публикация и учёт очистки событий.
+            different_user_purchase_events: Покупки двух независимых пользователей.
+        ","73","[gRPC][Kafka] Operation events. Exclude another user","tests.suites.grpc","2026-11-05","passed","2026-11-05","TestOperationsGRPC","test_operations","",""
+"Проверяет оба счёта пользователя и исключение счёта другого владельца.
+
+        Args:
+            gateway_http_test_client: Фикстура клиента Gateway HTTP API.
+            user_with_multiple_accounts_id: ID владельца двух подготовленных счетов.
+        ","29","[HTTP] Get user details. User with multiple accounts","tests.suites.http","2026-11-05","passed","2026-11-05","TestGatewayHTTP","test_gateway","",""
+"Проверяет, что фильтр карты исключает другую покупку пользователя.
+
+        Args:
+            operations_grpc_test_client: gRPC-клиент Operations.
+            operations_postgres_test_repository: Подготовка операций с учётом очистки.
+        ","11","[gRPC][Postgres] Filter by card id. In progress purchase operation","tests.suites.grpc","2026-11-05","passed","2026-11-05","TestOperationsGRPC","test_operations","",""
+"Проверяет передачу Gateway ошибки Accounts с причиной и запрошенным ID.
+
+        Accounts mock моделирует отсутствие счёта ответом 404.
+
+        Args:
+            gateway_http_test_client: Фикстура клиента Gateway HTTP API.
+            unknown_account_id: Корректный UUID вне данных выбранного сценария.
+        ","20","[HTTP] Get account details. Account not found","tests.suites.http","2026-11-05","passed","2026-11-05","TestGatewayHTTP","test_gateway","",""
+"Проверяет userId без карты и счёта при наличии покупки другого пользователя.
+
+        Args:
+            operations_grpc_test_client: gRPC-клиент Operations.
+            operations_postgres_test_repository: Подготовка операций с учётом очистки.
+        ","61","[gRPC][Postgres] Filter by user id. Completed purchase operation","tests.suites.grpc","2026-11-05","passed","2026-11-05","TestOperationsGRPC","test_operations","",""
+"Проверяет выдачу покупки COMPLETED, отправленной через Kafka.
+
+        Args:
+            operations_http_test_client: HTTP-клиент Operations.
+            operations_kafka_producer_test_client: Клиент публикации событий операций.
+        ","116","[HTTP][Kafka] Operation events. Completed purchase operation","tests.suites.http","2026-11-05","passed","2026-11-05","TestOperationsHTTP","test_operations","",""
+"Проверяет две карты счёта и исключение карты, привязанной к другому счёту.
+
+        Args:
+            gateway_grpc_test_client: Клиент Gateway gRPC API.
+            account_with_mixed_cards_id: ID счёта с двумя подходящими картами.
+            user_with_multiple_accounts_id: Независимый ожидаемый ID владельца счёта.
+        ","16","[gRPC] Get account details. Cards belong to account","tests.suites.grpc","2026-11-05","passed","2026-11-05","TestGatewayGRPC","test_gateway","",""
+"Проверяет выдачу покупки IN_PROGRESS, отправленной через Kafka.
+
+        Args:
+            operations_grpc_test_client: gRPC-клиент Operations.
+            operations_kafka_producer_test_client: Клиент публикации событий операций.
+        ","321","[gRPC][Kafka] Operation events. In progress purchase operation","tests.suites.grpc","2026-11-05","passed","2026-11-05","TestOperationsGRPC","test_operations","",""
+"Проверяет 503 и причину сбоя Cards либо получения самого счёта.
+
+        Args:
+            gateway_http_test_client: Фикстура клиента Gateway HTTP API.
+            active_debit_account_id: ID подготовленного счёта.
+            scenario: Параметр, выбирающий сбой одной зависимости.
+            expected_detail: Ожидаемая причина ошибки выбранного сервиса.
+        ","2540","[HTTP] Get account details. Dependency unavailable: cards_service_unavailable","tests.suites.http","2026-11-05","passed","2026-11-05","TestGatewayHTTP","test_gateway","",""
+"Проверяет UNAVAILABLE и причину сбоя Cards либо получения счёта.
+
+        Args:
+            gateway_grpc_test_client: Клиент Gateway gRPC API.
+            active_debit_account_id: ID подготовленного счёта.
+            scenario: Параметр, выбирающий сбой одной зависимости.
+            expected_detail: Ожидаемая причина ошибки выбранного сервиса.
+        ","5023","[gRPC] Get account details. Dependency unavailable: cards_service_unavailable","tests.suites.grpc","2026-11-05","passed","2026-11-05","TestGatewayGRPC","test_gateway","",""
+"Проверяет выдачу покупки COMPLETED, отправленной через Kafka.
+
+        Args:
+            operations_grpc_test_client: gRPC-клиент Operations.
+            operations_kafka_producer_test_client: Клиент публикации событий операций.
+        ","314","[gRPC][Kafka] Operation events. Completed purchase operation","tests.suites.grpc","2026-11-05","passed","2026-11-05","TestOperationsGRPC","test_operations","",""
+"Проверяет пустую выборку пользователя при наличии чужой покупки.
+
+        Args:
+            operations_http_test_client: HTTP-клиент Operations.
+            operations_postgres_test_repository: Подготовка операций с учётом очистки.
+        ","9","[HTTP][Postgres] Filter by user id. No operations","tests.suites.http","2026-11-05","passed","2026-11-05","TestOperationsHTTP","test_operations","",""
+"Проверяет сохранение обеих покупок пользователя независимо от порядка выдачи.
+
+        Args:
+            operations_grpc_test_client: gRPC-клиент Operations.
+            operations_kafka_producer_test_client: Публикация и учёт очистки событий.
+            same_user_purchase_events: Две покупки с разными картами и полями.
+        ","68","[gRPC][Kafka] Operation events. Multiple purchases for user","tests.suites.grpc","2026-11-05","passed","2026-11-05","TestOperationsGRPC","test_operations","",""
+"Проверяет оба счёта пользователя и отсутствие счёта другого владельца.
+
+        Args:
+            gateway_grpc_test_client: Клиент Gateway gRPC API.
+            user_with_multiple_accounts_id: ID владельца двух счетов в сценарии.
+        ","16","[gRPC] Get user details. Multiple accounts belong to user","tests.suites.grpc","2026-11-05","passed","2026-11-05","TestGatewayGRPC","test_gateway","",""
+"Проверяет две карты запрошенного счёта и исключение карты другого счёта.
+
+        Args:
+            gateway_http_test_client: Фикстура клиента Gateway HTTP API.
+            account_with_mixed_cards_id: ID подготовленного дебетового счёта.
+            user_with_multiple_accounts_id: ID владельца подготовленного счёта.
+        ","26","[HTTP] Get account details. Cards belong to requested account","tests.suites.http","2026-11-05","passed","2026-11-05","TestGatewayHTTP","test_gateway","",""
+"Проверяет фильтр карты при двух уже обработанных покупках пользователя.
+
+        Args:
+            operations_http_test_client: HTTP-клиент Operations.
+            operations_kafka_producer_test_client: Публикация и учёт очистки событий.
+            same_user_purchase_events: Покупки одного счёта по разным картам.
+        ","114","[HTTP][Kafka] Operation events. Filter by card","tests.suites.http","2026-11-05","passed","2026-11-05","TestOperationsHTTP","test_operations","",""
+"Проверяет сохранение обеих покупок пользователя независимо от порядка выдачи.
+
+        Args:
+            operations_http_test_client: HTTP-клиент Operations.
+            operations_kafka_producer_test_client: Публикация и учёт очистки событий.
+            same_user_purchase_events: Две покупки с разными картами и полями.
+        ","106","[HTTP][Kafka] Operation events. Multiple purchases for user","tests.suites.http","2026-11-05","passed","2026-11-05","TestOperationsHTTP","test_operations","",""
+"Проверяет известного пользователя с пустым списком счетов.
+
+        Args:
+            gateway_grpc_test_client: Клиент Gateway gRPC API.
+            user_without_accounts_id: ID существующего пользователя без счетов.
+        ","12","[gRPC] Get user details. User without accounts","tests.suites.grpc","2026-11-05","passed","2026-11-05","TestGatewayGRPC","test_gateway","",""
+"Проверяет NOT_FOUND и ID отсутствующего пользователя в причине ошибки.
+
+        Args:
+            gateway_grpc_test_client: Клиент Gateway gRPC API.
+            unknown_user_id: Корректный UUID, отсутствующий в выбранном сценарии.
+        ","9","[gRPC] Get user details. User not found","tests.suites.grpc","2026-11-05","passed","2026-11-05","TestGatewayGRPC","test_gateway","",""
+"Проверяет выдачу всех покупок пользователя без чужой операции.
+
+        Args:
+            operations_http_test_client: HTTP-клиент Operations.
+            operations_postgres_test_repository: Подготовка операций с учётом очистки.
+        ","13","[HTTP][Postgres] Filter by user id. Multiple completed purchases","tests.suites.http","2026-11-05","passed","2026-11-05","TestOperationsHTTP","test_operations","",""

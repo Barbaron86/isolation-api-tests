@@ -1,0 +1,13 @@
+INFO     GATEWAY_GRPC_TEST_CLIENT:logger_interceptor.py:54 REQUEST: /contracts.services.gateway.GatewayService/GetAccountDetails
+INFO     GATEWAY_GRPC_TEST_CLIENT:logger_interceptor.py:65 RESPONSE: /contracts.services.gateway.GatewayService/GetAccountDetails
+INFO     GRPC_GATEWAY_ASSERTIONS:gateway.py:110 Check get account details response
+INFO     GRPC_GATEWAY_ASSERTIONS:gateway.py:72 Check account details
+INFO     GRPC_ACCOUNTS_ASSERTIONS:accounts.py:12 Check account
+INFO     BASE_ASSERTIONS:base.py:25 Check that "id" equals 'a7c43c93-7f5e-4bea-935d-9206715e8742'
+INFO     BASE_ASSERTIONS:base.py:25 Check that "type" equals 1
+INFO     BASE_ASSERTIONS:base.py:25 Check that "status" equals 1
+INFO     BASE_ASSERTIONS:base.py:25 Check that "user_id" equals 'e8a351ec-3c79-46b4-a152-95b0aac90d3f'
+INFO     BASE_ASSERTIONS:base.py:25 Check that "balance" equals 2500.5
+INFO     BASE_ASSERTIONS:base.py:25 Check that "cards count" equals 0
+INFO     BASE_ASSERTIONS:base.py:25 Check that "unique card ids" equals 0
+INFO     BASE_ASSERTIONS:base.py:25 Check that "card ids" equals set()
