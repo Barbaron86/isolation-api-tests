@@ -7,12 +7,12 @@ from tests.tools.logger import get_test_logger
 logger = get_test_logger("BASE_ASSERTIONS")
 
 
-@allure.step("Check that {name} equals expected value")
+@allure.step("Check that {name} equals {expected:.60}")
 def assert_equal(actual: Any, expected: Any, name: str) -> None:
     """Проверяет равенство значений и записывает результат в лог и Allure.
 
-    Заголовок шага содержит только название поля. Значения доступны в параметрах
-    шага, а при несовпадении — также в сообщении об ошибке.
+    В заголовке ожидаемое значение ограничено 60 символами. Полные значения
+    доступны в параметрах шага, а при несовпадении — также в сообщении об ошибке.
 
     Args:
         actual: Полученное значение.
@@ -22,7 +22,7 @@ def assert_equal(actual: Any, expected: Any, name: str) -> None:
     Raises:
         AssertionError: Если значения не равны.
     """
-    logger.info(f'Check that "{name}" equals {expected}')
+    logger.info(f'Check that "{name}" equals {expected!r}')
 
     assert actual == expected, (
         f'Incorrect value: "{name}". '
@@ -31,12 +31,14 @@ def assert_equal(actual: Any, expected: Any, name: str) -> None:
     )
 
 
-@allure.step('Check that "{name}" contains "{expected}"')
+@allure.step("Check that {name} contains {expected:.60}")
 def assert_string_contains(actual: str, expected: str, name: str) -> None:
     """Проверяет строковый тип значения и наличие ожидаемого фрагмента.
 
     Проверка типа защищает от списков и словарей из JSON: оператор in для них
     проверяет элементы или ключи и может дать ложное совпадение со строкой.
+    В заголовке ожидаемый фрагмент ограничен 60 символами. Полные значения
+    доступны в параметрах шага и сообщении об ошибке.
 
     Args:
         actual: Полученное значение, которое должно быть строкой.
@@ -46,7 +48,7 @@ def assert_string_contains(actual: str, expected: str, name: str) -> None:
     Raises:
         AssertionError: Если значение не строка либо фрагмент отсутствует.
     """
-    logger.info('Check that "%s" contains %r', name, expected)
+    logger.info(f'Check that "{name}" contains {expected!r}')
     assert isinstance(actual, str), f'Incorrect type: "{name}". Expected str. Actual value: {actual!r}'
     assert expected in actual, (
         f'Incorrect value: "{name}". '
