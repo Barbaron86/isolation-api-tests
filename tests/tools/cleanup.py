@@ -1,9 +1,15 @@
 """Отложенная очистка ресурсов, принадлежащих одному тесту."""
 
+import logging
 from collections.abc import Callable
 from dataclasses import dataclass
 from functools import partial
 from typing import Any
+
+from tests.tools.logger import get_test_logger
+
+
+logger = get_test_logger("TEST_DATA_CLEANUP")
 
 
 @dataclass(frozen=True)
@@ -65,6 +71,9 @@ class CleanupManager:
         ещё не начатые действия остаются в реестре. Аварийное завершение процесса
         не гарантирует очистку.
 
+        Лог сообщает результат вызова действия по его описанию. Сбой логирования
+        не влияет на выполнение остальных действий и собранные ошибки.
+
         Raises:
             ExceptionGroup: Если хотя бы одно действие завершилось ошибкой.
                 Содержит исходные исключения с описаниями неуспешных действий.
@@ -77,5 +86,13 @@ class CleanupManager:
             except Exception as error:
                 error.add_note(f"Cleanup action: {action.description}")
                 errors.append(error)
+                level, outcome = logging.ERROR, "failed"
+            else:
+                level, outcome = logging.INFO, "completed"
+            try:
+                logger.log(level, f"🧹 [CLEANUP] {action.description} · {outcome}")
+            except Exception:
+                # Очистка должна продолжаться при сбое обработчика логов.
+                pass
         if errors:
             raise ExceptionGroup("Test resource cleanup failed", errors)

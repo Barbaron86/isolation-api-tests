@@ -97,7 +97,7 @@ def report_test_data(
     request.node.add_report_section("teardown", decision, details)
     allure.attach(details, name=decision, attachment_type=allure.attachment_type.TEXT)
     if keep_data:
-        logger.info("%s\n%s", decision, details)
+        logger.info(f"🧹 [CLEANUP] {decision}\n{details}")
 
 
 @pytest.fixture

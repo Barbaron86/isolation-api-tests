@@ -151,7 +151,7 @@ class KafkaOperationsCleanup:
             "Late writes after this deadline cannot be guaranteed cleaned up."
         )
         try:
-            logger.warning(details)
+            logger.warning(f"🧹 [CLEANUP] {details}")
         except Exception:
             pass
         try:

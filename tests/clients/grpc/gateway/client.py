@@ -30,7 +30,6 @@ class GatewayGRPCTestClient(GRPCTestClient):
         super().__init__(channel)
         self.stub = GatewayServiceStub(channel)
 
-    @allure.step("Get user details")
     def get_user_details_api(
             self,
             request: GetUserDetailsRequest,
@@ -53,7 +52,6 @@ class GatewayGRPCTestClient(GRPCTestClient):
             metadata=build_grpc_test_metadata(context),
         )
 
-    @allure.step("Get account details")
     def get_account_details_api(
             self,
             request: GetAccountDetailsRequest,
@@ -76,6 +74,7 @@ class GatewayGRPCTestClient(GRPCTestClient):
             metadata=build_grpc_test_metadata(context),
         )
 
+    @allure.step("Get user details")
     def get_user_details(
             self, *, user_id: UUID, context: RequestContext,
     ) -> GetUserDetailsResponse:
@@ -94,6 +93,7 @@ class GatewayGRPCTestClient(GRPCTestClient):
         request = GetUserDetailsRequest(id=str(user_id))
         return self.get_user_details_api(request, context)
 
+    @allure.step("Get account details")
     def get_account_details(
             self, *, account_id: UUID, context: RequestContext,
     ) -> GetAccountDetailsResponse:

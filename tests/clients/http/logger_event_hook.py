@@ -1,47 +1,24 @@
 from logging import Logger
 
-from httpx import Request, Response
+from httpx import Request
 
 
 class HTTPLoggerEventHook:
-    """
-    Инфраструктурный обработчик событий HTTP-клиента.
+    """Записывает метод и путь подготовленного HTTP-запроса перед отправкой."""
 
-    Используется для логирования запросов и ответов
-    на уровне транспортного слоя.
+    def __init__(self, logger: Logger) -> None:
+        """Сохраняет логгер компонента.
 
-    Этот класс не знает:
-    - какой тест выполняется,
-    - какой сервис вызывается,
-    - какие данные передаются.
-
-    Его задача — зафиксировать факт HTTP-взаимодействия
-    в логах тестового окружения.
-    """
-
-    def __init__(self, logger: Logger):
-        # Логгер передаётся извне, чтобы:
-        # - не хардкодить источник логов,
-        # - использовать единый механизм логирования тестового слоя,
-        # - управлять уровнем логов централизованно.
+        Args:
+            logger: Логгер, используемый тестовым клиентом сервиса.
+        """
         self.logger = logger
 
-    def request(self, request: Request):
-        # Вызывается httpx перед отправкой HTTP-запроса.
-        #
-        # Мы логируем только метод и URL,
-        # не трогая тело запроса и заголовки,
-        # чтобы не засорять логи и не утекали чувствительные данные.
-        self.logger.info(
-            f"{request.method} {request.url} - Waiting for response"
-        )
+    def request(self, request: Request) -> None:
+        """Логирует HTTP-запрос на этапе отправки.
 
-    def response(self, response: Response):
-        # Вызывается httpx после получения ответа.
-        #
-        # В логах мы связываем ответ с исходным запросом
-        # и фиксируем HTTP-статус.
-        request = response.request
-        self.logger.info(
-            f"{request.method} {request.url} - Status {response.status_code}"
-        )
+        Args:
+            request: Подготовленный HTTPX-запрос. В лог попадают метод и путь.
+        """
+        path = request.url.raw_path.partition(b"?")[0].decode("ascii")
+        self.logger.info(f"➡️ [REQUEST] HTTP {request.method} {path}")

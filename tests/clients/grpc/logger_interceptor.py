@@ -1,67 +1,41 @@
 from logging import Logger
+from time import perf_counter
 
-from grpc import UnaryUnaryClientInterceptor
+from grpc import Call, RpcError, UnaryUnaryClientInterceptor
 
 
 class GRPCLoggerInterceptor(UnaryUnaryClientInterceptor):
-    """
-    Инфраструктурный interceptor gRPC-клиента тестового слоя.
-
-    Задача interceptor'а — фиксировать факт gRPC-взаимодействия
-    на уровне транспорта, а не на уровне бизнес-логики.
-
-    Почему это важно в контексте тестов:
-    - при падении интеграционного теста лог gRPC-вызовов — первое,
-      что позволяет понять, "куда мы сходили" и "на каком вызове упали";
-    - логирование должно быть централизованным и одинаковым
-      для всех gRPC-клиентов, а не реализованным вручную в каждом методе;
-    - interceptor — это стандартный механизм gRPC для таких задач.
-
-    Границы ответственности:
-    interceptor НЕ знает:
-    - какой тест выполняется,
-    - какой сервис вызывается (он видит только имя метода),
-    - какие доменные данные передаются,
-    - какие схемы ответов ожидаются.
-
-    Он знает только одно:
-    "выполнен gRPC-вызов метода <method>".
-    """
+    """Логирует метод, статус и длительность unary-unary вызовов."""
 
     def __init__(self, logger: Logger):
-        # Логгер передаётся извне, чтобы:
-        # - не хардкодить источник логов и конфигурацию логирования,
-        # - использовать единый логгер тестового слоя,
-        # - управлять форматами/уровнями логов централизованно.
         self.logger = logger
 
     def intercept_unary_unary(self, continuation, client_call_details, request):
-        # Этот interceptor покрывает unary-unary вызовы:
-        # один запрос -> один ответ.
-        #
-        # На уровне курса это базовый случай и основа,
-        # на которую дальше можно наращивать поддержку:
-        # - unary-stream
-        # - stream-unary
-        # - stream-stream
-        #
-        # Но мы начинаем с минимального, инженерно достаточного ядра.
+        """Записывает итог после завершения вызова и возвращает исходный Call/Future.
 
-        # В client_call_details.method лежит строка с полным путём метода,
-        # например: "/package.Service/Method".
-        #
-        # Это не "бизнес-метод", а транспортная идентичность вызова.
-        self.logger.info(f"REQUEST: {client_call_details.method}")
+        Args:
+            continuation: Следующий шаг в цепочке перехватчиков gRPC.
+            client_call_details: Параметры вызова, включая полный путь метода.
+            request: Запрос, передаваемый следующему перехватчику или каналу.
 
-        # continuation — это "следующий шаг" в цепочке вызова:
-        # либо реальный вызов в сеть, либо следующий interceptor.
-        response = continuation(client_call_details, request)
+        Returns:
+            Объект вызова, который вернул continuation.
+        """
+        method = client_call_details.method
+        self.logger.info(f"➡️ [REQUEST] gRPC {method}")
+        started_at = perf_counter()
 
-        # После выполнения вызова фиксируем, что ответ получен.
-        #
-        # Важно: здесь мы не читаем body ответа и не логируем payload.
-        # В реальных системах payload может содержать чувствительные данные,
-        # а в тестовом проекте лишний шум в логах снижает диагностическую ценность.
-        self.logger.info(f"RESPONSE: {client_call_details.method}")
+        def log_response(call: Call) -> None:
+            duration_ms = int((perf_counter() - started_at) * 1000)
+            self.logger.info(f"⬅️ [RESPONSE] gRPC {method} · {call.code().name} · {duration_ms} ms")
 
-        return response
+        try:
+            call = continuation(client_call_details, request)
+        except RpcError as error:
+            # Ошибка подготовки .future() может содержать статус gRPC.
+            if isinstance(error, Call):
+                log_response(error)
+            raise
+
+        call.add_done_callback(log_response)
+        return call

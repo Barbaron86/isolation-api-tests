@@ -48,6 +48,8 @@ jobs:
         run: python scripts/write_allure_environment.py
 
       - name: Run isolation tests
+        env:
+          ISOLATION_LOG_COLOR: '1'
         run: python -m pytest -m "$TEST_MARKER" --alluredir=./allure-results
 
       - name: Collect test stand diagnostics

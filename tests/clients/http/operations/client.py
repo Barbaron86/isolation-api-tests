@@ -158,13 +158,14 @@ class OperationsHTTPTestClient(HTTPTestClient):
 
 
 def build_operations_http_test_client() -> OperationsHTTPTestClient:
-    """Создаёт Operations-клиент с настроенным HTTPX-клиентом.
+    """Создаёт Operations-клиент с общим логгером запроса и ответа.
 
     Returns:
         Обёртка; закрытие HTTPX-клиента выполняет владеющая фикстура.
     """
+    logger = get_test_logger("OPERATION_HTTP_TEST_CLIENT")
     client = build_http_test_client(
-        logger=get_test_logger("OPERATION_HTTP_TEST_CLIENT"),
+        logger=logger,
         config=test_settings.operations_http_client
     )
-    return OperationsHTTPTestClient(client=client)
+    return OperationsHTTPTestClient(client=client, logger=logger)

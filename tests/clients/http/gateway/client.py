@@ -95,16 +95,14 @@ class GatewayHTTPTestClient(HTTPTestClient):
 
 
 def build_gateway_http_test_client() -> GatewayHTTPTestClient:
-    # Фабрика строит специализированный клиент так же,
-    # как и остальные клиенты тестового слоя:
-    # - конфигурация берётся из test_settings,
-    # - логгер создаётся единым способом,
-    # - транспорт настраивается в build_http_test_client.
-    #
-    # Таким образом, все сервисные клиенты наследуют единое
-    # поведение транспорта: base_url, timeout, event hooks, логи.
+    """Создаёт Gateway-клиент с общим логгером запроса и ответа.
+
+    Returns:
+        Обёртка над настроенным HTTPX-клиентом Gateway.
+    """
+    logger = get_test_logger("GATEWAY_HTTP_TEST_CLIENT")
     client = build_http_test_client(
-        logger=get_test_logger("GATEWAY_HTTP_TEST_CLIENT"),
+        logger=logger,
         config=test_settings.gateway_http_client,
     )
-    return GatewayHTTPTestClient(client=client)
+    return GatewayHTTPTestClient(client=client, logger=logger)

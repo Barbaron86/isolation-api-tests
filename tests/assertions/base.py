@@ -22,7 +22,7 @@ def assert_equal(actual: Any, expected: Any, name: str) -> None:
     Raises:
         AssertionError: Если значения не равны.
     """
-    logger.info(f'Check that "{name}" equals {expected!r}')
+    logger.info(f'🔎 [CHECK] Check that "{name}" equals {expected!r}')
 
     assert actual == expected, (
         f'Incorrect value: "{name}". '
@@ -48,7 +48,7 @@ def assert_string_contains(actual: str, expected: str, name: str) -> None:
     Raises:
         AssertionError: Если значение не строка либо фрагмент отсутствует.
     """
-    logger.info(f'Check that "{name}" contains {expected!r}')
+    logger.info(f'🔎 [CHECK] Check that "{name}" contains {expected!r}')
     assert isinstance(actual, str), f'Incorrect type: "{name}". Expected str. Actual value: {actual!r}'
     assert expected in actual, (
         f'Incorrect value: "{name}". '

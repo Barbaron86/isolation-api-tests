@@ -112,17 +112,18 @@ class TestGatewayGRPC:
             unknown_user_id: Корректный UUID, отсутствующий в выбранном сценарии.
         """
         get_user_details_request = GetUserDetailsRequest(id=str(unknown_user_id))
-        with pytest.raises(RpcError) as get_user_details_rpc_error:
-            gateway_grpc_test_client.get_user_details_api(
-                get_user_details_request,
-                context=RequestContext(scenario=Scenario.USER_WITH_ACTIVE_CREDIT_CARD_ACCOUNT),
-            )
+        with allure.step("Get user details and check NOT_FOUND"):
+            with pytest.raises(RpcError) as get_user_details_rpc_error:
+                gateway_grpc_test_client.get_user_details_api(
+                    get_user_details_request,
+                    context=RequestContext(scenario=Scenario.USER_WITH_ACTIVE_CREDIT_CARD_ACCOUNT),
+                )
 
-        assert_gateway_rpc_error(
-            get_user_details_rpc_error.value,
-            expected_code=StatusCode.NOT_FOUND,
-            expected_detail=GatewayTestErrorReason.USER_NOT_FOUND.format(user_id=unknown_user_id),
-        )
+            assert_gateway_rpc_error(
+                get_user_details_rpc_error.value,
+                expected_code=StatusCode.NOT_FOUND,
+                expected_detail=GatewayTestErrorReason.USER_NOT_FOUND.format(user_id=unknown_user_id),
+            )
 
     @allure.story(AllureStory.GET_ACCOUNT_DETAILS)
     @allure.title("[gRPC] Get account details. User with active debit card account")
@@ -210,17 +211,18 @@ class TestGatewayGRPC:
             unknown_account_id: Корректный UUID, отсутствующий в выбранном сценарии.
         """
         get_account_details_request = GetAccountDetailsRequest(id=str(unknown_account_id))
-        with pytest.raises(RpcError) as get_account_details_rpc_error:
-            gateway_grpc_test_client.get_account_details_api(
-                get_account_details_request,
-                context=RequestContext(scenario=Scenario.USER_WITH_ACTIVE_DEBIT_CARD_ACCOUNT),
-            )
+        with allure.step("Get account details and check NOT_FOUND"):
+            with pytest.raises(RpcError) as get_account_details_rpc_error:
+                gateway_grpc_test_client.get_account_details_api(
+                    get_account_details_request,
+                    context=RequestContext(scenario=Scenario.USER_WITH_ACTIVE_DEBIT_CARD_ACCOUNT),
+                )
 
-        assert_gateway_rpc_error(
-            get_account_details_rpc_error.value,
-            expected_code=StatusCode.NOT_FOUND,
-            expected_detail=GatewayTestErrorReason.ACCOUNT_NOT_FOUND.format(account_id=unknown_account_id),
-        )
+            assert_gateway_rpc_error(
+                get_account_details_rpc_error.value,
+                expected_code=StatusCode.NOT_FOUND,
+                expected_detail=GatewayTestErrorReason.ACCOUNT_NOT_FOUND.format(account_id=unknown_account_id),
+            )
 
     @pytest.mark.parametrize(
         "scenario,expected_detail",
@@ -255,17 +257,18 @@ class TestGatewayGRPC:
             expected_detail: Ожидаемая причина ошибки выбранного сервиса.
         """
         get_user_details_request = GetUserDetailsRequest(id=str(active_credit_account_user_id))
-        with pytest.raises(RpcError) as get_user_details_rpc_error:
-            gateway_grpc_test_client.get_user_details_api(
-                get_user_details_request,
-                context=RequestContext(scenario=scenario),
-            )
+        with allure.step("Get user details and check UNAVAILABLE"):
+            with pytest.raises(RpcError) as get_user_details_rpc_error:
+                gateway_grpc_test_client.get_user_details_api(
+                    get_user_details_request,
+                    context=RequestContext(scenario=scenario),
+                )
 
-        assert_gateway_rpc_error(
-            get_user_details_rpc_error.value,
-            expected_code=StatusCode.UNAVAILABLE,
-            expected_detail=expected_detail,
-        )
+            assert_gateway_rpc_error(
+                get_user_details_rpc_error.value,
+                expected_code=StatusCode.UNAVAILABLE,
+                expected_detail=expected_detail,
+            )
 
     @pytest.mark.parametrize(
         "scenario,expected_detail",
@@ -300,14 +303,15 @@ class TestGatewayGRPC:
             expected_detail: Ожидаемая причина ошибки выбранного сервиса.
         """
         get_account_details_request = GetAccountDetailsRequest(id=str(active_debit_account_id))
-        with pytest.raises(RpcError) as get_account_details_rpc_error:
-            gateway_grpc_test_client.get_account_details_api(
-                get_account_details_request,
-                context=RequestContext(scenario=scenario),
-            )
+        with allure.step("Get account details and check UNAVAILABLE"):
+            with pytest.raises(RpcError) as get_account_details_rpc_error:
+                gateway_grpc_test_client.get_account_details_api(
+                    get_account_details_request,
+                    context=RequestContext(scenario=scenario),
+                )
 
-        assert_gateway_rpc_error(
-            get_account_details_rpc_error.value,
-            expected_code=StatusCode.UNAVAILABLE,
-            expected_detail=expected_detail,
-        )
+            assert_gateway_rpc_error(
+                get_account_details_rpc_error.value,
+                expected_code=StatusCode.UNAVAILABLE,
+                expected_detail=expected_detail,
+            )
