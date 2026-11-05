@@ -1,0 +1,4 @@
+INFO     GATEWAY_GRPC_TEST_CLIENT:logger_interceptor.py:25 ➡️ [REQUEST] gRPC /contracts.services.gateway.GatewayService/GetAccountDetails
+INFO     GATEWAY_GRPC_TEST_CLIENT:logger_interceptor.py:30 ⬅️ [RESPONSE] gRPC /contracts.services.gateway.GatewayService/GetAccountDetails · NOT_FOUND · 13 ms
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "Gateway RPC status code" equals <StatusCode.NOT_FOUND: (5, 'not found')>
+INFO     BASE_ASSERTIONS:base.py:51 🔎 [CHECK] Check that "Gateway RPC error detail" contains 'Account with id 00000000-0000-4000-8000-000000000098 not found'

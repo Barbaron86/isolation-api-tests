@@ -1,0 +1,4 @@
+INFO     GATEWAY_GRPC_TEST_CLIENT:logger_interceptor.py:25 ➡️ [REQUEST] gRPC /contracts.services.gateway.GatewayService/GetAccountDetails
+INFO     GATEWAY_GRPC_TEST_CLIENT:logger_interceptor.py:30 ⬅️ [RESPONSE] gRPC /contracts.services.gateway.GatewayService/GetAccountDetails · UNAVAILABLE · 5033 ms
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "Gateway RPC status code" equals <StatusCode.UNAVAILABLE: (14, 'unavailable')>
+INFO     BASE_ASSERTIONS:base.py:51 🔎 [CHECK] Check that "Gateway RPC error detail" contains <GatewayTestErrorReason.ACCOUNTS_SERVICE_UNAVAILABLE: 'Accounts service unavailable'>
