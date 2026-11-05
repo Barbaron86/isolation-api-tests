@@ -1,0 +1,41 @@
+INFO     sqlalchemy.engine.Engine:base.py:2698 BEGIN (implicit)
+INFO     sqlalchemy.engine.Engine:base.py:1842 INSERT INTO operations (id, type, status, amount, user_id, card_id, account_id, category, created_at) VALUES (%(id)s::UUID, %(type)s, %(status)s, %(amount)s, %(user_id)s::UUID, %(card_id)s::UUID, %(account_id)s::UUID, %(category)s, %(created_at)s)
+INFO     sqlalchemy.engine.Engine:base.py:1842 [cached since 11.94s ago] {'id': UUID('535173cf-916d-4ac6-9173-5ff01778fcca'), 'type': <OperationTestType.PURCHASE: 'PURCHASE'>, 'status': <OperationTestStatus.COMPLETED: 'COMPLETED'>, 'amount': 571.25, 'user_id': UUID('43115d45-0029-4ff2-ba36-16c9f7c1884b'), 'card_id': UUID('c2796b2b-f4d0-4d08-9114-77aaebb86475'), 'account_id': UUID('484d4796-3a76-47ff-b258-641d079ab3e2'), 'category': 'education', 'created_at': datetime.datetime(2024, 4, 26, 17, 35, 1, 625817)}
+INFO     sqlalchemy.engine.Engine:base.py:1842 SELECT operations.id, operations.type, operations.status, operations.amount, operations.user_id, operations.card_id, operations.account_id, operations.category, operations.created_at 
+FROM operations 
+WHERE operations.id = %(pk_1)s::UUID
+INFO     sqlalchemy.engine.Engine:base.py:1842 [cached since 11.94s ago] {'pk_1': UUID('535173cf-916d-4ac6-9173-5ff01778fcca')}
+INFO     sqlalchemy.engine.Engine:base.py:2704 COMMIT
+INFO     sqlalchemy.engine.Engine:base.py:2698 BEGIN (implicit)
+INFO     sqlalchemy.engine.Engine:base.py:1842 INSERT INTO operations (id, type, status, amount, user_id, card_id, account_id, category, created_at) VALUES (%(id)s::UUID, %(type)s, %(status)s, %(amount)s, %(user_id)s::UUID, %(card_id)s::UUID, %(account_id)s::UUID, %(category)s, %(created_at)s)
+INFO     sqlalchemy.engine.Engine:base.py:1842 [cached since 11.94s ago] {'id': UUID('0dff8408-d642-4b04-80f3-20a47ac8ac22'), 'type': <OperationTestType.PURCHASE: 'PURCHASE'>, 'status': <OperationTestStatus.COMPLETED: 'COMPLETED'>, 'amount': 119.89, 'user_id': UUID('99883bb3-af5d-4650-bd4c-60daca394857'), 'card_id': UUID('ec7d2ef8-def4-4b9d-830d-0f34666b845d'), 'account_id': UUID('6616a69c-3c86-4415-b21a-39eb6a4f36e5'), 'category': 'education', 'created_at': datetime.datetime(1975, 4, 1, 10, 39, 35, 957541)}
+INFO     sqlalchemy.engine.Engine:base.py:1842 SELECT operations.id, operations.type, operations.status, operations.amount, operations.user_id, operations.card_id, operations.account_id, operations.category, operations.created_at 
+FROM operations 
+WHERE operations.id = %(pk_1)s::UUID
+INFO     sqlalchemy.engine.Engine:base.py:1842 [cached since 11.94s ago] {'pk_1': UUID('0dff8408-d642-4b04-80f3-20a47ac8ac22')}
+INFO     sqlalchemy.engine.Engine:base.py:2704 COMMIT
+INFO     OPERATION_HTTP_TEST_CLIENT:logger_event_hook.py:35 GET http://127.0.0.1:8002/api/v1/operations?userId=43115d45-0029-4ff2-ba36-16c9f7c1884b - Waiting for response
+INFO     OPERATION_HTTP_TEST_CLIENT:logger_event_hook.py:45 GET http://127.0.0.1:8002/api/v1/operations?userId=43115d45-0029-4ff2-ba36-16c9f7c1884b - Status 200
+INFO     BASE_ASSERTIONS:base.py:25 Check that "HTTP status code" equals <HTTPStatus.OK: 200>
+INFO     OPERATIONS_ASSERTIONS:operations.py:102 Check get operations response from models
+INFO     BASE_ASSERTIONS:base.py:25 Check that "operations count" equals 1
+INFO     BASE_ASSERTIONS:base.py:25 Check that "unique operation ids" equals 1
+INFO     BASE_ASSERTIONS:base.py:25 Check that "operation ids" equals {UUID('535173cf-916d-4ac6-9173-5ff01778fcca')}
+INFO     OPERATIONS_ASSERTIONS:operations.py:52 Check operation from model
+INFO     BASE_ASSERTIONS:base.py:25 Check that "id" equals UUID('535173cf-916d-4ac6-9173-5ff01778fcca')
+INFO     BASE_ASSERTIONS:base.py:25 Check that "type" equals 'PURCHASE'
+INFO     BASE_ASSERTIONS:base.py:25 Check that "status" equals 'COMPLETED'
+INFO     BASE_ASSERTIONS:base.py:25 Check that "amount" equals 571.25
+INFO     BASE_ASSERTIONS:base.py:25 Check that "user_id" equals UUID('43115d45-0029-4ff2-ba36-16c9f7c1884b')
+INFO     BASE_ASSERTIONS:base.py:25 Check that "card_id" equals UUID('c2796b2b-f4d0-4d08-9114-77aaebb86475')
+INFO     BASE_ASSERTIONS:base.py:25 Check that "category" equals 'education'
+INFO     BASE_ASSERTIONS:base.py:25 Check that "created_at" equals datetime.datetime(2024, 4, 26, 17, 35, 1, 625817)
+INFO     BASE_ASSERTIONS:base.py:25 Check that "account_id" equals UUID('484d4796-3a76-47ff-b258-641d079ab3e2')
+INFO     sqlalchemy.engine.Engine:base.py:2698 BEGIN (implicit)
+INFO     sqlalchemy.engine.Engine:base.py:1842 DELETE FROM operations WHERE operations.id = %(id_1)s::UUID
+INFO     sqlalchemy.engine.Engine:base.py:1842 [cached since 11.95s ago] {'id_1': UUID('0dff8408-d642-4b04-80f3-20a47ac8ac22')}
+INFO     sqlalchemy.engine.Engine:base.py:2704 COMMIT
+INFO     sqlalchemy.engine.Engine:base.py:2698 BEGIN (implicit)
+INFO     sqlalchemy.engine.Engine:base.py:1842 DELETE FROM operations WHERE operations.id = %(id_1)s::UUID
+INFO     sqlalchemy.engine.Engine:base.py:1842 [cached since 11.95s ago] {'id_1': UUID('535173cf-916d-4ac6-9173-5ff01778fcca')}
+INFO     sqlalchemy.engine.Engine:base.py:2704 COMMIT
