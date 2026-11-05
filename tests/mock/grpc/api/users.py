@@ -1,22 +1,16 @@
 from pathlib import Path
 
+from grpc import StatusCode
 from grpc.aio import ServicerContext
 
 from contracts.services.users.rpc_get_user_pb2 import GetUserRequest, GetUserResponse
 from contracts.services.users.users_service_pb2_grpc import UsersServiceServicer
+from tests.context.scenario import Scenario
 from tests.mock.grpc.tools import get_scenario_grpc
 from tests.tools.logger import get_test_logger
 from tests.tools.mock import MockLoader
+from tests.types.gateway import GatewayTestErrorReason
 
-# MockLoader — инфраструктурный компонент, общий для всех моков.
-# Он инкапсулирует:
-# - загрузку мок-данных из файлов,
-# - валидацию/преобразование в целевую модель ответа,
-# - логирование процесса загрузки.
-#
-# Loader не знает, кто является клиентом (gateway или тест),
-# не знает, почему выбран сценарий,
-# и не реализует никакой бизнес-логики.
 loader = MockLoader(
     root=Path("./tests/mock/grpc/data/users"),
     logger=get_test_logger("USERS_SERVICE_MOCK_LOADER")
@@ -25,23 +19,29 @@ loader = MockLoader(
 
 class UsersMockService(UsersServiceServicer):
     async def GetUser(self, request: GetUserRequest, context: ServicerContext) -> GetUserResponse:
-        # request принимается строго по контракту protobuf.
-        # Он содержит параметры вызова (например, идентификатор пользователя),
-        # но мок-сервис не использует их для вычисления ответа.
-        #
-        # Это сознательное архитектурное решение:
-        # мок моделирует состояние внешнего мира, а не "логику поиска".
-        # Вариативность поведения определяется исключительно сценарием.
+        """Возвращает пользователя сценария при совпадении запрошенного ID.
 
+        Args:
+            request: Protobuf-запрос с ID пользователя.
+            context: Контекст RPC с metadata x-test-scenario.
+
+        Returns:
+            Пользователь выбранного сценария.
+
+        Raises:
+            grpc.aio.AbortError: С UNAVAILABLE при сбое Users либо NOT_FOUND,
+                если запрошенный пользователь отсутствует в сценарии.
+        """
         scenario = await get_scenario_grpc(context)
-
-        # Имя файла формируется из сценария.
-        # Данные хранятся декларативно, в JSON,
-        # что позволяет:
-        # - переиспользовать сценарии между тестами,
-        # - воспроизводить ошибки и edge cases,
-        # - держать код мока максимально простым и предсказуемым.
-        return await loader.load_grpc(
+        if scenario == Scenario.USERS_SERVICE_UNAVAILABLE:
+            await context.abort(StatusCode.UNAVAILABLE, GatewayTestErrorReason.USERS_SERVICE_UNAVAILABLE.value)
+        get_user_response_data = await loader.load_grpc(
             file=f"GetUser/{scenario}.json",
             model=GetUserResponse
         )
+        if get_user_response_data.user.id != request.id:
+            await context.abort(
+                StatusCode.NOT_FOUND,
+                GatewayTestErrorReason.USER_NOT_FOUND.format(user_id=request.id),
+            )
+        return get_user_response_data

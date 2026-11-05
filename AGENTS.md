@@ -71,24 +71,25 @@ Read only the pointers relevant to the task. Paths below are repository-relative
   assertions. Keep the business sequence visible in the test.
 - For list and filter cases, include matching and nonmatching records, including
   another card/account for the same user and another user where relevant.
-- Gateway HTTP success tests pass explicit user_id/account_id through the facades.
-  The HTTP Users/Accounts detail mocks match requested IDs and return 404 for
-  absent entities. Accounts/Cards list mocks require userId/accountId and filter
-  scenario data by ownership. Expected identities and card/account links come
-  from test preparation, not the response. gRPC mocks still select scenario data
-  independently of requested IDs; those cases do not prove ID propagation.
-- USER_WITHOUT_ACCOUNTS and ACCOUNT_WITHOUT_CARDS cover successful HTTP Gateway
+- Gateway HTTP/gRPC success tests pass explicit user_id/account_id through the
+  facades. Users/Accounts detail mocks match requested IDs and report HTTP 404 or
+  gRPC NOT_FOUND for absent entities. Accounts/Cards list mocks filter scenario
+  data by the requested user/account. Expected identities and card/account links
+  come from test preparation, not the response.
+- USER_WITHOUT_ACCOUNTS and ACCOUNT_WITHOUT_CARDS cover successful HTTP/gRPC Gateway
   user-details/account-details respectively, with an existing entity and an empty
   related collection. Their prepared IDs differ from the populated scenarios.
   Scenario JSONs are operation- and protocol-specific; adding an enum member does
   not make it available in every HTTP/gRPC mock operation.
 - USER_WITH_MULTIPLE_ACCOUNTS and ACCOUNT_WITH_MIXED_CARDS prepare matching and
-  nonmatching records for HTTP Gateway. Keep expected IDs independent of responses;
+  nonmatching records for HTTP/gRPC Gateway. Keep expected IDs independent of responses;
   verify exact membership, unique IDs and entity fields without assuming list order.
-- HTTP dependency-failure scenarios explicitly return 503 from Users.GetUser,
-  Accounts.GetAccounts, Cards.GetCards or Accounts.GetAccount. Prepare a normal
-  first-dependency response when the second call must fail. These are constant
-  HTTP responses; connection failures and timeouts are separate scenarios.
+- Dependency-failure scenarios explicitly return HTTP 503 or gRPC UNAVAILABLE
+  from Users.GetUser, Accounts.GetAccounts, Cards.GetCards or Accounts.GetAccount.
+  Prepare a normal first-dependency response when the second call must fail.
+  These are modeled service responses; connection failures and timeouts are
+  separate scenarios. Pass the error enum's .value to gRPC context.abort:
+  its native implementation requires an ordinary str for details.
 - Establish requirements before testing duplicate-event handling, idempotency,
   retry/DLQ policy or monetary restrictions. Supported enum values alone do not
   establish that every combination is a valid business scenario.
@@ -121,6 +122,9 @@ Read only the pointers relevant to the task. Paths below are repository-relative
   not-found helper delegates to the same check with HTTPStatus.NOT_FOUND.
   Reuse assert_string_contains for string-fragment checks and assert_equal for
   equality; domain helpers compose these primitives with protocol assertions.
+  Gateway gRPC negatives use raw methods inside pytest.raises(grpc.RpcError),
+  then assert_gateway_rpc_error checks the exact grpc.StatusCode before the
+  entity/service-specific reason in details(). The exception alone is insufficient.
 - Preserve specific business rejection reasons. Avoid brittle comparisons of
   framework/parser wording unless that wording is an explicit contract.
 - Extend `tests/assertions/base.py` and the relevant protocol/domain module.

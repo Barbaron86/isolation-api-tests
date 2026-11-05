@@ -1,18 +1,17 @@
 from pathlib import Path
 
+from grpc import StatusCode
 from grpc.aio import ServicerContext
 
 from contracts.services.accounts.accounts_service_pb2_grpc import AccountsServiceServicer
 from contracts.services.accounts.rpc_get_account_pb2 import GetAccountRequest, GetAccountResponse
 from contracts.services.accounts.rpc_get_accounts_pb2 import GetAccountsRequest, GetAccountsResponse
+from tests.context.scenario import Scenario
 from tests.mock.grpc.tools import get_scenario_grpc
 from tests.tools.logger import get_test_logger
 from tests.tools.mock import MockLoader
+from tests.types.gateway import GatewayTestErrorReason
 
-# Отдельный loader на сервис — это удобная граница ответственности.
-# Он фиксирует корень файловой структуры данных accounts-service
-# и отдельный логгер, чтобы при отладке было ясно,
-# какой именно мок и какие именно данные загружались.
 loader = MockLoader(
     root=Path("./tests/mock/grpc/data/accounts"),
     logger=get_test_logger("ACCOUNTS_SERVICE_MOCK_LOADER")
@@ -21,22 +20,56 @@ loader = MockLoader(
 
 class AccountsMockService(AccountsServiceServicer):
     async def GetAccount(self, request: GetAccountRequest, context: ServicerContext) -> GetAccountResponse:
-        # request содержит параметры (например, account_id),
-        # но мок-сервис не использует их для вычислений.
-        # Поведение определяется сценарием, а параметры существуют для контракта.
-        scenario = await get_scenario_grpc(context)
+        """Возвращает счёт сценария при совпадении запрошенного ID.
 
-        return await loader.load_grpc(
+        Args:
+            request: Protobuf-запрос с ID счёта.
+            context: Контекст RPC с metadata x-test-scenario.
+
+        Returns:
+            Счёт выбранного сценария.
+
+        Raises:
+            grpc.aio.AbortError: С UNAVAILABLE при сбое Accounts либо NOT_FOUND,
+                если запрошенный счёт отсутствует в сценарии.
+        """
+        scenario = await get_scenario_grpc(context)
+        if scenario == Scenario.ACCOUNT_DETAILS_UNAVAILABLE:
+            await context.abort(StatusCode.UNAVAILABLE, GatewayTestErrorReason.ACCOUNTS_SERVICE_UNAVAILABLE.value)
+        get_account_response_data = await loader.load_grpc(
             file=f"GetAccount/{scenario}.json",
             model=GetAccountResponse
         )
+        if get_account_response_data.account.id != request.id:
+            await context.abort(
+                StatusCode.NOT_FOUND,
+                GatewayTestErrorReason.ACCOUNT_NOT_FOUND.format(account_id=request.id),
+            )
+        return get_account_response_data
 
     async def GetAccounts(self, request: GetAccountsRequest, context: ServicerContext) -> GetAccountsResponse:
-        # Аналогично: список аккаунтов — это часть состояния внешнего мира в сценарии.
-        # Мы не фильтруем, не сортируем и не "ищем" аккаунты по request.
-        scenario = await get_scenario_grpc(context)
+        """Возвращает счета сценария, принадлежащие запрошенному пользователю.
 
-        return await loader.load_grpc(
+        Args:
+            request: Protobuf-запрос с ID владельца счетов.
+            context: Контекст RPC с metadata x-test-scenario.
+
+        Returns:
+            Счета с совпавшим user_id либо пустой список при отсутствии совпадений.
+
+        Raises:
+            grpc.aio.AbortError: С UNAVAILABLE в сценарии сбоя списка счетов.
+        """
+        scenario = await get_scenario_grpc(context)
+        if scenario == Scenario.ACCOUNTS_LIST_UNAVAILABLE:
+            await context.abort(StatusCode.UNAVAILABLE, GatewayTestErrorReason.ACCOUNTS_SERVICE_UNAVAILABLE.value)
+        get_accounts_response_data = await loader.load_grpc(
             file=f"GetAccounts/{scenario}.json",
             model=GetAccountsResponse
+        )
+        return GetAccountsResponse(
+            accounts=[
+                account for account in get_accounts_response_data.accounts
+                if account.user_id == request.user_id
+            ]
         )

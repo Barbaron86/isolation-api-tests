@@ -1,3 +1,4 @@
+from collections.abc import Iterator
 from uuid import UUID
 
 import pytest
@@ -24,7 +25,7 @@ def active_credit_account_user_id() -> UUID:
 
 @pytest.fixture
 def active_debit_account_id() -> UUID:
-    """Задаёт ID дебетового счёта из статического HTTP-сценария.
+    """Задаёт ID дебетового счёта из статических HTTP/gRPC-сценариев.
 
     Returns:
         UUID для запроса счёта и проверки связи его карт.
@@ -34,7 +35,7 @@ def active_debit_account_id() -> UUID:
 
 @pytest.fixture
 def user_without_accounts_id() -> UUID:
-    """Задаёт ID существующего пользователя без счетов в HTTP-сценарии.
+    """Задаёт ID существующего пользователя без счетов в HTTP/gRPC-сценариях.
 
     Returns:
         UUID из подготовки сценария, отличный от пользователя с кредитным счётом.
@@ -44,7 +45,7 @@ def user_without_accounts_id() -> UUID:
 
 @pytest.fixture
 def account_without_cards_id() -> UUID:
-    """Задаёт ID существующего счёта без карт в HTTP-сценарии.
+    """Задаёт ID существующего счёта без карт в HTTP/gRPC-сценариях.
 
     Returns:
         UUID из подготовки сценария, отличный от счёта с картами.
@@ -54,7 +55,7 @@ def account_without_cards_id() -> UUID:
 
 @pytest.fixture
 def user_with_multiple_accounts_id() -> UUID:
-    """Задаёт ID пользователя с несколькими счетами в HTTP-сценарии.
+    """Задаёт ID пользователя с несколькими счетами в HTTP/gRPC-сценариях.
 
     Returns:
         Независимый от ответа UUID владельца двух подходящих счетов.
@@ -64,7 +65,7 @@ def user_with_multiple_accounts_id() -> UUID:
 
 @pytest.fixture
 def account_with_mixed_cards_id() -> UUID:
-    """Задаёт ID счёта с картами среди записей разных счетов в HTTP-моке.
+    """Задаёт ID счёта с картами среди записей разных счетов в HTTP/gRPC-моках.
 
     Returns:
         UUID подготовленного дебетового счёта пользователя с несколькими счетами.
@@ -74,7 +75,7 @@ def account_with_mixed_cards_id() -> UUID:
 
 @pytest.fixture
 def unknown_user_id() -> UUID:
-    """Задаёт ID пользователя, отсутствующий в HTTP-мок-сценариях.
+    """Задаёт ID пользователя, отсутствующий в HTTP/gRPC-мок-сценариях.
 
     Returns:
         Корректный UUID для проверки отсутствия пользователя, а не ошибки формата.
@@ -84,7 +85,7 @@ def unknown_user_id() -> UUID:
 
 @pytest.fixture
 def unknown_account_id() -> UUID:
-    """Задаёт ID счёта, отсутствующий в HTTP-мок-сценариях.
+    """Задаёт ID счёта, отсутствующий в HTTP/gRPC-мок-сценариях.
 
     Returns:
         Корректный UUID для проверки отсутствия счёта, а не ошибки формата.
@@ -116,19 +117,16 @@ def gateway_http_test_client() -> GatewayHTTPTestClient:
 
 
 @pytest.fixture
-def gateway_grpc_test_client() -> GatewayGRPCTestClient:
-    # Фикстура сценарного тестового слоя для gRPC-клиента gateway-service.
-    #
-    # По архитектурному смыслу она симметрична HTTP-фикстуре:
-    # - предоставляет тесту точку входа в gateway-service по gRPC;
-    # - не управляет сценарием и не знает, какие моки будут задействованы;
-    # - не содержит логики, связанной с проверками или данными.
-    #
-    # Разделение HTTP и gRPC клиентов на уровне фикстур сделано намеренно:
-    # - протокол выбирается явно в тесте;
-    # - сценарии и ассерты остаются одинаковыми;
-    # - транспортный слой не смешивается с бизнес-смыслом проверки.
-    #
-    # Как и в HTTP-случае, вся инициализация вынесена в фабрику,
-    # а фикстура остаётся минимальной и декларативной.
-    return build_gateway_grpc_test_client()
+def gateway_grpc_test_client() -> Iterator[GatewayGRPCTestClient]:
+    """Предоставляет Gateway-клиент одному тесту и закрывает его канал после теста.
+
+    Закрытие выполняется и при ошибке проверки или зависимой фикстуры.
+
+    Yields:
+        Клиент с отдельным gRPC-каналом, созданный существующей фабрикой.
+    """
+    client = build_gateway_grpc_test_client()
+    try:
+        yield client
+    finally:
+        client.channel.close()
