@@ -1,0 +1,4 @@
+INFO     GATEWAY_GRPC_TEST_CLIENT:logger_interceptor.py:24 ➡️ [REQUEST] gRPC /contracts.services.gateway.GatewayService/GetUserDetails
+INFO     GATEWAY_GRPC_TEST_CLIENT:logger_interceptor.py:27 ⬅️ [RESPONSE] gRPC /contracts.services.gateway.GatewayService/GetUserDetails · UNAVAILABLE
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "Gateway RPC status code" equals <StatusCode.UNAVAILABLE: (14, 'unavailable')>
+INFO     BASE_ASSERTIONS:base.py:51 🔎 [CHECK] Check that "Gateway RPC error detail" contains <GatewayTestErrorReason.USERS_SERVICE_UNAVAILABLE: 'Users service unavailable'>
