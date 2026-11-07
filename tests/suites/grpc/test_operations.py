@@ -245,6 +245,41 @@ class TestOperationsGRPC:
 
         assert_get_operations_response_from_models(get_operations_response_data, [matching_operation_model])
 
+    @allure.tag(AllureTag.GRPC, AllureTag.POSTGRES, AllureTag.OPERATIONS_SERVICE)
+    @allure.story(AllureStory.OPERATION_FILTERS)
+    @allure.title("[gRPC][Postgres] Apply card and account filters together")
+    def test_filter_by_card_and_account_ids(
+        self,
+        operations_grpc_test_client: OperationsGRPCTestClient,
+        operations_postgres_test_repository: OperationsPostgresTestRepository,
+    ) -> None:
+        """Проверяет пересечение фильтров карты и счёта для одного пользователя.
+
+        Args:
+            operations_grpc_test_client: gRPC-клиент Operations.
+            operations_postgres_test_repository: Подготовка операций с учётом очистки.
+        """
+        matching_operation_model = operations_postgres_test_repository.create_completed_purchase_operation()
+        other_operation_model = operations_postgres_test_repository.create_completed_purchase_operation(
+            user_id=matching_operation_model.user_id,
+        )
+
+        matching_get_operations_response_data = operations_grpc_test_client.get_operations(
+            user_id=matching_operation_model.user_id,
+            card_id=matching_operation_model.card_id,
+            account_id=matching_operation_model.account_id,
+        )
+        assert_get_operations_response_from_models(
+            matching_get_operations_response_data, [matching_operation_model],
+        )
+
+        conflicting_get_operations_response_data = operations_grpc_test_client.get_operations(
+            user_id=matching_operation_model.user_id,
+            card_id=matching_operation_model.card_id,
+            account_id=other_operation_model.account_id,
+        )
+        assert_get_operations_response_from_models(conflicting_get_operations_response_data, [])
+
     @allure.tag(AllureTag.GRPC, AllureTag.KAFKA, AllureTag.OPERATIONS_SERVICE)
     @allure.story(AllureStory.OPERATION_EVENTS)
     @allure.title("[gRPC][Kafka] Operation events. Multiple purchases for user")
