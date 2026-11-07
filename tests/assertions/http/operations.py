@@ -1,6 +1,11 @@
+from http import HTTPStatus
+from uuid import UUID
+
 import allure
+from httpx import Response
 
 from tests.assertions.base import assert_equal
+from tests.assertions.http.base import assert_status_code
 from tests.clients.postgres.operations.model import OperationsTestModel
 from tests.schema.operations import (
     OperationTestSchema,
@@ -10,6 +15,18 @@ from tests.schema.operations import (
 from tests.tools.logger import get_test_logger
 
 logger = get_test_logger("OPERATIONS_ASSERTIONS")
+
+
+@allure.step("Check operation not-found response: {operation_id}")
+def assert_get_operation_not_found_response(actual: Response, *, operation_id: UUID) -> None:
+    """Проверяет статус 404 и точную причину с запрошенным ID.
+
+    Args:
+        actual: Сырой HTTP-ответ Operations.
+        operation_id: Идентификатор отсутствующей операции из запроса.
+    """
+    assert_status_code(actual.status_code, HTTPStatus.NOT_FOUND)
+    assert_equal(actual.json().get("detail"), f"Operation with id {operation_id} not found", "detail")
 
 
 @allure.step("Check operation from event")

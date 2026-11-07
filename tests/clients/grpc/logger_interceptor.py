@@ -1,11 +1,10 @@
 from logging import Logger
-from time import perf_counter
 
 from grpc import Call, RpcError, UnaryUnaryClientInterceptor
 
 
 class GRPCLoggerInterceptor(UnaryUnaryClientInterceptor):
-    """Логирует метод, статус и длительность unary-unary вызовов."""
+    """Логирует метод и итоговый статус unary-unary вызовов."""
 
     def __init__(self, logger: Logger):
         self.logger = logger
@@ -23,11 +22,9 @@ class GRPCLoggerInterceptor(UnaryUnaryClientInterceptor):
         """
         method = client_call_details.method
         self.logger.info(f"➡️ [REQUEST] gRPC {method}")
-        started_at = perf_counter()
 
         def log_response(call: Call) -> None:
-            duration_ms = int((perf_counter() - started_at) * 1000)
-            self.logger.info(f"⬅️ [RESPONSE] gRPC {method} · {call.code().name} · {duration_ms} ms")
+            self.logger.info(f"⬅️ [RESPONSE] gRPC {method} · {call.code().name}")
 
         try:
             call = continuation(client_call_details, request)

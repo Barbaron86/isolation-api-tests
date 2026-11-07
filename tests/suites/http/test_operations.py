@@ -2,8 +2,10 @@ import allure
 import pytest
 
 from tests.assertions.http.operations import (
+    assert_get_operation_not_found_response,
     assert_get_operations_response_from_events,
     assert_get_operations_response_from_models,
+    assert_operation_from_model,
 )
 from tests.clients.http.operations.client import OperationsHTTPTestClient
 from tests.clients.kafka.operations.producer import OperationsKafkaProducerTestClient
@@ -18,6 +20,52 @@ from tests.tools.fakers import fake
 @allure.feature(AllureFeature.OPERATIONS_SERVICE)
 class TestOperationsHTTP:
     """Проверяет чтение операций HTTP после прямой подготовки и Kafka-обработки."""
+
+    @allure.tag(AllureTag.HTTP, AllureTag.POSTGRES, AllureTag.OPERATIONS_SERVICE)
+    @allure.story(AllureStory.GET_OPERATION)
+    @allure.title("[HTTP][Postgres] Get operation by id. Completed purchase operation")
+    def test_get_operation_by_id(
+        self,
+        operations_http_test_client: OperationsHTTPTestClient,
+        operations_postgres_test_repository: OperationsPostgresTestRepository,
+    ) -> None:
+        """Проверяет выдачу завершённой покупки по ID при наличии другой покупки пользователя.
+
+        Args:
+            operations_http_test_client: HTTP-клиент Operations.
+            operations_postgres_test_repository: Подготовка операций с учётом очистки.
+        """
+        other_operation_model = operations_postgres_test_repository.create_in_progress_purchase_operation()
+        matching_operation_model = operations_postgres_test_repository.create_completed_purchase_operation(
+            user_id=other_operation_model.user_id,
+        )
+
+        get_operation_response_data = operations_http_test_client.get_operation(
+            operation_id=matching_operation_model.id,
+        )
+
+        assert_operation_from_model(get_operation_response_data.operation, matching_operation_model)
+
+    @allure.tag(AllureTag.HTTP, AllureTag.POSTGRES, AllureTag.OPERATIONS_SERVICE)
+    @allure.story(AllureStory.GET_OPERATION)
+    @allure.title("[HTTP][Postgres] Get operation by id. Operation not found")
+    def test_get_operation_not_found(
+        self,
+        operations_http_test_client: OperationsHTTPTestClient,
+        operations_postgres_test_repository: OperationsPostgresTestRepository,
+    ) -> None:
+        """Проверяет 404 с запрошенным ID при наличии другой операции в БД.
+
+        Args:
+            operations_http_test_client: HTTP-клиент Operations.
+            operations_postgres_test_repository: Подготовка операций с учётом очистки.
+        """
+        operations_postgres_test_repository.create_completed_purchase_operation()
+        missing_operation_id = fake.uuid()
+
+        get_operation_response = operations_http_test_client.get_operation_api(operation_id=missing_operation_id)
+
+        assert_get_operation_not_found_response(get_operation_response, operation_id=missing_operation_id)
 
     @allure.tag(AllureTag.HTTP, AllureTag.KAFKA, AllureTag.OPERATIONS_SERVICE)
     @allure.story(AllureStory.OPERATION_EVENTS)

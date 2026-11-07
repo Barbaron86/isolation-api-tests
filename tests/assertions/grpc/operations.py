@@ -1,6 +1,7 @@
 from uuid import UUID
 
 import allure
+from grpc import RpcError, StatusCode
 
 from tests.tools.logger import get_test_logger
 from tests.assertions.base import assert_equal
@@ -79,6 +80,18 @@ def assert_operation_from_model(
     assert_equal(actual.account_id, str(expected.account_id), "account_id")
     assert_equal(actual.category, expected.category, "category")
     assert_equal(actual.created_at, to_proto_test_datetime(expected.created_at), "created_at")
+
+
+@allure.step("Check operation not-found error: {operation_id}")
+def assert_get_operation_not_found_error(actual: RpcError, *, operation_id: UUID) -> None:
+    """Проверяет точный gRPC-код и сообщение об отсутствующей операции.
+
+    Args:
+        actual: Ошибка, полученная от gRPC API.
+        operation_id: Идентификатор операции из запроса.
+    """
+    assert_equal(actual.code(), StatusCode.NOT_FOUND, "gRPC status code")
+    assert_equal(actual.details(), f"Operation with id {operation_id} not found", "gRPC error details")
 
 
 @allure.step("Check get operations response from events")

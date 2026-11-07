@@ -163,9 +163,8 @@ def build_operations_http_test_client() -> OperationsHTTPTestClient:
     Returns:
         Обёртка; закрытие HTTPX-клиента выполняет владеющая фикстура.
     """
-    logger = get_test_logger("OPERATION_HTTP_TEST_CLIENT")
     client = build_http_test_client(
-        logger=logger,
+        logger=get_test_logger("OPERATION_HTTP_TEST_CLIENT"),
         config=test_settings.operations_http_client
     )
-    return OperationsHTTPTestClient(client=client, logger=logger)
+    return OperationsHTTPTestClient(client=client)

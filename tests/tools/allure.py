@@ -32,6 +32,7 @@ class AllureStory(StrEnum):
     """
     OPERATION_EVENTS = "Operation Events"
     OPERATION_FILTERS = "Operation Filters"
+    GET_OPERATION = "Get Operation"
 
     GET_USER_DETAILS = "Get User Details"
     GET_ACCOUNT_DETAILS = "Get Account Details"

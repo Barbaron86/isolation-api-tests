@@ -100,9 +100,8 @@ def build_gateway_http_test_client() -> GatewayHTTPTestClient:
     Returns:
         Обёртка над настроенным HTTPX-клиентом Gateway.
     """
-    logger = get_test_logger("GATEWAY_HTTP_TEST_CLIENT")
     client = build_http_test_client(
-        logger=logger,
+        logger=get_test_logger("GATEWAY_HTTP_TEST_CLIENT"),
         config=test_settings.gateway_http_client,
     )
-    return GatewayHTTPTestClient(client=client, logger=logger)
+    return GatewayHTTPTestClient(client=client)
