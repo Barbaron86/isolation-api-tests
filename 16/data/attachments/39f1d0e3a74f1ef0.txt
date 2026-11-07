@@ -1,0 +1,6 @@
+Test: tests/suites/http/test_operations.py::TestOperationsHTTP::test_get_operation_not_found
+
+Registered cleanup actions:
+- Operations row id=b93cc131-a817-4351-8f1e-c12f3507bda9
+
+Row existence is not verified.

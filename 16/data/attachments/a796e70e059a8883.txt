@@ -1,0 +1,4 @@
+INFO     GATEWAY_HTTP_TEST_CLIENT:logger_event_hook.py:35 ➡️ [REQUEST] HTTP GET /api/v1/gateway/user-details/00000000-0000-4000-8000-000000000099
+INFO     GATEWAY_HTTP_TEST_CLIENT:logger_event_hook.py:44 ⬅️ [RESPONSE] HTTP GET /api/v1/gateway/user-details/00000000-0000-4000-8000-000000000099 · 404
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "HTTP status code" equals <HTTPStatus.NOT_FOUND: 404>
+INFO     BASE_ASSERTIONS:base.py:51 🔎 [CHECK] Check that "Gateway error detail" contains 'User with id 00000000-0000-4000-8000-000000000099 not found'
