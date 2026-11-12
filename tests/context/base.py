@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from tests.context.scenario import Scenario
 
@@ -18,6 +18,12 @@ class RequestContext(BaseModel):
     scenario: Scenario
 
 
+class DynamicHTTPRequestContext(BaseModel):
+    """Передаёт ID сценария, зарегистрированного через HTTP Admin API мока."""
+
+    scenario: str = Field(pattern=r"^dynamic-.+$")
+
+
 def build_grpc_test_metadata(context: RequestContext) -> list[tuple[str, str]]:
     """
     Преобразует RequestContext в gRPC metadata.
@@ -29,11 +35,13 @@ def build_grpc_test_metadata(context: RequestContext) -> list[tuple[str, str]]:
     return [("x-test-scenario", context.scenario)]
 
 
-def build_http_test_headers(context: RequestContext) -> dict[str, str]:
-    """
-    Преобразует RequestContext в HTTP headers.
+def build_http_test_headers(context: RequestContext | DynamicHTTPRequestContext) -> dict[str, str]:
+    """Формирует HTTP-заголовок для выбора встроенного или динамического сценария.
 
-    Заголовок x-test-scenario является тестовым контрактом:
-    он описывает, какая модель внешнего мира должна быть активна.
+    Args:
+        context: Контекст с именем встроенного сценария или ID регистрации.
+
+    Returns:
+        Заголовок X-Test-Scenario с выбранным значением.
     """
     return {"x-test-scenario": context.scenario}

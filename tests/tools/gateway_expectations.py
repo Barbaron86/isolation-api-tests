@@ -16,6 +16,36 @@ from tests.types.accounts import AccountTestStatus, AccountTestType
 from tests.types.cards import CardTestPaymentSystem, CardTestStatus, CardTestType
 
 
+def expected_user_details(
+    *, user: UserTestSchema, accounts: list[AccountTestSchema],
+) -> GetUserDetailsResponseTestSchema:
+    """Собирает ожидание из подготовленного пользователя и его счетов.
+
+    Args:
+        user: Пользователь, которого запрашивает тест.
+        accounts: Счета, которые должен вернуть Gateway.
+
+    Returns:
+        Ожидаемая модель ответа с деталями пользователя.
+    """
+    return GetUserDetailsResponseTestSchema(details=UserDetailsTestSchema(user=user, accounts=accounts))
+
+
+def expected_account_details(
+    *, account: AccountTestSchema, cards: list[CardTestSchema],
+) -> GetAccountDetailsResponseTestSchema:
+    """Собирает ожидание из подготовленного счёта и его карт.
+
+    Args:
+        account: Счёт, который запрашивает тест.
+        cards: Карты, которые должен вернуть Gateway.
+
+    Returns:
+        Ожидаемая модель ответа с деталями счёта.
+    """
+    return GetAccountDetailsResponseTestSchema(details=AccountDetailsTestSchema(account=account, cards=cards))
+
+
 def expected_active_credit_user_details(*, user_id: UUID) -> GetUserDetailsResponseTestSchema:
     """Готовит пользователя с активным кредитным счётом.
 
