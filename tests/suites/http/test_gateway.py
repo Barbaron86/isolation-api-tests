@@ -7,12 +7,8 @@ import pytest
 from tests.assertions.http.gateway import (
     assert_gateway_error_response,
     assert_gateway_not_found_response,
-    assert_get_user_details_response_user_with_active_credit_card_account,
-    assert_get_account_details_response_user_with_active_debit_card_account,
-    assert_get_user_details_response_user_without_accounts,
-    assert_get_account_details_response_account_without_cards,
-    assert_get_user_details_response_user_with_multiple_accounts,
-    assert_get_account_details_response_account_with_mixed_cards,
+    assert_get_account_details_response,
+    assert_get_user_details_response,
 )
 
 from tests.clients.http.gateway.client import GatewayHTTPTestClient
@@ -21,6 +17,14 @@ from tests.context.base import RequestContext
 from tests.context.scenario import Scenario
 
 from tests.tools.allure import AllureTag, AllureStory, AllureFeature
+from tests.tools.gateway_expectations import (
+    expected_account_details_with_mixed_cards,
+    expected_account_details_without_cards,
+    expected_active_credit_user_details,
+    expected_active_debit_account_details,
+    expected_user_details_with_multiple_accounts,
+    expected_user_details_without_accounts,
+)
 from tests.types.gateway import GatewayTestErrorReason
 
 
@@ -29,7 +33,7 @@ from tests.types.gateway import GatewayTestErrorReason
 @allure.tag(AllureTag.HTTP, AllureTag.GATEWAY_SERVICE)
 @allure.feature(AllureFeature.GATEWAY_SERVICE)
 class TestGatewayHTTP:
-    """Проверяет агрегаты Gateway через управляемые HTTP-моки."""
+    """Проверяет агрегаты и ошибки Gateway на встроенных JSON-сценариях."""
 
     @allure.story(AllureStory.GET_USER_DETAILS)
     @allure.title("[HTTP] Get user details. User with active credit card account")
@@ -51,9 +55,9 @@ class TestGatewayHTTP:
             ),
         )
 
-        assert_get_user_details_response_user_with_active_credit_card_account(
+        assert_get_user_details_response(
             get_user_details_response_data,
-            expected_user_id=active_credit_account_user_id,
+            expected=expected_active_credit_user_details(user_id=active_credit_account_user_id),
         )
 
     @allure.story(AllureStory.GET_USER_DETAILS)
@@ -74,9 +78,9 @@ class TestGatewayHTTP:
             context=RequestContext(scenario=Scenario.USER_WITHOUT_ACCOUNTS),
         )
 
-        assert_get_user_details_response_user_without_accounts(
+        assert_get_user_details_response(
             get_user_details_response_data,
-            expected_user_id=user_without_accounts_id,
+            expected=expected_user_details_without_accounts(user_id=user_without_accounts_id),
         )
 
     @allure.story(AllureStory.GET_USER_DETAILS)
@@ -97,9 +101,9 @@ class TestGatewayHTTP:
             context=RequestContext(scenario=Scenario.USER_WITH_MULTIPLE_ACCOUNTS),
         )
 
-        assert_get_user_details_response_user_with_multiple_accounts(
+        assert_get_user_details_response(
             get_user_details_response_data,
-            expected_user_id=user_with_multiple_accounts_id,
+            expected=expected_user_details_with_multiple_accounts(user_id=user_with_multiple_accounts_id),
         )
 
     @allure.story(AllureStory.GET_USER_DETAILS)
@@ -147,9 +151,9 @@ class TestGatewayHTTP:
             ),
         )
 
-        assert_get_account_details_response_user_with_active_debit_card_account(
+        assert_get_account_details_response(
             get_account_details_response_data,
-            expected_account_id=active_debit_account_id,
+            expected=expected_active_debit_account_details(account_id=active_debit_account_id),
         )
 
     @allure.story(AllureStory.GET_ACCOUNT_DETAILS)
@@ -170,9 +174,9 @@ class TestGatewayHTTP:
             context=RequestContext(scenario=Scenario.ACCOUNT_WITHOUT_CARDS),
         )
 
-        assert_get_account_details_response_account_without_cards(
+        assert_get_account_details_response(
             get_account_details_response_data,
-            expected_account_id=account_without_cards_id,
+            expected=expected_account_details_without_cards(account_id=account_without_cards_id),
         )
 
     @allure.story(AllureStory.GET_ACCOUNT_DETAILS)
@@ -195,10 +199,12 @@ class TestGatewayHTTP:
             context=RequestContext(scenario=Scenario.ACCOUNT_WITH_MIXED_CARDS),
         )
 
-        assert_get_account_details_response_account_with_mixed_cards(
+        assert_get_account_details_response(
             get_account_details_response_data,
-            expected_account_id=account_with_mixed_cards_id,
-            expected_user_id=user_with_multiple_accounts_id,
+            expected=expected_account_details_with_mixed_cards(
+                account_id=account_with_mixed_cards_id,
+                user_id=user_with_multiple_accounts_id,
+            ),
         )
 
     @allure.story(AllureStory.GET_ACCOUNT_DETAILS)

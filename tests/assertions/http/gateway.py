@@ -1,6 +1,4 @@
-from datetime import date
 from http import HTTPStatus
-from uuid import UUID
 
 import allure
 from httpx import Response
@@ -10,18 +8,13 @@ from tests.assertions.http.base import assert_status_code
 from tests.assertions.http.accounts import assert_account
 from tests.assertions.http.cards import assert_card
 from tests.assertions.http.users import assert_user
-from tests.schema.accounts import AccountTestSchema
-from tests.schema.cards import CardTestSchema
 from tests.schema.gateway import (
     UserDetailsTestSchema,
     AccountDetailsTestSchema,
     GetUserDetailsResponseTestSchema,
     GetAccountDetailsResponseTestSchema
 )
-from tests.schema.users import UserTestSchema
 from tests.tools.logger import get_test_logger
-from tests.types.accounts import AccountTestType, AccountTestStatus
-from tests.types.cards import CardTestPaymentSystem, CardTestStatus, CardTestType
 
 logger = get_test_logger("GATEWAY_ASSERTIONS")
 
@@ -110,14 +103,13 @@ def assert_get_user_details_response(
         actual: GetUserDetailsResponseTestSchema,
         expected: GetUserDetailsResponseTestSchema
 ) -> None:
-    logger.info("Check get user details response")
+    """Сравнивает пользователя и ожидаемый состав его счетов в ответе Gateway.
 
-    # Ассерт уровня HTTP-ответа.
-    #
-    # Здесь мы сознательно не повторяем проверки полей,
-    # а делегируем их в ассерт уровня агрегата.
-    # Это сохраняет иерархию проверок:
-    # HTTP-ответ -> агрегат -> доменные сущности.
+    Args:
+        actual: Разобранный успешный HTTP-ответ Gateway.
+        expected: Независимо подготовленный пользователь и его счета.
+    """
+    logger.info("Check get user details response")
     assert_user_details(actual.details, expected.details)
 
 
@@ -126,252 +118,12 @@ def assert_get_account_details_response(
         actual: GetAccountDetailsResponseTestSchema,
         expected: GetAccountDetailsResponseTestSchema
 ) -> None:
+    """Сравнивает счёт и ожидаемый состав его карт в ответе Gateway.
+
+    Args:
+        actual: Разобранный успешный HTTP-ответ Gateway.
+        expected: Независимо подготовленный счёт и его карты.
+    """
     logger.info("Check get account details response")
 
     assert_account_details(actual.details, expected.details)
-
-
-@allure.step("Check get user details response. User with active credit card account")
-def assert_get_user_details_response_user_with_active_credit_card_account(
-        actual: GetUserDetailsResponseTestSchema,
-        *,
-        expected_user_id: UUID,
-) -> None:
-    """Сравнивает агрегат кредитного сценария с запрошенным пользователем.
-
-    Args:
-        actual: Разобранный HTTP-ответ Gateway.
-        expected_user_id: Независимый ID из подготовки теста; ожидается у
-            пользователя и в поле владельца каждого подготовленного счёта.
-    """
-    logger.info("Check get user details response. User with active credit card account")
-
-    expected = GetUserDetailsResponseTestSchema(
-        details=UserDetailsTestSchema(
-            user=UserTestSchema(
-                id=expected_user_id,
-                email="anna.ivanova@example.com",
-                last_name="Иванова",
-                first_name="Анна",
-                middle_name="Алексеевна",
-                phone_number="+79005554433",
-            ),
-            accounts=[
-                AccountTestSchema(
-                    id="99999999-aaaa-4bbb-8ccc-000000000001",
-                    type=AccountTestType.CREDIT_CARD,
-                    status=AccountTestStatus.ACTIVE,
-                    user_id=expected_user_id,
-                    balance=-15230.75,
-                )
-            ],
-        )
-    )
-    assert_get_user_details_response(actual, expected)
-
-
-@allure.step("Check get account details response. User with active debit card account")
-def assert_get_account_details_response_user_with_active_debit_card_account(
-        actual: GetAccountDetailsResponseTestSchema,
-        *,
-        expected_account_id: UUID,
-) -> None:
-    """Сравнивает агрегат дебетового сценария с запрошенным счётом.
-
-    Args:
-        actual: Разобранный HTTP-ответ Gateway.
-        expected_account_id: Независимый ID из подготовки теста; ожидается у
-            счёта и в поле привязки каждой подготовленной карты.
-    """
-    logger.info("Check get account details response. User with active debit card account")
-
-    expected = GetAccountDetailsResponseTestSchema(
-        details=AccountDetailsTestSchema(
-            account=AccountTestSchema(
-                id=expected_account_id,
-                type=AccountTestType.DEBIT_CARD,
-                status=AccountTestStatus.ACTIVE,
-                user_id="8b0e7c2a-1b6a-4e5d-9f1a-1b3f2a7c9e21",
-                balance=-15230.75,
-            ),
-            cards=[
-                CardTestSchema(
-                    id="11111111-aaaa-4bbb-8ccc-222222222222",
-                    pin="1234",
-                    cvv="456",
-                    type=CardTestType.VIRTUAL,
-                    status=CardTestStatus.ACTIVE,
-                    account_id=expected_account_id,
-                    card_number="4111111111111111",
-                    card_holder="IVAN PETROV",
-                    expiry_date=date(2027, 12, 31),
-                    payment_system=CardTestPaymentSystem.VISA,
-                ),
-                CardTestSchema(
-                    id="33333333-dddd-4eee-8fff-444444444444",
-                    pin="9876",
-                    cvv="789",
-                    type=CardTestType.PHYSICAL,
-                    status=CardTestStatus.ACTIVE,
-                    account_id=expected_account_id,
-                    card_number="5500000000000004",
-                    card_holder="IVAN PETROV",
-                    expiry_date=date(2028, 6, 30),
-                    payment_system=CardTestPaymentSystem.MASTERCARD,
-                ),
-            ],
-        )
-    )
-    assert_get_account_details_response(actual, expected)
-
-
-@allure.step("Check get user details response. User without accounts")
-def assert_get_user_details_response_user_without_accounts(
-        actual: GetUserDetailsResponseTestSchema,
-        *,
-        expected_user_id: UUID,
-) -> None:
-    """Проверяет пользователя сценария и отсутствие связанных счетов.
-
-    Args:
-        actual: Разобранный успешный HTTP-ответ Gateway.
-        expected_user_id: ID из подготовки, с которым тест запросил пользователя.
-    """
-    expected = GetUserDetailsResponseTestSchema(
-        details=UserDetailsTestSchema(
-            user=UserTestSchema(
-                id=expected_user_id,
-                email="pavel.smirnov@example.com",
-                last_name="Смирнов",
-                first_name="Павел",
-                middle_name="Олегович",
-                phone_number="+79001112233",
-            ),
-            accounts=[],
-        )
-    )
-    assert_get_user_details_response(actual, expected)
-
-
-@allure.step("Check get account details response. Account without cards")
-def assert_get_account_details_response_account_without_cards(
-        actual: GetAccountDetailsResponseTestSchema,
-        *,
-        expected_account_id: UUID,
-) -> None:
-    """Проверяет счёт сценария и отсутствие привязанных карт.
-
-    Args:
-        actual: Разобранный успешный HTTP-ответ Gateway.
-        expected_account_id: ID из подготовки, с которым тест запросил счёт.
-    """
-    expected = GetAccountDetailsResponseTestSchema(
-        details=AccountDetailsTestSchema(
-            account=AccountTestSchema(
-                id=expected_account_id,
-                type=AccountTestType.DEBIT_CARD,
-                status=AccountTestStatus.ACTIVE,
-                user_id="e8a351ec-3c79-46b4-a152-95b0aac90d3f",
-                balance=2500.5,
-            ),
-            cards=[],
-        )
-    )
-    assert_get_account_details_response(actual, expected)
-
-
-@allure.step("Check get user details response. User with multiple accounts")
-def assert_get_user_details_response_user_with_multiple_accounts(
-        actual: GetUserDetailsResponseTestSchema,
-        *,
-        expected_user_id: UUID,
-) -> None:
-    """Проверяет пользователя и два его счёта без записи другого владельца.
-
-    Args:
-        actual: Разобранный успешный HTTP-ответ Gateway.
-        expected_user_id: ID подготовленного пользователя из запроса теста.
-    """
-    expected = GetUserDetailsResponseTestSchema(
-        details=UserDetailsTestSchema(
-            user=UserTestSchema(
-                id=expected_user_id,
-                email="maria.orlova@example.com",
-                last_name="Орлова",
-                first_name="Мария",
-                middle_name="Сергеевна",
-                phone_number="+79002223344",
-            ),
-            accounts=[
-                AccountTestSchema(
-                    id="7f86a8d5-2d3e-4e16-99ef-b06c53f4ea41",
-                    type=AccountTestType.DEBIT_CARD,
-                    status=AccountTestStatus.ACTIVE,
-                    user_id=expected_user_id,
-                    balance=1200.5,
-                ),
-                AccountTestSchema(
-                    id="c194ea82-e487-4c80-b9a4-42f6ed4ed822",
-                    type=AccountTestType.CREDIT_CARD,
-                    status=AccountTestStatus.ACTIVE,
-                    user_id=expected_user_id,
-                    balance=-3500.75,
-                ),
-            ],
-        )
-    )
-    assert_get_user_details_response(actual, expected)
-
-
-@allure.step("Check get account details response. Cards belong to requested account")
-def assert_get_account_details_response_account_with_mixed_cards(
-        actual: GetAccountDetailsResponseTestSchema,
-        *,
-        expected_account_id: UUID,
-        expected_user_id: UUID,
-) -> None:
-    """Проверяет счёт и его две карты без карты другого счёта.
-
-    Args:
-        actual: Разобранный успешный HTTP-ответ Gateway.
-        expected_account_id: ID подготовленного счёта из запроса теста.
-        expected_user_id: Независимый ID владельца подготовленного счёта.
-    """
-    expected = GetAccountDetailsResponseTestSchema(
-        details=AccountDetailsTestSchema(
-            account=AccountTestSchema(
-                id=expected_account_id,
-                type=AccountTestType.DEBIT_CARD,
-                status=AccountTestStatus.ACTIVE,
-                user_id=expected_user_id,
-                balance=1200.5,
-            ),
-            cards=[
-                CardTestSchema(
-                    id="ea6c9b9b-0bb8-4c67-b001-760b59cf907c",
-                    pin="1234",
-                    cvv="123",
-                    type=CardTestType.VIRTUAL,
-                    status=CardTestStatus.ACTIVE,
-                    account_id=expected_account_id,
-                    card_number="4242424242424242",
-                    card_holder="MARIA ORLOVA",
-                    expiry_date=date(2029, 4, 30),
-                    payment_system=CardTestPaymentSystem.VISA,
-                ),
-                CardTestSchema(
-                    id="8c3c69bc-a9f5-4819-bd84-a58c1c55d6c9",
-                    pin="2345",
-                    cvv="234",
-                    type=CardTestType.PHYSICAL,
-                    status=CardTestStatus.ACTIVE,
-                    account_id=expected_account_id,
-                    card_number="5555555555554444",
-                    card_holder="MARIA ORLOVA",
-                    expiry_date=date(2030, 6, 30),
-                    payment_system=CardTestPaymentSystem.MASTERCARD,
-                ),
-            ],
-        )
-    )
-    assert_get_account_details_response(actual, expected)
