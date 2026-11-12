@@ -3,7 +3,7 @@ x-base-service: &base-service
   volumes:
     - .:/app
   working_dir: /app
-  environment:
+  environment: &base-environment
     ENV_FILE: .env
 
 x-python-service: &python-service
@@ -94,10 +94,26 @@ services:
 
 
   # mock -service
+  redis:
+    image: redis:7.4.12-alpine
+    command: [ "redis-server", "--save", "", "--appendonly", "no" ]
+    tmpfs: [ "/data" ]
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 2s
+      timeout: 2s
+      retries: 15
+
   http-mock:
     <<: *python-service
-    ports: [ "8003:8003" ]
-    command: "tests.mock.http.server"
+    ports: [ "127.0.0.1:8003:8003" ]
+    command: [ "tests.mock.http.server", "--dynamic-scenarios" ]
+    environment:
+      <<: *base-environment
+      MOCK_REDIS_URL: redis://redis:6379/0
+    depends_on:
+      redis:
+        condition: service_healthy
 
   grpc-mock:
     <<: *python-service

@@ -13,10 +13,10 @@ from .compose import ServiceState, compose_snapshot
 REQUIRED_SERVICES = {
     "kafka", "kafka-operations", "postgres", "postgres-init",
     "postgres-migrator-operations", "http-mock", "grpc-mock", "http-gateway",
-    "grpc-gateway", "http-operations", "grpc-operations",
+    "grpc-gateway", "http-operations", "grpc-operations", "redis",
 }
 COMPLETED_SERVICES = {"postgres-init", "postgres-migrator-operations"}
-HEALTHY_SERVICES = {"kafka", "postgres", "kafka-operations"}
+HEALTHY_SERVICES = {"kafka", "postgres", "kafka-operations", "redis"}
 
 
 def readiness_reason(snapshot: list[ServiceState]) -> str | None:

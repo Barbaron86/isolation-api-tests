@@ -29,7 +29,7 @@ def main() -> None:
         parser.error("ports must be between 1 and 65535")
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
     wait_for_stand(args.compose_file, args.timeout, tuple(args.http_ports), tuple(args.grpc_ports))
-    logger.info("Stand ready: migrations completed, broker/consumer healthy, HTTP/gRPC connected")
+    logger.info("Stand ready: migrations completed, Redis and Kafka healthy, HTTP/gRPC connected")
 
 
 if __name__ == "__main__":

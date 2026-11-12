@@ -19,5 +19,6 @@ pytest-xdist==3.8.0
 pydantic==2.11.5
 pydantic-settings==2.9.1
 psycopg2-binary==2.9.11
+redis==7.4.0
 SQLAlchemy==2.0.41
 uvicorn==0.34.2
