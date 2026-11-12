@@ -1,0 +1,4 @@
+INFO     GATEWAY_HTTP_TEST_CLIENT:logger_event_hook.py:35 → GET /api/v1/gateway/user-details/8b0e7c2a-1b6a-4e5d-9f1a-1b3f2a7c9e21
+INFO     GATEWAY_HTTP_TEST_CLIENT:logger_event_hook.py:45 ← 503 Service Unavailable GET /api/v1/gateway/user-details/8b0e7c2a-1b6a-4e5d-9f1a-1b3f2a7c9e21
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "HTTP status code" equals <HTTPStatus.SERVICE_UNAVAILABLE: 503>
+INFO     BASE_ASSERTIONS:base.py:51 🔎 [CHECK] Check that "Gateway error detail" contains <GatewayTestErrorReason.ACCOUNTS_SERVICE_UNAVAILABLE: 'Accounts service unavailable'>

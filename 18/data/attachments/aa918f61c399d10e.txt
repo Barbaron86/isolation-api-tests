@@ -1,0 +1,15 @@
+INFO     MOCK_ADMIN_HTTP_TEST_CLIENT:logger_event_hook.py:35 → POST /__admin/scenarios
+INFO     MOCK_ADMIN_HTTP_TEST_CLIENT:logger_event_hook.py:45 ← 201 Created POST /__admin/scenarios
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "HTTP status code" equals <HTTPStatus.CREATED: 201>
+INFO     MOCK_ADMIN_HTTP_TEST_CLIENT:logger_event_hook.py:35 → GET /api/v1/cards
+INFO     MOCK_ADMIN_HTTP_TEST_CLIENT:logger_event_hook.py:45 ← 200 OK GET /api/v1/cards
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "HTTP status code" equals <HTTPStatus.OK: 200>
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "cards registered for the missing account" equals [CardTestSchema(id=UUID('ecc4f70a-2d61-4b2b-8646-13f15541bac6'), pin='1711', cvv='628', type=<CardTestType.VIRTUAL: 'VIRTUAL'>, status=<CardTestStatus.ACTIVE: 'ACTIVE'>, account_id=UUID('592dae3e-a44b-4d41-8a21-2dd263ec273c'), card_number='4225687988296336', card_holder='TEST CARDHOLDER', expiry_date=datetime.date(2035, 12, 31), payment_system=<CardTestPaymentSystem.VISA: 'VISA'>)]
+INFO     GATEWAY_HTTP_TEST_CLIENT:logger_event_hook.py:35 → GET /api/v1/gateway/account-details/592dae3e-a44b-4d41-8a21-2dd263ec273c
+INFO     GATEWAY_HTTP_TEST_CLIENT:logger_event_hook.py:45 ← 404 Not Found GET /api/v1/gateway/account-details/592dae3e-a44b-4d41-8a21-2dd263ec273c
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "HTTP status code" equals <HTTPStatus.NOT_FOUND: 404>
+INFO     BASE_ASSERTIONS:base.py:51 🔎 [CHECK] Check that "Gateway error detail" contains 'Account with id 592dae3e-a44b-4d41-8a21-2dd263ec273c not found'
+INFO     MOCK_ADMIN_HTTP_TEST_CLIENT:logger_event_hook.py:35 → DELETE /__admin/scenarios/dynamic-927b8b24-4147-4ba0-9b39-cdd6724a27d7
+INFO     MOCK_ADMIN_HTTP_TEST_CLIENT:logger_event_hook.py:45 ← 204 No Content DELETE /__admin/scenarios/dynamic-927b8b24-4147-4ba0-9b39-cdd6724a27d7
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "HTTP status code" equals <HTTPStatus.NO_CONTENT: 204>
+INFO     TEST_DATA_CLEANUP:cleanup.py:93 🧹 [CLEANUP] HTTP mock scenario dynamic-927b8b24-4147-4ba0-9b39-cdd6724a27d7 · completed
