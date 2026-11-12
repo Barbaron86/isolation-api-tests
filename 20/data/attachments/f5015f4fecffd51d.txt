@@ -1,0 +1,39 @@
+INFO     MOCK_ADMIN_HTTP_TEST_CLIENT:logger_event_hook.py:35 → POST /__admin/scenarios
+INFO     MOCK_ADMIN_HTTP_TEST_CLIENT:logger_event_hook.py:45 ← 201 Created POST /__admin/scenarios
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "HTTP status code" equals <HTTPStatus.CREATED: 201>
+INFO     MOCK_ADMIN_HTTP_TEST_CLIENT:logger_event_hook.py:35 → POST /__admin/scenarios
+INFO     MOCK_ADMIN_HTTP_TEST_CLIENT:logger_event_hook.py:45 ← 201 Created POST /__admin/scenarios
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "HTTP status code" equals <HTTPStatus.CREATED: 201>
+INFO     GATEWAY_HTTP_TEST_CLIENT:logger_event_hook.py:35 → GET /api/v1/gateway/user-details/f96d0f8a-0944-41c0-98d8-6254ae7f3cd0
+INFO     GATEWAY_HTTP_TEST_CLIENT:logger_event_hook.py:45 ← 503 Service Unavailable GET /api/v1/gateway/user-details/f96d0f8a-0944-41c0-98d8-6254ae7f3cd0
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "HTTP status code" equals <HTTPStatus.SERVICE_UNAVAILABLE: 503>
+INFO     BASE_ASSERTIONS:base.py:51 🔎 [CHECK] Check that "Gateway error detail" contains <GatewayTestErrorReason.ACCOUNTS_SERVICE_UNAVAILABLE: 'Accounts service unavailable'>
+INFO     GATEWAY_HTTP_TEST_CLIENT:logger_event_hook.py:35 → GET /api/v1/gateway/user-details/f96d0f8a-0944-41c0-98d8-6254ae7f3cd0
+INFO     GATEWAY_HTTP_TEST_CLIENT:logger_event_hook.py:45 ← 200 OK GET /api/v1/gateway/user-details/f96d0f8a-0944-41c0-98d8-6254ae7f3cd0
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "HTTP status code" equals <HTTPStatus.OK: 200>
+INFO     GATEWAY_ASSERTIONS:gateway.py:112 Check get user details response
+INFO     GATEWAY_ASSERTIONS:gateway.py:71 Check user details
+INFO     USERS_ASSERTIONS:users.py:12 Check user
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "id" equals UUID('f96d0f8a-0944-41c0-98d8-6254ae7f3cd0')
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "email" equals 'f96d0f8a-0944-41c0-98d8-6254ae7f3cd0@example.com'
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "last_name" equals 'Phillips'
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "first_name" equals 'Susan'
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "middle_name" equals 'Amber'
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "phone_number" equals '+79559160000'
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "accounts count" equals 1
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "unique account ids" equals 1
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "account ids" equals {UUID('64b5784a-93e2-456d-9b00-a468f90dab24')}
+INFO     ACCOUNTS_ASSERTIONS:accounts.py:12 Check account
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "id" equals UUID('64b5784a-93e2-456d-9b00-a468f90dab24')
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "type" equals <AccountTestType.DEBIT_CARD: 'DEBIT_CARD'>
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "status" equals <AccountTestStatus.ACTIVE: 'ACTIVE'>
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "user_id" equals UUID('f96d0f8a-0944-41c0-98d8-6254ae7f3cd0')
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "balance" equals 1000.0
+INFO     MOCK_ADMIN_HTTP_TEST_CLIENT:logger_event_hook.py:35 → DELETE /__admin/scenarios/dynamic-88640ba0-8184-478f-ba2e-0d9f27564c9b
+INFO     MOCK_ADMIN_HTTP_TEST_CLIENT:logger_event_hook.py:45 ← 204 No Content DELETE /__admin/scenarios/dynamic-88640ba0-8184-478f-ba2e-0d9f27564c9b
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "HTTP status code" equals <HTTPStatus.NO_CONTENT: 204>
+INFO     TEST_DATA_CLEANUP:cleanup.py:93 🧹 [CLEANUP] HTTP mock scenario dynamic-88640ba0-8184-478f-ba2e-0d9f27564c9b · completed
+INFO     MOCK_ADMIN_HTTP_TEST_CLIENT:logger_event_hook.py:35 → DELETE /__admin/scenarios/dynamic-16a30026-e37d-4087-af66-c57dc09eca9d
+INFO     MOCK_ADMIN_HTTP_TEST_CLIENT:logger_event_hook.py:45 ← 204 No Content DELETE /__admin/scenarios/dynamic-16a30026-e37d-4087-af66-c57dc09eca9d
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "HTTP status code" equals <HTTPStatus.NO_CONTENT: 204>
+INFO     TEST_DATA_CLEANUP:cleanup.py:93 🧹 [CLEANUP] HTTP mock scenario dynamic-16a30026-e37d-4087-af66-c57dc09eca9d · completed

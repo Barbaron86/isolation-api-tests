@@ -1,0 +1,7 @@
+Test: tests/suites/http/test_operations.py::TestOperationsHTTP::test_get_operation_by_id
+
+Registered cleanup actions:
+- Operations row id=25fc0bf2-f5f1-4bb7-95d6-54322dcf408c
+- Operations row id=f3898b24-9939-4fa7-8ad9-12da926e2bf4
+
+Row existence is not verified.

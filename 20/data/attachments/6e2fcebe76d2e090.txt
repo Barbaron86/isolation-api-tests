@@ -1,0 +1,17 @@
+INFO     sqlalchemy.engine.Engine:base.py:2698 BEGIN (implicit)
+INFO     sqlalchemy.engine.Engine:base.py:1842 INSERT INTO operations (id, type, status, amount, user_id, card_id, account_id, category, created_at) VALUES (%(id)s::UUID, %(type)s, %(status)s, %(amount)s, %(user_id)s::UUID, %(card_id)s::UUID, %(account_id)s::UUID, %(category)s, %(created_at)s)
+INFO     sqlalchemy.engine.Engine:base.py:1842 [cached since 15.1s ago] {'id': UUID('9e1737d9-7c8e-41f9-a2f3-10b8e7f56242'), 'type': <OperationTestType.PURCHASE: 'PURCHASE'>, 'status': <OperationTestStatus.COMPLETED: 'COMPLETED'>, 'amount': 562.13, 'user_id': UUID('4d9f6939-dca9-425e-9914-19c70f9bf014'), 'card_id': UUID('6968406b-0991-4c7b-99bc-737e7f24b7a3'), 'account_id': UUID('e160aca8-eae2-4d25-9407-572118252ce6'), 'category': 'mobile', 'created_at': datetime.datetime(2025, 5, 16, 20, 29, 18, 321209)}
+INFO     sqlalchemy.engine.Engine:base.py:1842 SELECT operations.id, operations.type, operations.status, operations.amount, operations.user_id, operations.card_id, operations.account_id, operations.category, operations.created_at 
+FROM operations 
+WHERE operations.id = %(pk_1)s::UUID
+INFO     sqlalchemy.engine.Engine:base.py:1842 [cached since 15.1s ago] {'pk_1': UUID('9e1737d9-7c8e-41f9-a2f3-10b8e7f56242')}
+INFO     sqlalchemy.engine.Engine:base.py:2704 COMMIT
+INFO     OPERATION_HTTP_TEST_CLIENT:logger_event_hook.py:35 → GET /api/v1/operations/f5c6b136-4971-41fb-b7ce-7946d36a445e
+INFO     OPERATION_HTTP_TEST_CLIENT:logger_event_hook.py:45 ← 404 Not Found GET /api/v1/operations/f5c6b136-4971-41fb-b7ce-7946d36a445e
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "HTTP status code" equals <HTTPStatus.NOT_FOUND: 404>
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "detail" equals 'Operation with id f5c6b136-4971-41fb-b7ce-7946d36a445e not found'
+INFO     sqlalchemy.engine.Engine:base.py:2698 BEGIN (implicit)
+INFO     sqlalchemy.engine.Engine:base.py:1842 DELETE FROM operations WHERE operations.id = %(id_1)s::UUID
+INFO     sqlalchemy.engine.Engine:base.py:1842 [cached since 15.07s ago] {'id_1': UUID('9e1737d9-7c8e-41f9-a2f3-10b8e7f56242')}
+INFO     sqlalchemy.engine.Engine:base.py:2704 COMMIT
+INFO     TEST_DATA_CLEANUP:cleanup.py:93 🧹 [CLEANUP] Operations row id=9e1737d9-7c8e-41f9-a2f3-10b8e7f56242 · completed

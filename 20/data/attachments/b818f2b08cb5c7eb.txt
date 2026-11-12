@@ -1,0 +1,26 @@
+INFO     MOCK_ADMIN_HTTP_TEST_CLIENT:logger_event_hook.py:35 → POST /__admin/scenarios
+INFO     MOCK_ADMIN_HTTP_TEST_CLIENT:logger_event_hook.py:45 ← 201 Created POST /__admin/scenarios
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "HTTP status code" equals <HTTPStatus.CREATED: 201>
+INFO     MOCK_ADMIN_HTTP_TEST_CLIENT:logger_event_hook.py:35 → GET /api/v1/cards
+INFO     MOCK_ADMIN_HTTP_TEST_CLIENT:logger_event_hook.py:45 ← 200 OK GET /api/v1/cards
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "HTTP status code" equals <HTTPStatus.OK: 200>
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "cards count" equals 1
+INFO     CARDS_ASSERTIONS:cards.py:12 Check card
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "id" equals UUID('380e09f5-fbe9-4a5c-9590-7a69753b18bc')
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "pin" equals '5770'
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "cvv" equals '501'
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "type" equals <CardTestType.VIRTUAL: 'VIRTUAL'>
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "status" equals <CardTestStatus.ACTIVE: 'ACTIVE'>
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "account_id" equals UUID('1776761e-1d31-48f0-b6f1-0e3678a0eed4')
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "card_number" equals '4493881961737516'
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "card_holder" equals 'TEST CARDHOLDER'
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "expiry_date" equals datetime.date(2035, 12, 31)
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "payment_system" equals <CardTestPaymentSystem.VISA: 'VISA'>
+INFO     GATEWAY_HTTP_TEST_CLIENT:logger_event_hook.py:35 → GET /api/v1/gateway/account-details/1776761e-1d31-48f0-b6f1-0e3678a0eed4
+INFO     GATEWAY_HTTP_TEST_CLIENT:logger_event_hook.py:45 ← 404 Not Found GET /api/v1/gateway/account-details/1776761e-1d31-48f0-b6f1-0e3678a0eed4
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "HTTP status code" equals <HTTPStatus.NOT_FOUND: 404>
+INFO     BASE_ASSERTIONS:base.py:51 🔎 [CHECK] Check that "Gateway error detail" contains 'Account with id 1776761e-1d31-48f0-b6f1-0e3678a0eed4 not found'
+INFO     MOCK_ADMIN_HTTP_TEST_CLIENT:logger_event_hook.py:35 → DELETE /__admin/scenarios/dynamic-adcb99cc-fbc4-4041-b229-7646ce0d232b
+INFO     MOCK_ADMIN_HTTP_TEST_CLIENT:logger_event_hook.py:45 ← 204 No Content DELETE /__admin/scenarios/dynamic-adcb99cc-fbc4-4041-b229-7646ce0d232b
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "HTTP status code" equals <HTTPStatus.NO_CONTENT: 204>
+INFO     TEST_DATA_CLEANUP:cleanup.py:93 🧹 [CLEANUP] HTTP mock scenario dynamic-adcb99cc-fbc4-4041-b229-7646ce0d232b · completed
