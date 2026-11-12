@@ -32,13 +32,14 @@ class HTTPLoggerEventHook:
         Args:
             request: Подготовленный HTTPX-запрос. В лог попадают метод и путь.
         """
-        self.logger.info(f"➡️ [REQUEST] HTTP {request.method} {_request_path(request)}")
+        self.logger.info(f"→ {request.method} {_request_path(request)}")
 
     def response(self, response: Response) -> None:
-        """Логирует код ответа, метод и путь исходного запроса.
+        """Логирует статус ответа, метод и путь исходного запроса.
 
         Args:
             response: Ответ HTTPX на этапе получения заголовков, до чтения тела.
         """
         request = response.request
-        self.logger.info(f"⬅️ [RESPONSE] HTTP {request.method} {_request_path(request)} · {response.status_code}")
+        status = f"{response.status_code} {response.reason_phrase}".rstrip()
+        self.logger.info(f"← {status} {request.method} {_request_path(request)}")
