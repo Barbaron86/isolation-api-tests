@@ -6,8 +6,8 @@ import allure
 import pytest
 from httpx import QueryParams
 
-from tests.assertions.base import assert_equal
 from tests.assertions.http.base import assert_status_code
+from tests.assertions.http.cards import assert_single_card_in_response
 from tests.assertions.http.gateway import (
     assert_gateway_error_response,
     assert_gateway_not_found_response,
@@ -22,12 +22,6 @@ from tests.context.base import DynamicHTTPRequestContext, RequestContext
 from tests.context.scenario import Scenario
 
 from tests.schema.cards import GetCardsResponseTestSchema
-from tests.schema.gateway import (
-    AccountDetailsTestSchema,
-    GetAccountDetailsResponseTestSchema,
-    GetUserDetailsResponseTestSchema,
-    UserDetailsTestSchema,
-)
 from tests.schema.mock_gateway import GatewayMockOperation, GatewayMockScenarioTestSchema
 from tests.tools.allure import AllureTag, AllureStory, AllureFeature
 from tests.tools.gateway_data import make_account, make_card, make_user
@@ -368,7 +362,7 @@ class TestDynamicGatewayHTTP:
         context = register_gateway_scenario(GatewayMockScenarioTestSchema(
             users=[other_user, user], accounts=[other_user_account, *user_accounts],
         ))
-        expected = GetUserDetailsResponseTestSchema(details=UserDetailsTestSchema(user=user, accounts=user_accounts))
+        expected = expected_user_details(user=user, accounts=user_accounts)
 
         get_user_details_response_data = gateway_http_test_client.get_user_details(user_id=user.id, context=context)
 
@@ -398,9 +392,7 @@ class TestDynamicGatewayHTTP:
         context = register_gateway_scenario(GatewayMockScenarioTestSchema(
             users=[user], accounts=[other_account, account], cards=[other_account_card, *account_cards],
         ))
-        expected = GetAccountDetailsResponseTestSchema(
-            details=AccountDetailsTestSchema(account=account, cards=account_cards),
-        )
+        expected = expected_account_details(account=account, cards=account_cards)
 
         get_account_details_response_data = gateway_http_test_client.get_account_details(
             account_id=account.id, context=context,
@@ -469,7 +461,7 @@ class TestDynamicGatewayHTTP:
             )
         assert_status_code(get_cards_response.status_code, HTTPStatus.OK)
         get_cards_response_data = GetCardsResponseTestSchema.model_validate_json(get_cards_response.content)
-        assert_equal(get_cards_response_data.cards, [card], "cards registered for the missing account")
+        assert_single_card_in_response(get_cards_response_data, card)
 
         get_account_details_response = gateway_http_test_client.get_account_details_api(
             account_id=account_id, context=context,

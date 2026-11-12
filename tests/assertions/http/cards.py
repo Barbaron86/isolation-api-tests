@@ -1,7 +1,7 @@
 import allure
 
 from tests.assertions.base import assert_equal
-from tests.schema.cards import CardTestSchema
+from tests.schema.cards import CardTestSchema, GetCardsResponseTestSchema
 from tests.tools.logger import get_test_logger
 
 logger = get_test_logger("CARDS_ASSERTIONS")
@@ -32,3 +32,15 @@ def assert_card(actual: CardTestSchema, expected: CardTestSchema) -> None:
     assert_equal(actual.card_holder, expected.card_holder, "card_holder")
     assert_equal(actual.expiry_date, expected.expiry_date, "expiry_date")
     assert_equal(actual.payment_system, expected.payment_system, "payment_system")
+
+
+@allure.step("Check that the cards response contains only the expected card")
+def assert_single_card_in_response(actual: GetCardsResponseTestSchema, expected: CardTestSchema) -> None:
+    """Проверяет, что ответ списка карт содержит ровно одну ожидаемую карту.
+
+    Args:
+        actual: Разобранный ответ Cards со списком карт.
+        expected: Карта, подготовленная в сценарии теста.
+    """
+    assert_equal(len(actual.cards), 1, "cards count")
+    assert_card(actual.cards[0], expected)
