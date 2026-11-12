@@ -7,7 +7,7 @@ from httpx import Response
 from tests.assertions.http.base import assert_status_code
 from tests.clients.http.client import HTTPTestClient, build_http_test_client
 from tests.config import test_settings
-from tests.context.base import RequestContext
+from tests.context.base import DynamicHTTPRequestContext, RequestContext
 from tests.schema.gateway import (
     GetUserDetailsResponseTestSchema,
     GetAccountDetailsResponseTestSchema,
@@ -27,7 +27,7 @@ class GatewayHTTPTestClient(HTTPTestClient):
     def get_user_details_api(
             self,
             user_id: uuid.UUID,
-            context: RequestContext,
+            context: RequestContext | DynamicHTTPRequestContext,
     ) -> Response:
         # Низкоуровневый метод "api" возвращает сырой Response.
         #
@@ -46,7 +46,7 @@ class GatewayHTTPTestClient(HTTPTestClient):
     def get_account_details_api(
             self,
             account_id: uuid.UUID,
-            context: RequestContext,
+            context: RequestContext | DynamicHTTPRequestContext,
     ) -> Response:
         return self.get(
             f"{APITestRoutes.GATEWAY}/account-details/{account_id}",
@@ -54,7 +54,7 @@ class GatewayHTTPTestClient(HTTPTestClient):
         )
 
     def get_user_details(
-            self, context: RequestContext, *, user_id: uuid.UUID,
+            self, context: RequestContext | DynamicHTTPRequestContext, *, user_id: uuid.UUID,
     ) -> GetUserDetailsResponseTestSchema:
         """Получает пользователя и его счета по явно переданному ID.
 
@@ -74,7 +74,7 @@ class GatewayHTTPTestClient(HTTPTestClient):
         return GetUserDetailsResponseTestSchema.model_validate_json(response.text)
 
     def get_account_details(
-            self, context: RequestContext, *, account_id: uuid.UUID,
+            self, context: RequestContext | DynamicHTTPRequestContext, *, account_id: uuid.UUID,
     ) -> GetAccountDetailsResponseTestSchema:
         """Получает счёт и его карты по явно переданному ID.
 

@@ -1,6 +1,6 @@
 """Настройки клиентов и ограниченного ожидания асинхронных Operations-сценариев."""
 
-from pydantic import Field
+from pydantic import Field, HttpUrl, RedisDsn
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from tests.tools.config.grpc import GRPCClientTestConfig
@@ -15,6 +15,8 @@ class TestSettings(BaseSettings):
     """Загружает настройки тестового слоя из окружения и tests/.env.
 
     Attributes:
+        mock_admin_http_client: Адрес и таймаут для регистрации HTTP-сценариев.
+        mock_redis_url: Адрес общего хранилища динамических HTTP-сценариев.
         kafka_delivery_timeout: Срок подтверждения доставки одного события, секунды.
         operations_processing_timeout: Срок появления операций через API, секунды.
         operations_poll_interval: Пауза между чтениями неполной выборки, секунды.
@@ -31,6 +33,10 @@ class TestSettings(BaseSettings):
 
     mock_http_server: HTTPServerTestConfig
     mock_grpc_server: GRPCServerTestConfig
+    mock_admin_http_client: HTTPClientTestConfig = Field(
+        default_factory=lambda: HTTPClientTestConfig(url=HttpUrl("http://127.0.0.1:8003"), timeout=10.0)
+    )
+    mock_redis_url: RedisDsn | None = None
 
     gateway_http_client: HTTPClientTestConfig
     gateway_grpc_client: GRPCClientTestConfig

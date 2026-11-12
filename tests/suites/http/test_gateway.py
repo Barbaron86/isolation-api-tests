@@ -1,26 +1,43 @@
+from collections.abc import Callable
 from http import HTTPStatus
-from uuid import UUID
+from uuid import UUID, uuid4
 
 import allure
 import pytest
+from httpx import QueryParams
 
+from tests.assertions.http.base import assert_status_code
+from tests.assertions.http.cards import assert_single_card_in_response
 from tests.assertions.http.gateway import (
     assert_gateway_error_response,
     assert_gateway_not_found_response,
-    assert_get_user_details_response_user_with_active_credit_card_account,
-    assert_get_account_details_response_user_with_active_debit_card_account,
-    assert_get_user_details_response_user_without_accounts,
-    assert_get_account_details_response_account_without_cards,
-    assert_get_user_details_response_user_with_multiple_accounts,
-    assert_get_account_details_response_account_with_mixed_cards,
+    assert_get_account_details_response,
+    assert_get_user_details_response,
 )
 
 from tests.clients.http.gateway.client import GatewayHTTPTestClient
+from tests.clients.http.mock_admin import build_mock_admin_http_test_client
 
-from tests.context.base import RequestContext
+from tests.context.base import DynamicHTTPRequestContext, RequestContext
 from tests.context.scenario import Scenario
 
+from tests.schema.cards import GetCardsResponseTestSchema
+from tests.schema.mock_gateway import GatewayMockOperation, GatewayMockScenarioTestSchema
 from tests.tools.allure import AllureTag, AllureStory, AllureFeature
+from tests.tools.gateway_data import make_account, make_card, make_user
+from tests.tools.gateway_expectations import (
+    expected_account_details,
+    expected_account_details_with_mixed_cards,
+    expected_account_details_without_cards,
+    expected_active_credit_user_details,
+    expected_active_debit_account_details,
+    expected_user_details,
+    expected_user_details_with_multiple_accounts,
+    expected_user_details_without_accounts,
+)
+from tests.tools.routes import APITestRoutes
+from tests.types.accounts import AccountTestType
+from tests.types.cards import CardTestPaymentSystem, CardTestType
 from tests.types.gateway import GatewayTestErrorReason
 
 
@@ -29,7 +46,7 @@ from tests.types.gateway import GatewayTestErrorReason
 @allure.tag(AllureTag.HTTP, AllureTag.GATEWAY_SERVICE)
 @allure.feature(AllureFeature.GATEWAY_SERVICE)
 class TestGatewayHTTP:
-    """Проверяет агрегаты Gateway через управляемые HTTP-моки."""
+    """Проверяет агрегаты и ошибки Gateway на встроенных JSON-сценариях."""
 
     @allure.story(AllureStory.GET_USER_DETAILS)
     @allure.title("[HTTP] Get user details. User with active credit card account")
@@ -51,9 +68,9 @@ class TestGatewayHTTP:
             ),
         )
 
-        assert_get_user_details_response_user_with_active_credit_card_account(
+        assert_get_user_details_response(
             get_user_details_response_data,
-            expected_user_id=active_credit_account_user_id,
+            expected=expected_active_credit_user_details(user_id=active_credit_account_user_id),
         )
 
     @allure.story(AllureStory.GET_USER_DETAILS)
@@ -74,9 +91,9 @@ class TestGatewayHTTP:
             context=RequestContext(scenario=Scenario.USER_WITHOUT_ACCOUNTS),
         )
 
-        assert_get_user_details_response_user_without_accounts(
+        assert_get_user_details_response(
             get_user_details_response_data,
-            expected_user_id=user_without_accounts_id,
+            expected=expected_user_details_without_accounts(user_id=user_without_accounts_id),
         )
 
     @allure.story(AllureStory.GET_USER_DETAILS)
@@ -97,9 +114,9 @@ class TestGatewayHTTP:
             context=RequestContext(scenario=Scenario.USER_WITH_MULTIPLE_ACCOUNTS),
         )
 
-        assert_get_user_details_response_user_with_multiple_accounts(
+        assert_get_user_details_response(
             get_user_details_response_data,
-            expected_user_id=user_with_multiple_accounts_id,
+            expected=expected_user_details_with_multiple_accounts(user_id=user_with_multiple_accounts_id),
         )
 
     @allure.story(AllureStory.GET_USER_DETAILS)
@@ -147,9 +164,9 @@ class TestGatewayHTTP:
             ),
         )
 
-        assert_get_account_details_response_user_with_active_debit_card_account(
+        assert_get_account_details_response(
             get_account_details_response_data,
-            expected_account_id=active_debit_account_id,
+            expected=expected_active_debit_account_details(account_id=active_debit_account_id),
         )
 
     @allure.story(AllureStory.GET_ACCOUNT_DETAILS)
@@ -170,9 +187,9 @@ class TestGatewayHTTP:
             context=RequestContext(scenario=Scenario.ACCOUNT_WITHOUT_CARDS),
         )
 
-        assert_get_account_details_response_account_without_cards(
+        assert_get_account_details_response(
             get_account_details_response_data,
-            expected_account_id=account_without_cards_id,
+            expected=expected_account_details_without_cards(account_id=account_without_cards_id),
         )
 
     @allure.story(AllureStory.GET_ACCOUNT_DETAILS)
@@ -195,10 +212,12 @@ class TestGatewayHTTP:
             context=RequestContext(scenario=Scenario.ACCOUNT_WITH_MIXED_CARDS),
         )
 
-        assert_get_account_details_response_account_with_mixed_cards(
+        assert_get_account_details_response(
             get_account_details_response_data,
-            expected_account_id=account_with_mixed_cards_id,
-            expected_user_id=user_with_multiple_accounts_id,
+            expected=expected_account_details_with_mixed_cards(
+                account_id=account_with_mixed_cards_id,
+                user_id=user_with_multiple_accounts_id,
+            ),
         )
 
     @allure.story(AllureStory.GET_ACCOUNT_DETAILS)
@@ -311,3 +330,245 @@ class TestGatewayHTTP:
             expected_status=HTTPStatus.SERVICE_UNAVAILABLE,
             expected_detail=expected_detail,
         )
+
+
+@pytest.mark.gateway
+@pytest.mark.regression
+@allure.tag(AllureTag.HTTP, AllureTag.GATEWAY_SERVICE)
+@allure.feature(AllureFeature.GATEWAY_SERVICE)
+class TestDynamicGatewayHTTP:
+    """Проверяет агрегаты Gateway на данных, зарегистрированных самим тестом."""
+
+    @allure.story(AllureStory.GET_USER_DETAILS)
+    @allure.title("[HTTP] Get user details. Filter registered accounts by user")
+    def test_get_user_details_from_registered_scenario(
+            self,
+            gateway_http_test_client: GatewayHTTPTestClient,
+            register_gateway_scenario: Callable[[GatewayMockScenarioTestSchema], DynamicHTTPRequestContext],
+    ) -> None:
+        """Проверяет пользователя и оба его счёта в наборе с другим владельцем.
+
+        Args:
+            gateway_http_test_client: Клиент HTTP API Gateway.
+            register_gateway_scenario: Регистрирует данные и возвращает контекст запроса.
+        """
+        user = make_user()
+        other_user = make_user()
+        user_accounts = [
+            make_account(user_id=user.id, balance=1200.50),
+            make_account(user_id=user.id, account_type=AccountTestType.CREDIT_CARD, balance=-3500.75),
+        ]
+        other_user_account = make_account(user_id=other_user.id)
+        context = register_gateway_scenario(GatewayMockScenarioTestSchema(
+            users=[other_user, user], accounts=[other_user_account, *user_accounts],
+        ))
+        expected = expected_user_details(user=user, accounts=user_accounts)
+
+        get_user_details_response_data = gateway_http_test_client.get_user_details(user_id=user.id, context=context)
+
+        assert_get_user_details_response(get_user_details_response_data, expected)
+
+    @allure.story(AllureStory.GET_ACCOUNT_DETAILS)
+    @allure.title("[HTTP] Get account details. Filter registered cards by account")
+    def test_get_account_details_from_registered_scenario(
+            self,
+            gateway_http_test_client: GatewayHTTPTestClient,
+            register_gateway_scenario: Callable[[GatewayMockScenarioTestSchema], DynamicHTTPRequestContext],
+    ) -> None:
+        """Проверяет счёт и обе его карты среди карт двух счетов одного владельца.
+
+        Args:
+            gateway_http_test_client: Клиент HTTP API Gateway.
+            register_gateway_scenario: Регистрирует данные и возвращает контекст запроса.
+        """
+        user = make_user()
+        account = make_account(user_id=user.id, balance=205.25)
+        other_account = make_account(user_id=user.id)
+        account_cards = [
+            make_card(account_id=account.id),
+            make_card(account_id=account.id, card_type=CardTestType.PHYSICAL, payment_system=CardTestPaymentSystem.MASTERCARD),
+        ]
+        other_account_card = make_card(account_id=other_account.id)
+        context = register_gateway_scenario(GatewayMockScenarioTestSchema(
+            users=[user], accounts=[other_account, account], cards=[other_account_card, *account_cards],
+        ))
+        expected = expected_account_details(account=account, cards=account_cards)
+
+        get_account_details_response_data = gateway_http_test_client.get_account_details(
+            account_id=account.id, context=context,
+        )
+
+        assert_get_account_details_response(get_account_details_response_data, expected)
+
+    @allure.story(AllureStory.GET_ACCOUNT_DETAILS)
+    @allure.title("[HTTP] Get account details. Uses the requested scenario for account and cards")
+    def test_get_account_details_uses_requested_scenario(
+            self,
+            gateway_http_test_client: GatewayHTTPTestClient,
+            register_gateway_scenario: Callable[[GatewayMockScenarioTestSchema], DynamicHTTPRequestContext],
+    ) -> None:
+        """Возвращает данные каждого сценария при одном и том же ID счёта.
+
+        Args:
+            gateway_http_test_client: Клиент HTTP API Gateway.
+            register_gateway_scenario: Регистрация набора и получение контекста.
+        """
+        first_account = make_account(user_id=uuid4(), balance=205.25)
+        second_account = first_account.model_copy(update={"balance": 410.50})
+        first_card = make_card(account_id=first_account.id)
+        second_card = make_card(account_id=second_account.id)
+        first_context = register_gateway_scenario(
+            GatewayMockScenarioTestSchema(accounts=[first_account], cards=[first_card]),
+        )
+        second_context = register_gateway_scenario(
+            GatewayMockScenarioTestSchema(accounts=[second_account], cards=[second_card]),
+        )
+        expected_first_details = expected_account_details(account=first_account, cards=[first_card])
+        expected_second_details = expected_account_details(account=second_account, cards=[second_card])
+
+        get_first_account_details_response_data = gateway_http_test_client.get_account_details(
+            account_id=first_account.id, context=first_context,
+        )
+        assert_get_account_details_response(get_first_account_details_response_data, expected_first_details)
+
+        get_second_account_details_response_data = gateway_http_test_client.get_account_details(
+            account_id=first_account.id, context=second_context,
+        )
+        assert_get_account_details_response(get_second_account_details_response_data, expected_second_details)
+
+    @allure.story(AllureStory.GET_ACCOUNT_DETAILS)
+    @allure.title("[HTTP] Get account details. Account not found when cards exist")
+    def test_get_account_details_returns_404_when_account_is_missing_but_cards_exist(
+            self,
+            gateway_http_test_client: GatewayHTTPTestClient,
+            register_gateway_scenario: Callable[[GatewayMockScenarioTestSchema], DynamicHTTPRequestContext],
+    ) -> None:
+        """Возвращает ошибку Accounts при отсутствии счёта с доступными картами.
+
+        Args:
+            gateway_http_test_client: Клиент HTTP API Gateway.
+            register_gateway_scenario: Регистрация набора и получение контекста.
+        """
+        account_id = uuid4()
+        card = make_card(account_id=account_id)
+        context = register_gateway_scenario(GatewayMockScenarioTestSchema(cards=[card]))
+        expected_detail = GatewayTestErrorReason.ACCOUNT_NOT_FOUND.format(account_id=account_id)
+
+        mock_http_client = build_mock_admin_http_test_client()
+        with mock_http_client.client:
+            get_cards_response = mock_http_client.get(
+                APITestRoutes.CARDS, params=QueryParams(accountId=str(account_id)), context=context,
+            )
+        assert_status_code(get_cards_response.status_code, HTTPStatus.OK)
+        get_cards_response_data = GetCardsResponseTestSchema.model_validate_json(get_cards_response.content)
+        assert_single_card_in_response(get_cards_response_data, card)
+
+        get_account_details_response = gateway_http_test_client.get_account_details_api(
+            account_id=account_id, context=context,
+        )
+
+        assert_gateway_not_found_response(get_account_details_response, expected_detail=expected_detail)
+
+    @allure.story(AllureStory.GET_USER_DETAILS)
+    @allure.title("[HTTP] Get user details. Accounts failure is isolated by scenario")
+    def test_get_user_details_isolates_accounts_failure_by_scenario(
+            self,
+            gateway_http_test_client: GatewayHTTPTestClient,
+            register_gateway_scenario: Callable[[GatewayMockScenarioTestSchema], DynamicHTTPRequestContext],
+    ) -> None:
+        """Возвращает 503 в одном сценарии и детали того же пользователя в другом.
+
+        Args:
+            gateway_http_test_client: Клиент HTTP API Gateway.
+            register_gateway_scenario: Регистрация набора и получение контекста.
+        """
+        user = make_user()
+        account = make_account(user_id=user.id)
+        unavailable_context = register_gateway_scenario(
+            GatewayMockScenarioTestSchema(users=[user], unavailable=[GatewayMockOperation.GET_ACCOUNTS]),
+        )
+        healthy_context = register_gateway_scenario(
+            GatewayMockScenarioTestSchema(users=[user], accounts=[account]),
+        )
+        expected_healthy_details = expected_user_details(user=user, accounts=[account])
+
+        get_unavailable_user_details_response = gateway_http_test_client.get_user_details_api(
+            user_id=user.id, context=unavailable_context,
+        )
+        assert_gateway_error_response(
+            get_unavailable_user_details_response,
+            expected_status=HTTPStatus.SERVICE_UNAVAILABLE,
+            expected_detail=GatewayTestErrorReason.ACCOUNTS_SERVICE_UNAVAILABLE,
+        )
+
+        get_healthy_user_details_response_data = gateway_http_test_client.get_user_details(
+            user_id=user.id, context=healthy_context,
+        )
+        assert_get_user_details_response(get_healthy_user_details_response_data, expected_healthy_details)
+
+    @allure.story(AllureStory.GET_USER_DETAILS)
+    @allure.title("[HTTP] Get user details. Scenario not found after deletion")
+    def test_get_user_details_returns_404_after_scenario_deletion(
+            self,
+            gateway_http_test_client: GatewayHTTPTestClient,
+            register_gateway_scenario: Callable[[GatewayMockScenarioTestSchema], DynamicHTTPRequestContext],
+    ) -> None:
+        """Передаёт причину 404 после удаления ранее доступного сценария.
+
+        Args:
+            gateway_http_test_client: Клиент HTTP API Gateway.
+            register_gateway_scenario: Регистрация набора и получение контекста.
+        """
+        user = make_user()
+        context = register_gateway_scenario(GatewayMockScenarioTestSchema(users=[user]))
+        expected_details = expected_user_details(user=user, accounts=[])
+        expected_detail = f"Scenario {context.scenario} not found"
+
+        get_user_details_response_data = gateway_http_test_client.get_user_details(user_id=user.id, context=context)
+        assert_get_user_details_response(get_user_details_response_data, expected_details)
+
+        admin_client = build_mock_admin_http_test_client()
+        with admin_client.client:
+            admin_client.delete_scenario(context.scenario)
+
+        get_deleted_scenario_user_details_response = gateway_http_test_client.get_user_details_api(
+            user_id=user.id, context=context,
+        )
+        assert_gateway_not_found_response(
+            get_deleted_scenario_user_details_response,
+            expected_detail=expected_detail,
+        )
+
+    @allure.story(AllureStory.GET_ACCOUNT_DETAILS)
+    @allure.title("[HTTP] User and account details agree within one scenario")
+    def test_user_and_account_details_agree_within_one_scenario(
+            self,
+            gateway_http_test_client: GatewayHTTPTestClient,
+            register_gateway_scenario: Callable[[GatewayMockScenarioTestSchema], DynamicHTTPRequestContext],
+    ) -> None:
+        """Возвращает счета пользователя и детали второго счёта из одного набора.
+
+        Args:
+            gateway_http_test_client: Клиент HTTP API Gateway.
+            register_gateway_scenario: Регистрация набора и получение контекста.
+        """
+        user = make_user()
+        first_account = make_account(user_id=user.id, balance=205.25)
+        second_account = make_account(user_id=user.id, balance=410.50)
+        first_account_card = make_card(account_id=first_account.id)
+        second_account_card = make_card(account_id=second_account.id)
+        context = register_gateway_scenario(GatewayMockScenarioTestSchema(
+            users=[user],
+            accounts=[first_account, second_account],
+            cards=[first_account_card, second_account_card],
+        ))
+        expected_user_details_data = expected_user_details(user=user, accounts=[first_account, second_account])
+        expected_account_details_data = expected_account_details(account=second_account, cards=[second_account_card])
+
+        get_user_details_response_data = gateway_http_test_client.get_user_details(user_id=user.id, context=context)
+        assert_get_user_details_response(get_user_details_response_data, expected_user_details_data)
+
+        get_account_details_response_data = gateway_http_test_client.get_account_details(
+            account_id=second_account.id, context=context,
+        )
+        assert_get_account_details_response(get_account_details_response_data, expected_account_details_data)

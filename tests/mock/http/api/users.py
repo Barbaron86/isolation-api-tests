@@ -2,70 +2,72 @@ import uuid
 from http import HTTPStatus
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 
 from tests.context.scenario import Scenario
+from tests.mock.http.scenario_dependencies import read_dynamic_scenario_header, resolve_scenario
+from tests.mock.http.scenarios import DynamicScenario
 from tests.mock.http.tools import get_scenario_http
+from tests.schema.mock_gateway import GatewayMockOperation
 from tests.schema.users import GetUserResponseTestSchema
 from tests.tools.logger import get_test_logger
 from tests.tools.mock import MockLoader
 from tests.tools.routes import APITestRoutes
 from tests.types.gateway import GatewayTestErrorReason
 
-# MockLoader — инфраструктурный компонент.
-# Его ответственность строго ограничена:
-# - загрузить мок-данные из файлов,
-# - провалидировать их контрактом,
-# - залогировать процесс загрузки.
-#
-# Loader не знает:
-# - кто вызывает мок (gateway, тест, другой сервис),
-# - зачем используется конкретный сценарий,
-# - как устроена бизнес-логика системы.
+
 loader = MockLoader(
     root=Path("./tests/mock/http/data/users"),
-    logger=get_test_logger("USERS_SERVICE_MOCK_LOADER")
-)
-
-# Роутер представляет HTTP-контракт users-service.
-# Префикс и пути соответствуют контрактам тестового стенда,
-# а не внутренней реализации мок-сервиса.
-users_mock_router = APIRouter(
-    prefix=APITestRoutes.USERS,
-    tags=[APITestRoutes.USERS]
+    logger=get_test_logger("USERS_SERVICE_MOCK_LOADER"),
 )
 
 
-@users_mock_router.get("/{user_id}", response_model=GetUserResponseTestSchema)
-async def get_user_view(
-        user_id: uuid.UUID,
-        scenario: Scenario = Depends(get_scenario_http),
-) -> GetUserResponseTestSchema:
-    """Возвращает пользователя сценария только при совпадении запрошенного ID.
+def build_users_mock_router(*, enable_dynamic_scenarios: bool) -> APIRouter:
+    """Подключает чтение пользователя для выбранного режима мока.
 
     Args:
-        user_id: UUID из пути запроса к Users.
-        scenario: Селектор набора данных из x-test-scenario.
+        enable_dynamic_scenarios: Разрешает выбор набора по ID из Admin API.
 
     Returns:
-        Подготовленный пользователь выбранного сценария.
-
-    Raises:
-        HTTPException: Со статусом 503 в сценарии сбоя Users либо 404,
-            если сценарий не содержит запрошенного ID.
+        Роутер HTTP-мока Users.
     """
-    if scenario == Scenario.USERS_SERVICE_UNAVAILABLE:
-        raise HTTPException(
-            status_code=HTTPStatus.SERVICE_UNAVAILABLE,
-            detail=GatewayTestErrorReason.USERS_SERVICE_UNAVAILABLE,
-        )
-    get_user_response_data = await loader.load_http(
-        file=f"get_user/{scenario}.json",
-        model=GetUserResponseTestSchema
-    )
-    if get_user_response_data.user.id != user_id:
-        raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND,
-            detail=GatewayTestErrorReason.USER_NOT_FOUND.format(user_id=user_id),
-        )
-    return get_user_response_data
+    router = APIRouter(prefix=APITestRoutes.USERS, tags=[APITestRoutes.USERS])
+    read_scenario = read_dynamic_scenario_header if enable_dynamic_scenarios else get_scenario_http
+
+    @router.get("/{user_id}")
+    async def get_user_view(
+        request: Request,
+        user_id: uuid.UUID,
+        scenario: Scenario | str | None = Depends(read_scenario),
+    ) -> GetUserResponseTestSchema:
+        """Возвращает пользователя выбранного сценария по запрошенному ID.
+
+        Args:
+            request: Запрос к HTTP-моку.
+            user_id: Идентификатор пользователя из пути запроса.
+            scenario: Проверенное значение X-Test-Scenario.
+
+        Returns:
+            Ответ Users с найденным пользователем.
+
+        Raises:
+            HTTPException: Со статусом 404 при отсутствии пользователя или 503 при сбое.
+        """
+        selected_scenario = await resolve_scenario(request, scenario)
+        if isinstance(selected_scenario, DynamicScenario):
+            if selected_scenario.is_unavailable(GatewayMockOperation.GET_USER):
+                raise HTTPException(HTTPStatus.SERVICE_UNAVAILABLE, GatewayTestErrorReason.USERS_SERVICE_UNAVAILABLE)
+            users = selected_scenario.available_users
+        else:
+            if selected_scenario == Scenario.USERS_SERVICE_UNAVAILABLE:
+                raise HTTPException(HTTPStatus.SERVICE_UNAVAILABLE, GatewayTestErrorReason.USERS_SERVICE_UNAVAILABLE)
+            response = await loader.load_http(
+                file=f"get_user/{selected_scenario}.json", model=GetUserResponseTestSchema
+            )
+            users = [response.user]
+        for user in users:
+            if user.id == user_id:
+                return GetUserResponseTestSchema(user=user)
+        raise HTTPException(HTTPStatus.NOT_FOUND, GatewayTestErrorReason.USER_NOT_FOUND.format(user_id=user_id))
+
+    return router

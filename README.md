@@ -69,7 +69,7 @@ python scripts/wait_for_stand.py --compose-file docker-compose.yaml --timeout 18
 
 Run the readiness command from the repository root using the project's Python
 environment with the existing requirements installed. It checks successful
-initialization/migrations, broker and consumer health, and HTTP/gRPC connectivity.
+initialization/migrations, Redis and Kafka broker/consumer health, and HTTP/gRPC connectivity.
 The consumer becomes healthy after partition assignment and initial positions are
 known. Initialization normalizes CRLF while reading the script and requires no
 package download or modification of the mounted source.
@@ -82,6 +82,98 @@ package download or modification of the mounted source.
 - Operations gRPC: localhost:9002
 - Kafka UI: http://localhost:8081
 - pgAdmin: http://localhost:5050
+
+## Dynamic card mock pilot
+
+The local and CI `http-mock` serves built-in JSON scenarios and enables Admin API
+for dynamic Users, Accounts, and Cards scenarios. Compose sets `MOCK_REDIS_URL`
+so three Uvicorn workers share one Redis instance. Rebuild the base image to
+install the Redis client, then start the mock and its Redis dependency.
+
+```shell
+docker build -t base-service .
+docker compose -f docker-compose.yaml up -d http-mock
+```
+
+Open [Swagger UI](http://127.0.0.1:8003/docs) or use `http://127.0.0.1:8003` as
+the base URL in Postman. Redis is reachable inside the Compose network. A
+scenario expires one hour after registration or can be deleted sooner. Restarting
+only the mock preserves scenarios in Redis. Restarting Redis clears its data.
+Without `MOCK_REDIS_URL`, `--dynamic-scenarios` uses memory in one worker, and a
+mock restart clears that worker's scenarios. An unknown or expired dynamic ID
+returns `404`. An unavailable Redis connection returns `503` for dynamic requests.
+
+1. Send `POST /__admin/scenarios` with `Content-Type: application/json` and a body
+   like this.
+
+   ```json
+   {
+     "card": {
+       "id": "ba8bb30a-5ee7-4c4d-a89d-ad7fe7d1b389",
+       "pin": "1234",
+       "cvv": "123",
+       "type": "VIRTUAL",
+       "status": "ACTIVE",
+       "accountId": "df36b93c-84c2-4b92-b6db-df59f18c1684",
+       "cardNumber": "4111111111111111",
+       "cardHolder": "TEST CARD",
+       "expiryDate": "2030-12-31",
+       "paymentSystem": "VISA"
+     }
+   }
+   ```
+
+   The `201 Created` response contains an `id` of the form `dynamic-<uuid>` and
+   the submitted `card`.
+2. Send `GET /__admin/scenarios/{id}` with the returned scenario ID to inspect it.
+3. Send `GET /api/v1/cards/{card_id}` using `card.id` in the path and the returned
+   scenario ID as the `X-Test-Scenario` header. The `200 OK` response contains the
+   saved card.
+4. Send `DELETE /__admin/scenarios/{id}` with the scenario ID. Successful deletion
+   returns `204 No Content`.
+
+For an HTTP Gateway scenario, send a `gateway` object to the same Admin API.
+It accepts `users`, `accounts`, `cards`, and `unavailable` lists. IDs must be
+unique within each entity list. A scenario may contain just the records needed
+for the request. To return `503` from a specific dependency, add its operation
+to `unavailable`: `users.get_user`, `accounts.get_accounts`,
+`accounts.get_account`, or `cards.get_cards`.
+The `{"account": {...}, "cards": [...]}` form also accepts a single account and
+its cards.
+
+Use the returned ID in `X-Test-Scenario` on the Gateway request. Gateway forwards
+the header to its dependencies. The HTTP Gateway suite has 12 built-in cases
+and seven dynamic cases. The dynamic cases cover aggregation, switching
+scenarios for the same ID, isolation of a dependency failure, a missing account
+with available cards, and the not-found response after scenario deletion.
+The tests register prepared entities through the Admin API. A fixture deletes
+each registered scenario at teardown.
+
+```shell
+python -m pytest tests/suites/http/test_gateway.py -m gateway
+python -m pytest tests/suites/http/test_gateway.py::TestDynamicGatewayHTTP -m gateway
+```
+
+## Unit tests
+
+Run the full suite or select a group from the repository root. The `unit-tests`
+job runs the full unit suite. These tests run without Docker or live services.
+
+```shell
+python -m pytest tests/unit --noconftest -o addopts= -q
+python -m pytest tests/unit/cleanup --noconftest -o addopts= -q
+python -m pytest tests/unit/redis --noconftest -o addopts= -q
+python -m pytest tests/unit/mock_scenarios --noconftest -o addopts= -q
+```
+
+- Cleanup tests check teardown order, failure reporting, data retention, the
+  Operations repository's cleanup registration, and reconciliation of Kafka
+  writes. [Cleanup tests](tests/unit/cleanup/)
+- Redis adapter tests check JSON for all three scenario shapes, the key and TTL
+  sent to Redis, missing keys, repeated deletion, and error propagation from
+  reads, writes, and deletes. [Redis tests](tests/unit/redis/)
+- Mock scenario tests check in-memory isolation, static and dynamic lookup,
+  missing and unknown scenarios, and payload validation. [Mock scenario tests](tests/unit/mock_scenarios/)
 
 ## Operations test data cleanup
 

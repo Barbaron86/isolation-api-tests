@@ -11,6 +11,7 @@ class GatewayTestErrorReason(StrEnum):
 
     USER_NOT_FOUND = "User with id {user_id} not found"
     ACCOUNT_NOT_FOUND = "Account with id {account_id} not found"
+    CARD_NOT_FOUND = "Card with id {card_id} not found"
     USERS_SERVICE_UNAVAILABLE = "Users service unavailable"
     ACCOUNTS_SERVICE_UNAVAILABLE = "Accounts service unavailable"
     CARDS_SERVICE_UNAVAILABLE = "Cards service unavailable"
