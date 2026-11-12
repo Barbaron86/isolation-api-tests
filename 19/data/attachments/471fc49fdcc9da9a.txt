@@ -1,0 +1,6 @@
+Test: tests/suites/grpc/test_operations.py::TestOperationsGRPC::test_get_operation_not_found
+
+Registered cleanup actions:
+- Operations row id=da838b01-e7af-4cd8-8149-64a290b5bd0d
+
+Row existence is not verified.
