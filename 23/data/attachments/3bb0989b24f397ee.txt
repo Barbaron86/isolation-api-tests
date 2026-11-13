@@ -1,0 +1,11 @@
+INFO     MOCK_ADMIN_HTTP_TEST_CLIENT:logger_event_hook.py:35 → POST /__admin/scenarios
+INFO     MOCK_ADMIN_HTTP_TEST_CLIENT:logger_event_hook.py:45 ← 201 Created POST /__admin/scenarios
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "HTTP status code" equals <HTTPStatus.CREATED: 201>
+INFO     GATEWAY_GRPC_TEST_CLIENT:logger_interceptor.py:24 → /contracts.services.gateway.GatewayService/GetAccountDetails
+INFO     GATEWAY_GRPC_TEST_CLIENT:logger_interceptor.py:27 ← NOT_FOUND /contracts.services.gateway.GatewayService/GetAccountDetails
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "Gateway RPC status code" equals <StatusCode.NOT_FOUND: (5, 'not found')>
+INFO     BASE_ASSERTIONS:base.py:51 🔎 [CHECK] Check that "Gateway RPC error detail" contains 'Account with id 5dfac7c1-808c-4c5d-b8fd-d0e27238706e not found'
+INFO     MOCK_ADMIN_HTTP_TEST_CLIENT:logger_event_hook.py:35 → DELETE /__admin/scenarios/dynamic-41d06398-9bc2-4297-aa75-f31cfaec17f4
+INFO     MOCK_ADMIN_HTTP_TEST_CLIENT:logger_event_hook.py:45 ← 204 No Content DELETE /__admin/scenarios/dynamic-41d06398-9bc2-4297-aa75-f31cfaec17f4
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "HTTP status code" equals <HTTPStatus.NO_CONTENT: 204>
+INFO     TEST_DATA_CLEANUP:cleanup.py:93 🧹 [CLEANUP] HTTP mock scenario dynamic-41d06398-9bc2-4297-aa75-f31cfaec17f4 · completed

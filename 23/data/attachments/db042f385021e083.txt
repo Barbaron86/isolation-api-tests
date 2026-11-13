@@ -1,0 +1,4 @@
+INFO     GATEWAY_GRPC_TEST_CLIENT:logger_interceptor.py:24 → /contracts.services.gateway.GatewayService/GetUserDetails
+INFO     GATEWAY_GRPC_TEST_CLIENT:logger_interceptor.py:27 ← NOT_FOUND /contracts.services.gateway.GatewayService/GetUserDetails
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "Gateway RPC status code" equals <StatusCode.NOT_FOUND: (5, 'not found')>
+INFO     BASE_ASSERTIONS:base.py:51 🔎 [CHECK] Check that "Gateway RPC error detail" contains 'User with id 00000000-0000-4000-8000-000000000099 not found'
