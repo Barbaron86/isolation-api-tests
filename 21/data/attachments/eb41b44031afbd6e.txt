@@ -1,0 +1,7 @@
+Test: tests/suites/grpc/test_operations.py::TestOperationsGRPC::test_filter_by_card_and_account_ids
+
+Registered cleanup actions:
+- Operations row id=18066b3e-9d3a-4572-8bcd-5daab80e3a20
+- Operations row id=51d5beee-746b-4ddf-9e6d-6e5ac475eaac
+
+Row existence is not verified.

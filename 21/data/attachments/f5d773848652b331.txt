@@ -1,0 +1,43 @@
+INFO     MOCK_ADMIN_HTTP_TEST_CLIENT:logger_event_hook.py:35 → POST /__admin/scenarios
+INFO     MOCK_ADMIN_HTTP_TEST_CLIENT:logger_event_hook.py:45 ← 201 Created POST /__admin/scenarios
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "HTTP status code" equals <HTTPStatus.CREATED: 201>
+INFO     GATEWAY_HTTP_TEST_CLIENT:logger_event_hook.py:35 → GET /api/v1/gateway/account-details/e4f46446-0ed4-4294-9f19-84ee8c091491
+INFO     GATEWAY_HTTP_TEST_CLIENT:logger_event_hook.py:45 ← 200 OK GET /api/v1/gateway/account-details/e4f46446-0ed4-4294-9f19-84ee8c091491
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "HTTP status code" equals <HTTPStatus.OK: 200>
+INFO     GATEWAY_ASSERTIONS:gateway.py:127 Check get account details response
+INFO     GATEWAY_ASSERTIONS:gateway.py:90 Check account details
+INFO     ACCOUNTS_ASSERTIONS:accounts.py:12 Check account
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "id" equals UUID('e4f46446-0ed4-4294-9f19-84ee8c091491')
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "type" equals <AccountTestType.DEBIT_CARD: 'DEBIT_CARD'>
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "status" equals <AccountTestStatus.ACTIVE: 'ACTIVE'>
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "user_id" equals UUID('74fb638e-c400-4eb2-8e8a-f1b67913fe14')
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "balance" equals 205.25
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "cards count" equals 2
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "unique card ids" equals 2
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "card ids" equals {UUID('e7bbe451-42f8-42d2-9abc-fb91a3c2cf73'), UUID('f13df33f-0672-428a-94ad-2f14fcc9bae4')}
+INFO     CARDS_ASSERTIONS:cards.py:12 Check card
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "id" equals UUID('e7bbe451-42f8-42d2-9abc-fb91a3c2cf73')
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "pin" equals '6565'
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "cvv" equals '227'
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "type" equals <CardTestType.VIRTUAL: 'VIRTUAL'>
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "status" equals <CardTestStatus.ACTIVE: 'ACTIVE'>
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "account_id" equals UUID('e4f46446-0ed4-4294-9f19-84ee8c091491')
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "card_number" equals '4003312705600284'
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "card_holder" equals 'TEST CARDHOLDER'
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "expiry_date" equals datetime.date(2035, 12, 31)
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "payment_system" equals <CardTestPaymentSystem.VISA: 'VISA'>
+INFO     CARDS_ASSERTIONS:cards.py:12 Check card
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "id" equals UUID('f13df33f-0672-428a-94ad-2f14fcc9bae4')
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "pin" equals '0776'
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "cvv" equals '384'
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "type" equals <CardTestType.PHYSICAL: 'PHYSICAL'>
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "status" equals <CardTestStatus.ACTIVE: 'ACTIVE'>
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "account_id" equals UUID('e4f46446-0ed4-4294-9f19-84ee8c091491')
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "card_number" equals '2293768102990110'
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "card_holder" equals 'TEST CARDHOLDER'
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "expiry_date" equals datetime.date(2035, 12, 31)
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "payment_system" equals <CardTestPaymentSystem.MASTERCARD: 'MASTERCARD'>
+INFO     MOCK_ADMIN_HTTP_TEST_CLIENT:logger_event_hook.py:35 → DELETE /__admin/scenarios/dynamic-4644f1f6-7253-4d81-bd5c-37b02fafa0ec
+INFO     MOCK_ADMIN_HTTP_TEST_CLIENT:logger_event_hook.py:45 ← 204 No Content DELETE /__admin/scenarios/dynamic-4644f1f6-7253-4d81-bd5c-37b02fafa0ec
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "HTTP status code" equals <HTTPStatus.NO_CONTENT: 204>
+INFO     TEST_DATA_CLEANUP:cleanup.py:93 🧹 [CLEANUP] HTTP mock scenario dynamic-4644f1f6-7253-4d81-bd5c-37b02fafa0ec · completed

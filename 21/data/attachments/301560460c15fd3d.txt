@@ -1,0 +1,6 @@
+Test: tests/suites/http/test_operations.py::TestOperationsHTTP::test_operation_events_completed_purchase_operation
+
+Registered cleanup actions:
+- Kafka Operations owner user=2686baa8-f187-471d-9646-ad4ebfc27281 card=af31ca89-737e-42c6-8c41-3e84512b1eea account=845767e7-32a9-4600-8572-39c3a4260b5a
+
+Row existence is not verified.

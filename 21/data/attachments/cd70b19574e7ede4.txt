@@ -1,0 +1,7 @@
+Test: tests/suites/http/test_operations.py::TestOperationsHTTP::test_operation_events_filters_by_account_id
+
+Registered cleanup actions:
+- Kafka Operations owner user=adff3c72-4d13-41a1-9fb4-aefae436af6b card=afbcb08d-c8d4-432f-bd7e-8599fd9a0743 account=3ce3d6ce-2b9c-4cd0-918b-15aa36d68351
+- Kafka Operations owner user=adff3c72-4d13-41a1-9fb4-aefae436af6b card=c3ef9aea-68cc-447e-b8c2-08b089d29402 account=89b1586b-4aa0-4b5c-89fe-7dfeac1b65a8
+
+Row existence is not verified.

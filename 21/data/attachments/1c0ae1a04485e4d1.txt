@@ -1,0 +1,29 @@
+INFO     MOCK_ADMIN_HTTP_TEST_CLIENT:logger_event_hook.py:35 → POST /__admin/scenarios
+INFO     MOCK_ADMIN_HTTP_TEST_CLIENT:logger_event_hook.py:45 ← 201 Created POST /__admin/scenarios
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "HTTP status code" equals <HTTPStatus.CREATED: 201>
+INFO     GATEWAY_HTTP_TEST_CLIENT:logger_event_hook.py:35 → GET /api/v1/gateway/user-details/777ccd89-ded4-4a7d-8fdf-d1bae43fdeb1
+INFO     GATEWAY_HTTP_TEST_CLIENT:logger_event_hook.py:45 ← 200 OK GET /api/v1/gateway/user-details/777ccd89-ded4-4a7d-8fdf-d1bae43fdeb1
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "HTTP status code" equals <HTTPStatus.OK: 200>
+INFO     GATEWAY_ASSERTIONS:gateway.py:112 Check get user details response
+INFO     GATEWAY_ASSERTIONS:gateway.py:71 Check user details
+INFO     USERS_ASSERTIONS:users.py:12 Check user
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "id" equals UUID('777ccd89-ded4-4a7d-8fdf-d1bae43fdeb1')
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "email" equals '777ccd89-ded4-4a7d-8fdf-d1bae43fdeb1@example.com'
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "last_name" equals 'Mccullough'
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "first_name" equals 'Michelle'
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "middle_name" equals 'Juan'
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "phone_number" equals '+79926442873'
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "accounts count" equals 0
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "unique account ids" equals 0
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "account ids" equals set()
+INFO     MOCK_ADMIN_HTTP_TEST_CLIENT:logger_event_hook.py:35 → DELETE /__admin/scenarios/dynamic-49d7df99-d5e2-4ae1-9983-a8e0427aa51e
+INFO     MOCK_ADMIN_HTTP_TEST_CLIENT:logger_event_hook.py:45 ← 204 No Content DELETE /__admin/scenarios/dynamic-49d7df99-d5e2-4ae1-9983-a8e0427aa51e
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "HTTP status code" equals <HTTPStatus.NO_CONTENT: 204>
+INFO     GATEWAY_HTTP_TEST_CLIENT:logger_event_hook.py:35 → GET /api/v1/gateway/user-details/777ccd89-ded4-4a7d-8fdf-d1bae43fdeb1
+INFO     GATEWAY_HTTP_TEST_CLIENT:logger_event_hook.py:45 ← 404 Not Found GET /api/v1/gateway/user-details/777ccd89-ded4-4a7d-8fdf-d1bae43fdeb1
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "HTTP status code" equals <HTTPStatus.NOT_FOUND: 404>
+INFO     BASE_ASSERTIONS:base.py:51 🔎 [CHECK] Check that "Gateway error detail" contains 'Scenario dynamic-49d7df99-d5e2-4ae1-9983-a8e0427aa51e not found'
+INFO     MOCK_ADMIN_HTTP_TEST_CLIENT:logger_event_hook.py:35 → DELETE /__admin/scenarios/dynamic-49d7df99-d5e2-4ae1-9983-a8e0427aa51e
+INFO     MOCK_ADMIN_HTTP_TEST_CLIENT:logger_event_hook.py:45 ← 204 No Content DELETE /__admin/scenarios/dynamic-49d7df99-d5e2-4ae1-9983-a8e0427aa51e
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "HTTP status code" equals <HTTPStatus.NO_CONTENT: 204>
+INFO     TEST_DATA_CLEANUP:cleanup.py:93 🧹 [CLEANUP] HTTP mock scenario dynamic-49d7df99-d5e2-4ae1-9983-a8e0427aa51e · completed
