@@ -21,10 +21,10 @@ class GRPCLoggerInterceptor(UnaryUnaryClientInterceptor):
             Объект вызова, который вернул continuation.
         """
         method = client_call_details.method
-        self.logger.info(f"➡️ [REQUEST] gRPC {method}")
+        self.logger.info(f"→ {method}")
 
         def log_response(call: Call) -> None:
-            self.logger.info(f"⬅️ [RESPONSE] gRPC {method} · {call.code().name}")
+            self.logger.info(f"← {call.code().name} {method}")
 
         try:
             call = continuation(client_call_details, request)
