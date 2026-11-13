@@ -1,0 +1,33 @@
+INFO     MOCK_ADMIN_HTTP_TEST_CLIENT:logger_event_hook.py:35 → POST /__admin/scenarios
+INFO     MOCK_ADMIN_HTTP_TEST_CLIENT:logger_event_hook.py:45 ← 201 Created POST /__admin/scenarios
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "HTTP status code" equals <HTTPStatus.CREATED: 201>
+INFO     GATEWAY_GRPC_TEST_CLIENT:logger_interceptor.py:24 → /contracts.services.gateway.GatewayService/GetUserDetails
+INFO     GATEWAY_GRPC_TEST_CLIENT:logger_interceptor.py:27 ← OK /contracts.services.gateway.GatewayService/GetUserDetails
+INFO     GRPC_GATEWAY_ASSERTIONS:gateway.py:94 Check get user details response
+INFO     GRPC_GATEWAY_ASSERTIONS:gateway.py:53 Check user details
+INFO     GRPC_USERS_ASSERTIONS:users.py:12 Check user
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "id" equals 'aaf7928d-a3a6-4c7f-8783-ada8468f9678'
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "email" equals 'aaf7928d-a3a6-4c7f-8783-ada8468f9678@example.com'
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "last_name" equals 'Thomas'
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "first_name" equals 'Christopher'
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "middle_name" equals 'Nicole'
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "phone_number" equals '+79042493764'
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "accounts count" equals 2
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "unique account ids" equals 2
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "account ids" equals {'6ff449be-8b64-4169-8f25-61ecea1f35da', 'f1f81c55-e196-45bb-bbbe-2c2599daf577'}
+INFO     GRPC_ACCOUNTS_ASSERTIONS:accounts.py:12 Check account
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "id" equals '6ff449be-8b64-4169-8f25-61ecea1f35da'
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "type" equals 1
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "status" equals 1
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "user_id" equals 'aaf7928d-a3a6-4c7f-8783-ada8468f9678'
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "balance" equals 205.25
+INFO     GRPC_ACCOUNTS_ASSERTIONS:accounts.py:12 Check account
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "id" equals 'f1f81c55-e196-45bb-bbbe-2c2599daf577'
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "type" equals 1
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "status" equals 1
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "user_id" equals 'aaf7928d-a3a6-4c7f-8783-ada8468f9678'
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "balance" equals 410.5
+INFO     MOCK_ADMIN_HTTP_TEST_CLIENT:logger_event_hook.py:35 → DELETE /__admin/scenarios/dynamic-0e81f39f-8688-4c69-9960-9c0bad2d4b5e
+INFO     MOCK_ADMIN_HTTP_TEST_CLIENT:logger_event_hook.py:45 ← 204 No Content DELETE /__admin/scenarios/dynamic-0e81f39f-8688-4c69-9960-9c0bad2d4b5e
+INFO     BASE_ASSERTIONS:base.py:25 🔎 [CHECK] Check that "HTTP status code" equals <HTTPStatus.NO_CONTENT: 204>
+INFO     TEST_DATA_CLEANUP:cleanup.py:93 🧹 [CLEANUP] HTTP mock scenario dynamic-0e81f39f-8688-4c69-9960-9c0bad2d4b5e · completed
