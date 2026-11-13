@@ -1,321 +1,344 @@
 # Isolation API Tests
 
-A educational project that demonstrates a **banking system built with a microservice architecture,**
-asynchronous operation processing, and an API Gateway for external integrations.
+**English** · [Русский](README.ru.md)
 
-The main goal of the project is to showcase:
+[![CI](https://github.com/Barbaron86/isolation-api-tests/actions/workflows/isolation-tests.yml/badge.svg?branch=main)](https://github.com/Barbaron86/isolation-api-tests/actions/workflows/isolation-tests.yml)
+![Python 3.12](https://img.shields.io/badge/Python-3.12-3776AB)
+![pytest](https://img.shields.io/badge/pytest-test%20runner-0A9EDC)
+![HTTP and gRPC](https://img.shields.io/badge/API-HTTP%20%2B%20gRPC-226B65)
+![Allure](https://img.shields.io/badge/Allure-reporting-orange)
 
-- microservice-based design;
-- HTTP & gRPC APIs;
-- asynchronous processing with Kafka;
-- clean separation of domains;
-- Docker-based local infrastructure.
+API test automation for a sample banking system. The suites exercise **Gateway**
+with controlled Users, Accounts and Cards dependencies, and **Operations** with
+real PostgreSQL and Kafka. Both services run locally in Docker Compose. pytest
+runs on the host and records test steps, assertions and logs in Allure.
 
-## Project Overview
+[Allure Report](https://barbaron86.github.io/isolation-api-tests/) ·
+[GitHub Actions](https://github.com/Barbaron86/isolation-api-tests/actions/workflows/isolation-tests.yml)
 
-The system simulates basic banking flows such as creating and processing financial operations.
+## 📑 Contents
 
-It consists of **two core domains:**
+[Quick Start](#-quick-start) · [Tech Stack](#-tech-stack) ·
+[Test Scenarios](#-test-scenarios) · [Architecture](#-architecture) ·
+[Project Structure](#-project-structure) · [Running Tests](#-running-tests) ·
+[Reports](#-reports) · [CI/CD](#-cicd)
 
-- Gateway Service — a single entry point for external clients.
-- Operations Service — asynchronous processing of banking operations.
+## 🚀 Quick Start
 
-Additional services (`users`, `cards`, `accounts`) are used as example downstream services behind the gateway.
-
-## Architecture
-
-### High-Level Architecture
-
-![High-Level Architecture](./docs/architecture/core.png)
-
-### Gateway Service
-
-![Gateway Service](./docs/architecture/gateway.png)
-
-### Operations Service
-
-![Operations Service](./docs/architecture/operations.png)
-
-## Tech Stack
-
-- Python 3.12
-- FastAPI (HTTP)
-- gRPC
-- Kafka
-- PostgreSQL
-- SQLAlchemy (async)
-- Alembic
-- Docker / Docker Compose
-
-## Setup & Run
-
-### Prerequisites
-
-- Docker
-- Docker Compose
-
-### Build base image
+Install **Python 3.12** and start **Docker with Compose v2** in Linux container
+mode. Clone the repository and run the commands from its root.
 
 ```shell
-docker build -t base-service .
+git clone https://github.com/Barbaron86/isolation-api-tests.git
+cd isolation-api-tests
 ```
 
-### Run services
+<details>
+<summary>Create a Python 3.12 virtual environment</summary>
+
+Windows PowerShell:
+
+```powershell
+py -3.12 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+```
+
+Linux or macOS:
+
+```bash
+python3.12 -m venv .venv
+source .venv/bin/activate
+```
+
+</details>
 
 ```shell
+python -m pip install -r requirements.txt
+docker build -t base-service .
 docker compose -f docker-compose.yaml up -d
 python scripts/wait_for_stand.py --compose-file docker-compose.yaml --timeout 180
+python -m pytest -m regression
 ```
 
-Run the readiness command from the repository root using the project's Python
-environment with the existing requirements installed. It checks successful
-initialization/migrations, Redis and Kafka broker/consumer health, and HTTP/gRPC connectivity.
-The consumer becomes healthy after partition assignment and initial positions are
-known. Initialization normalizes CRLF while reading the script and requires no
-package download or modification of the mounted source.
+The repository includes local stand settings in `.env` and test client settings
+in `tests/.env`. The readiness script checks PostgreSQL initialization and
+migrations, Redis, the Kafka broker and consumer, and HTTP/gRPC connectivity.
+Stop the local stand with `docker compose -f docker-compose.yaml down`.
 
-## Available services
+| Component | Local address |
+| --- | --- |
+| Gateway | HTTP `localhost:8001` · gRPC `localhost:9001` |
+| Operations | HTTP `localhost:8002` · gRPC `localhost:9002` |
+| Mock Service | [HTTP Swagger UI](http://127.0.0.1:8003/docs) · gRPC `localhost:9003` |
+| Stand tools | [Kafka UI](http://localhost:8081) · [pgAdmin](http://localhost:5050) |
 
-- Gateway HTTP: http://localhost:8001
-- Gateway gRPC: localhost:9001
-- Operations HTTP: http://localhost:8002
-- Operations gRPC: localhost:9002
-- Kafka UI: http://localhost:8081
-- pgAdmin: http://localhost:5050
+## 🧰 Tech Stack
 
-## Dynamic card mock pilot
+| Tool | Role in the project |
+| --- | --- |
+| **Python 3.12** | Language for the services, mocks and test framework. |
+| **pytest / pytest-xdist** | Fixtures, parametrization, test selection by markers and optional parallel execution. |
+| **HTTPX** | HTTP clients for tests and downstream service calls. |
+| **gRPC / Protocol Buffers** | Typed RPC contracts, generated stubs and request metadata. |
+| **Pydantic / Pydantic Settings** | Typed request and response models, API field aliases and settings from environment variables. |
+| **Faker / UUID4** | Synthetic test data and identifiers for independent test resources. |
+| **FastAPI / Uvicorn** | HTTP APIs for the applications and mock service. |
+| **PostgreSQL / SQLAlchemy / Alembic** | Operations persistence, test data setup and cleanup, and database migrations. |
+| **Kafka / confluent-kafka / aiokafka** | Event broker, test producer and Operations consumer. |
+| **Redis / redis-py** | Shared, TTL-backed storage for dynamic HTTP mock scenarios. |
+| **Python logging** | HTTP/gRPC calls, assertions and cleanup diagnostics. |
+| **Allure / allure-pytest** | Test steps, logs, environment metadata and report history. |
+| **Docker Compose** | Local and CI test stands with readiness checks. |
+| **GitHub Actions / GitHub Pages** | Separate unit and API jobs and publication of the Allure report. |
 
-The local and CI `http-mock` serves built-in JSON scenarios and enables Admin API
-for dynamic Users, Accounts, and Cards scenarios. Compose sets `MOCK_REDIS_URL`
-so three Uvicorn workers share one Redis instance. Rebuild the base image to
-install the Redis client, then start the mock and its Redis dependency.
+Python dependencies are pinned in [requirements.txt](requirements.txt). Container
+images and service settings are declared in the [local Compose file](docker-compose.yaml)
+and the [CI Compose file](docker-compose.ci.yaml).
 
-```shell
-docker build -t base-service .
-docker compose -f docker-compose.yaml up -d http-mock
-```
+## 🧪 Test Scenarios
 
-Open [Swagger UI](http://127.0.0.1:8003/docs) or use `http://127.0.0.1:8003` as
-the base URL in Postman. Redis is reachable inside the Compose network. A
-scenario expires one hour after registration or can be deleted sooner. Restarting
-only the mock preserves scenarios in Redis. Restarting Redis clears its data.
-Without `MOCK_REDIS_URL`, `--dynamic-scenarios` uses memory in one worker, and a
-mock restart clears that worker's scenarios. An unknown or expired dynamic ID
-returns `404`. An unavailable Redis connection returns `503` for dynamic requests.
-
-1. Send `POST /__admin/scenarios` with `Content-Type: application/json` and a body
-   like this.
-
-   ```json
-   {
-     "card": {
-       "id": "ba8bb30a-5ee7-4c4d-a89d-ad7fe7d1b389",
-       "pin": "1234",
-       "cvv": "123",
-       "type": "VIRTUAL",
-       "status": "ACTIVE",
-       "accountId": "df36b93c-84c2-4b92-b6db-df59f18c1684",
-       "cardNumber": "4111111111111111",
-       "cardHolder": "TEST CARD",
-       "expiryDate": "2030-12-31",
-       "paymentSystem": "VISA"
-     }
-   }
-   ```
-
-   The `201 Created` response contains an `id` of the form `dynamic-<uuid>` and
-   the submitted `card`.
-2. Send `GET /__admin/scenarios/{id}` with the returned scenario ID to inspect it.
-3. Send `GET /api/v1/cards/{card_id}` using `card.id` in the path and the returned
-   scenario ID as the `X-Test-Scenario` header. The `200 OK` response contains the
-   saved card.
-4. Send `DELETE /__admin/scenarios/{id}` with the scenario ID. Successful deletion
-   returns `204 No Content`.
-
-For an HTTP Gateway scenario, send a `gateway` object to the same Admin API.
-It accepts `users`, `accounts`, `cards`, and `unavailable` lists. IDs must be
-unique within each entity list. A scenario may contain just the records needed
-for the request. To return `503` from a specific dependency, add its operation
-to `unavailable`: `users.get_user`, `accounts.get_accounts`,
-`accounts.get_account`, or `cards.get_cards`.
-The `{"account": {...}, "cards": [...]}` form also accepts a single account and
-its cards.
-
-Use the returned ID in `X-Test-Scenario` on the Gateway request. Gateway forwards
-the header to its dependencies. The HTTP Gateway suite has 12 built-in cases
-and seven dynamic cases. The dynamic cases cover aggregation, switching
-scenarios for the same ID, isolation of a dependency failure, a missing account
-with available cards, and the not-found response after scenario deletion.
-The tests register prepared entities through the Admin API. A fixture deletes
-each registered scenario at teardown.
-
-```shell
-python -m pytest tests/suites/http/test_gateway.py -m gateway
-python -m pytest tests/suites/http/test_gateway.py::TestDynamicGatewayHTTP -m gateway
-```
-
-## Unit tests
-
-Run the full suite or select a group from the repository root. The `unit-tests`
-job runs the full unit suite. These tests run without Docker or live services.
-
-```shell
-python -m pytest tests/unit --noconftest -o addopts= -q
-python -m pytest tests/unit/cleanup --noconftest -o addopts= -q
-python -m pytest tests/unit/redis --noconftest -o addopts= -q
-python -m pytest tests/unit/mock_scenarios --noconftest -o addopts= -q
-```
-
-- Cleanup tests check teardown order, failure reporting, data retention, the
-  Operations repository's cleanup registration, and reconciliation of Kafka
-  writes. [Cleanup tests](tests/unit/cleanup/)
-- Redis adapter tests check JSON for all three scenario shapes, the key and TTL
-  sent to Redis, missing keys, repeated deletion, and error propagation from
-  reads, writes, and deletes. [Redis tests](tests/unit/redis/)
-- Mock scenario tests check in-memory isolation, static and dynamic lookup,
-  missing and unknown scenarios, and payload validation. [Mock scenario tests](tests/unit/mock_scenarios/)
-
-## Operations test data cleanup
-
-Run from the repository root using the project's Python environment and a prepared
-stand. The filter tests seed PostgreSQL directly. Each inserted row is registered
-for deletion by primary key after that test, including setup or assertion failures.
-Kafka fixtures also register cleanup before publishing. They snapshot existing
-IDs for the test-owned user/card/account combination, discover new IDs after
-processing, and delete only those exact keys:
-
-```shell
-python -m pytest tests/suites/http/test_operations.py tests/suites/grpc/test_operations.py -k filter
-```
-
-To keep a failing test's records for investigation, add:
-
-```shell
-python -m pytest tests/suites/http/test_operations.py tests/suites/grpc/test_operations.py -k filter --keep-test-data-on-failure
-```
-
-Passing and skipped tests still perform registered cleanup with this flag. When
-cleanup is skipped, the registered actions and test nodeid are reported under
-**Cleanup skipped**. These identifiers do not confirm that rows exist: an INSERT
-may already have been rolled back. Database contents are not queried by reporting.
-Use `-s` (already configured by this project) to view console logging; the Allure
-attachment is available independently of console capture.
-In PyCharm, put the flag in the pytest run configuration's **Additional Arguments**.
-The decision uses setup/call results available when the cleanup fixture finishes;
-later teardown failures cannot restore already deleted records. Retained rows
-require explicit removal after investigation. Existing rows are preserved.
-Kafka tests must own their user/card/account combination exclusively; concurrent
-publication with the same identifiers is unsupported. Discovery has a limited
-waiting period. If processing or delivery completes later, an **Unresolved Kafka
-Operations cleanup** attachment reports identifiers for investigation; complete
-removal of late writes cannot be guaranteed. A forcibly terminated process cannot
-guarantee teardown execution.
-
-The cleanup fixture delegates the retention decision to `should_keep_test_data`
-and diagnostics to `report_test_data`. The whole reporting call is protected by
-`try/finally`, so a reporting failure does not prevent required cleanup.
-
-## API response checks
-
-The HTTP test clients' convenience methods check the exact status with
-`assert_status_code` and `HTTPStatus.OK`, then parse the response with Pydantic.
-Successful tests prepare data, call a convenience method and run domain assertions.
-Raw `*_api` methods return the response for negative cases, such as an expected 404,
-or explicit status/header checks.
-
-Operations filter cases cover card/account filters, user-only selection, multiple
-matching operations and an empty result while another user's operation exists.
-ORM-backed HTTP/gRPC assertions compare the complete collection by operation ID,
-including count, duplicate IDs and entity fields, without depending on result order.
-
-## Kafka scenarios
-
-```shell
-python -m pytest tests/suites/http/test_operations.py tests/suites/grpc/test_operations.py -k operation_events
-python -m pytest -m regression --alluredir=./allure-results
-```
-
-The producer's raw `produce` enqueues a message. `produce_and_wait` checks that
-message's delivery callback and the remaining flush queue. Operations helpers
-return the original event after confirmed delivery; they do not wait for a
-database commit or publish the event again while waiting.
-
-`wait_for_operations` explicitly waits for a result through HTTP or gRPC.
-Both clients delegate the count/deadline loop to
-[operations_waiter.py](tests/tools/operations_waiter.py), reading through their
-existing `get_operations` facade. `get_operations` remains a single request and
-accepts an optional timeout override. Only an incomplete operation count is
-retried; extra rows and HTTP/schema/RPC errors fail immediately. Domain assertions
-then compare all event fields, complete membership and unique operation IDs,
-independently of response order. Controlled event pairs use `(user_id, card_id)`
-for matching; this is test preparation, not a new operation identifier.
-
-The twelve Kafka scenarios cover both purchase statuses, multiple events, user
-isolation, and card/account filtering through HTTP and gRPC. Filter scenarios
-confirm processing of all competing events before checking the final selection.
-
-The following test settings can be overridden through the environment or `tests/.env`:
-
-| Setting | Default | Responsibility |
+| Suite | Data setup | What the tests verify |
 | --- | --- | --- |
-| `KAFKA_DELIVERY_TIMEOUT` | 10 seconds | Confirming broker delivery |
-| `OPERATIONS_PROCESSING_TIMEOUT` | 10 seconds | Observing API results and reconciling one cleanup owner |
-| `OPERATIONS_POLL_INTERVAL` | 0.25 seconds | Interval between incomplete reads |
+| Gateway HTTP and gRPC | Built-in mock scenarios | User/account aggregates, exact accounts and cards, empty collections, missing entities, and propagation of dependency errors. |
+| Dynamic Gateway HTTP | Test-owned records registered through the Mock Admin API | Aggregation, different snapshots for the same entity ID, isolation of a dependency failure, a missing account with available cards, and `404` after scenario deletion. |
+| Operations HTTP and gRPC | Rows inserted through the test repository | Lookup by ID, missing operations, user/card/account filters, combined card and account filters, and exact result membership. |
+| Operations through Kafka | Test events published to the Operations topic | Processing of `IN_PROGRESS` and `COMPLETED` purchases, several events for one user, and filtering after all competing events have been processed. |
+| Unit tests | Controlled dependencies in the pytest process | Cleanup ordering and failure handling, repository timeout budgets, scenario resolution and storage, and Redis serialization, TTL configuration and error handling. |
 
-Each RPC receives the remaining deadline. HTTPX limits individual network phases;
-a late HTTP response is rejected, but a continuously arriving body can exceed
-the observation deadline. PostgreSQL test connections additionally limit pool
-checkout, connection setup and server statements to 5 seconds per phase by
-default. Cleanup discovery sets a transaction-local statement timeout using its
-remaining budget. These are phase limits, not a hard wall-clock guarantee for an
-arbitrary network stall.
+## 🏗 Architecture
 
-## Optional parallel execution
+The application diagrams show the service boundaries. On the test stand,
+Gateway's downstream clients connect directly to the matching HTTP or gRPC mock
+routes. Both Operations suites cover direct PostgreSQL setup and Kafka-driven
+processing.
 
-The default local and CI runs remain sequential. A prepared stand also supports
-an explicit two-worker run using the pinned `pytest-xdist` dependency:
+![High-level banking service architecture](docs/architecture/core.png)
+
+<details>
+<summary>Gateway service architecture</summary>
+
+![Gateway service architecture](docs/architecture/gateway.png)
+
+</details>
+
+<details>
+<summary>Operations service architecture</summary>
+
+![Operations service architecture](docs/architecture/operations.png)
+
+</details>
+
+### Test Execution Flow
+
+pytest fixtures prepare test data and provide typed clients. Successful HTTP
+calls check the expected status before parsing the response with Pydantic. Negative
+cases use raw responses to check the status and error details. gRPC calls use
+generated protobuf stubs. Domain assertions compare responses with expectations
+built from the prepared data.
+
+#### Gateway and its dependencies
+
+Built-in scenarios are selected through `X-Test-Scenario` in HTTP or
+`x-test-scenario` metadata in gRPC. For dynamic HTTP tests, the same header carries
+the ID returned by the Admin API. Each dependency route selects the scenario
+and uses the requested entity ID to find or filter the data.
+
+```mermaid
+sequenceDiagram
+    participant T as pytest
+    participant G as Gateway HTTP
+    participant M as HTTP Mock
+    participant R as Redis
+    opt Dynamic scenario
+        T->>M: Register test data through Admin API
+        M->>R: Store scenario with TTL
+        M-->>T: Return scenario ID
+    end
+    T->>G: Request details with X-Test-Scenario
+    G->>M: Request Users, Accounts or Cards data
+    opt Dynamic scenario
+        M->>R: Load data by scenario ID
+    end
+    M-->>G: Return selected data or configured error
+    G-->>T: Return aggregate or error
+    T->>T: Check response against prepared expectations
+    opt Dynamic scenario teardown
+        T->>M: Delete the registered scenario
+        M->>R: Delete its key
+    end
+```
+
+The same-account test registers two scenarios with the same account ID, different
+balances and different cards. It checks that both downstream responses come
+from the requested scenario. [Gateway test](tests/suites/http/test_gateway.py#L405)
+
+<details>
+<summary>Try the HTTP Mock Admin API</summary>
+
+Open [Swagger UI](http://127.0.0.1:8003/docs). Send `POST /__admin/scenarios` with
+the following synthetic card as the request body.
+
+```json
+{
+  "card": {
+    "id": "ba8bb30a-5ee7-4c4d-a89d-ad7fe7d1b389",
+    "pin": "1234",
+    "cvv": "123",
+    "type": "VIRTUAL",
+    "status": "ACTIVE",
+    "accountId": "df36b93c-84c2-4b92-b6db-df59f18c1684",
+    "cardNumber": "4111111111111111",
+    "cardHolder": "TEST CARD",
+    "expiryDate": "2030-12-31",
+    "paymentSystem": "VISA"
+  }
+}
+```
+
+1. Copy `id` from the `201 Created` response. It has the form `dynamic-<uuid>`.
+2. Inspect the scenario with `GET /__admin/scenarios/{id}`, or send
+   `GET /api/v1/cards/{card_id}` with `card.id` in the path and the scenario ID
+   in the `X-Test-Scenario` header.
+3. Delete it with `DELETE /__admin/scenarios/{id}`. A successful delete returns
+   `204 No Content`, including a repeated delete of the same ID.
+
+The Admin API also accepts `{"account": {...}, "cards": [...]}` and a `gateway`
+object with `users`, `accounts`, `cards` and `unavailable` lists. Entity IDs
+must be unique within their list. To configure `503`, put one of
+`users.get_user`, `accounts.get_accounts`, `accounts.get_account` or
+`cards.get_cards` in `unavailable`.
+
+In Compose, three HTTP mock workers share Redis. Scenarios expire one hour
+after registration and survive an HTTP mock restart while Redis keeps its
+data. The Compose Redis instance is ephemeral. Dynamic mode without
+`MOCK_REDIS_URL` uses a single worker and in-memory storage. An unknown or
+expired ID returns `404`. A Redis connection error or timeout on a dynamic
+request returns `503`.
+
+</details>
+
+#### Operations with PostgreSQL or Kafka
+
+```mermaid
+flowchart LR
+    T["pytest test"]
+    K["Kafka topic"]
+    C["Operations consumer"]
+    DB["PostgreSQL"]
+    API["Operations HTTP / gRPC"]
+    A["Domain assertions"]
+
+    T -->|Seed rows for repository-backed cases| DB
+    T -->|Publish an event for Kafka cases| K
+    K --> C
+    C -->|Insert and commit| DB
+    T -->|Request operation data| API
+    API -->|Read persisted operations| DB
+    API -->|Return response| A
+```
+
+For database-backed cases, the test writes rows before making the API call.
+For Kafka cases, the producer confirms broker delivery and the test then waits
+for the expected operation count through the public API. A broker acknowledgment
+only confirms delivery to Kafka. The separate API read observes the consumer's
+persisted result. After the expected count is reached, assertions check the
+operation fields, membership and unique IDs.
+
+The card-filter test publishes two events for the same user, waits until both
+operations are visible, then filters by card and checks that only the matching
+operation is returned. [Operations test](tests/suites/http/test_operations.py#L288)
+
+Cleanup removes test-owned rows by primary key. For Kafka events, it records
+existing IDs before publication and finds new IDs for the test's
+`(user_id, card_id, account_id)` combination. Late writes outside the cleanup
+deadline may require manual investigation.
+
+## 📁 Project Structure
+
+```text
+services/           Gateway and Operations, plus downstream client contracts
+libs/               Shared application clients, context and configuration
+protos/             Protobuf contracts and generated gRPC code
+tests/
+  suites/           HTTP and gRPC API suites
+  unit/             Cleanup, mock scenario and Redis unit tests
+  clients/          HTTP, gRPC, Kafka and PostgreSQL test access
+  fixtures/         Test setup and resource cleanup
+  schema/           Pydantic test models
+  assertions/       Protocol and domain assertions
+  mock/             HTTP and gRPC mocks and scenario data
+scripts/            Stand readiness, diagnostics and Allure metadata
+```
+
+## ▶️ Running Tests
+
+Run API commands against a ready stand. The unit suite runs without Docker
+or live services.
+
+| Scope | Command |
+| --- | --- |
+| Unit tests | `python -m pytest tests/unit --noconftest -o addopts= -q` |
+| Full API regression | `python -m pytest -m regression` |
+| Gateway over HTTP and gRPC | `python -m pytest -m gateway` |
+| Dynamic HTTP Gateway | `python -m pytest tests/suites/http/test_gateway.py::TestDynamicGatewayHTTP` |
+| Operations over HTTP and gRPC | `python -m pytest -m operations` |
+| Kafka-backed Operations | `python -m pytest -m operations -k operation_events` |
+
+<details>
+<summary>Parallel execution, debugging and timeout settings</summary>
+
+The default run is sequential. To run the API regression with two pytest workers,
+prepare the stand once and run:
 
 ```shell
 python -m pytest -m regression -n 2 -o addopts= -q --alluredir=./allure-results-parallel
 ```
 
-The override replaces the default `-s -v` with captured, concise output for this
-run. Prepare the stand once before starting workers. Each independent Operations
-test owns its user ID, cleanup manager and lifecycle-bound clients. Sharing a
-user across tests is unsafe even with different cards because user-only reads
-can observe both tests' operations.
+Use separate user IDs across independent Operations tests because user-only reads
+can see every operation for that user.
 
-`Fake.uuid()` uses standard-library UUID4 independently of Faker's seed; other
-generated values still use Faker. Fixed IDs can be passed explicitly in scenario
-data. Keep producer/repository wrappers function-scoped while they refer to a
-test's cleanup registry. More workers increase the stand's load; they do not
-increase a single Kafka partition's processing capacity. Benchmark before
-increasing the worker count.
+To inspect Operations data after a setup or test failure, add
+`--keep-test-data-on-failure`. The **Cleanup skipped** attachment lists the
+registered actions and test ID. Use PostgreSQL to confirm which rows exist
+and remove retained rows after debugging. Dynamic Gateway scenarios have their
+own teardown.
 
-## CI report environment
+| Setting | Default | Purpose |
+| --- | --- | --- |
+| `KAFKA_DELIVERY_TIMEOUT` | `10s` | Confirm delivery to the broker. |
+| `OPERATIONS_PROCESSING_TIMEOUT` | `10s` | Wait for the API result and bound cleanup discovery for one owner. |
+| `OPERATIONS_POLL_INTERVAL` | `0.25s` | Interval between incomplete reads. |
 
-[write_allure_environment.py](scripts/write_allure_environment.py) creates
-`allure-results/environment.properties` in the test runner environment.
-The workflow runs it after dependency installation and before pytest.
-`TEST_MARKER` and `TEST_COMPOSE_FILE` are defined once in the test job and shared
-by the execution commands and report metadata. The existing results artifact
-passes this file to the Allure report generator.
+Override these through the environment or `tests/.env`. Network phases have
+their own transport limits. The polling deadline bounds accepted results and
+retry scheduling.
 
-Before stopping the stand, CI runs `scripts/collect_stand_diagnostics.py`.
-The separate `stand-diagnostics` artifact is retained for 3 days and contains
-only `state.json` (service, process state, exit code and health) and
-`collection.txt` (collection outcome, error type and any command exit code or
-timeout). Container logs, environment variables and event payloads are not
-collected. The snapshot can identify a stopped or unhealthy container; it does
-not explain failures inside the application.
+</details>
 
-The previous `state.json` is removed before collection. Other files in a reused
-output directory are preserved; CI uploads only the two named files.
-Collection/upload failures do not prevent teardown or replace the test failure.
+## 📊 Reports
 
-The two stand commands parse CLI arguments and delegate to [scripts/stand](scripts/stand/):
-[compose.py](scripts/stand/compose.py) runs bounded Docker commands,
-[readiness.py](scripts/stand/readiness.py) checks infrastructure and host-side APIs,
-and [diagnostics.py](scripts/stand/diagnostics.py) writes the state snapshot and
-collection result.
-Readiness failures report the blocking service or API endpoint.
+### Allure
+
+The [published report](https://barbaron86.github.io/isolation-api-tests/) contains
+API test results, individual steps, logs, environment metadata and run history.
+
+To generate and open a local report, use [Allure Commandline](https://allurereport.org/docs/v2/install/).
+
+```
+python -m pytest -m regression --alluredir=./allure-results
+allure serve ./allure-results
+```
+
+## 🔄 CI/CD
+
+The [Isolation Tests workflow](.github/workflows/isolation-tests.yml) runs on
+pull requests to `main` and pushes to `main`.
+
+| Job | What it does |
+| --- | --- |
+| `unit-tests` | Installs dependencies and runs the unit suite separately. |
+| `run-tests` | Builds the image, starts the Compose stand, waits for readiness and runs the API regression with Allure results. |
+| `publish-report` | Generates the API report with history and publishes it to [GitHub Pages](https://barbaron86.github.io/isolation-api-tests/). |
+
+The API job also uploads a separate `stand-diagnostics` artifact with Compose
+state and the collection outcome for failed-stand investigation.
