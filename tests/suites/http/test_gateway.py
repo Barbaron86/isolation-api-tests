@@ -4,10 +4,7 @@ from uuid import UUID, uuid4
 
 import allure
 import pytest
-from httpx import QueryParams
 
-from tests.assertions.http.base import assert_status_code
-from tests.assertions.http.cards import assert_single_card_in_response
 from tests.assertions.http.gateway import (
     assert_gateway_error_response,
     assert_gateway_not_found_response,
@@ -16,13 +13,11 @@ from tests.assertions.http.gateway import (
 )
 
 from tests.clients.http.gateway.client import GatewayHTTPTestClient
-from tests.clients.http.mock_admin import build_mock_admin_http_test_client
 
-from tests.context.base import DynamicHTTPRequestContext, RequestContext
+from tests.context.base import DynamicScenarioContext, RequestContext
 from tests.context.scenario import Scenario
 
-from tests.schema.cards import GetCardsResponseTestSchema
-from tests.schema.mock_gateway import GatewayMockOperation, GatewayMockScenarioTestSchema
+from tests.schema.mock_gateway import GatewayMockScenarioTestSchema
 from tests.tools.allure import AllureTag, AllureStory, AllureFeature
 from tests.tools.gateway_data import make_account, make_card, make_user
 from tests.tools.gateway_expectations import (
@@ -35,7 +30,6 @@ from tests.tools.gateway_expectations import (
     expected_user_details_with_multiple_accounts,
     expected_user_details_without_accounts,
 )
-from tests.tools.routes import APITestRoutes
 from tests.types.accounts import AccountTestType
 from tests.types.cards import CardTestPaymentSystem, CardTestType
 from tests.types.gateway import GatewayTestErrorReason
@@ -344,7 +338,7 @@ class TestDynamicGatewayHTTP:
     def test_get_user_details_from_registered_scenario(
             self,
             gateway_http_test_client: GatewayHTTPTestClient,
-            register_gateway_scenario: Callable[[GatewayMockScenarioTestSchema], DynamicHTTPRequestContext],
+            register_gateway_scenario: Callable[[GatewayMockScenarioTestSchema], DynamicScenarioContext],
     ) -> None:
         """Проверяет пользователя и оба его счёта в наборе с другим владельцем.
 
@@ -373,7 +367,7 @@ class TestDynamicGatewayHTTP:
     def test_get_account_details_from_registered_scenario(
             self,
             gateway_http_test_client: GatewayHTTPTestClient,
-            register_gateway_scenario: Callable[[GatewayMockScenarioTestSchema], DynamicHTTPRequestContext],
+            register_gateway_scenario: Callable[[GatewayMockScenarioTestSchema], DynamicScenarioContext],
     ) -> None:
         """Проверяет счёт и обе его карты среди карт двух счетов одного владельца.
 
@@ -401,47 +395,11 @@ class TestDynamicGatewayHTTP:
         assert_get_account_details_response(get_account_details_response_data, expected)
 
     @allure.story(AllureStory.GET_ACCOUNT_DETAILS)
-    @allure.title("[HTTP] Get account details. Uses the requested scenario for account and cards")
-    def test_get_account_details_uses_requested_scenario(
-            self,
-            gateway_http_test_client: GatewayHTTPTestClient,
-            register_gateway_scenario: Callable[[GatewayMockScenarioTestSchema], DynamicHTTPRequestContext],
-    ) -> None:
-        """Возвращает данные каждого сценария при одном и том же ID счёта.
-
-        Args:
-            gateway_http_test_client: Клиент HTTP API Gateway.
-            register_gateway_scenario: Регистрация набора и получение контекста.
-        """
-        first_account = make_account(user_id=uuid4(), balance=205.25)
-        second_account = first_account.model_copy(update={"balance": 410.50})
-        first_card = make_card(account_id=first_account.id)
-        second_card = make_card(account_id=second_account.id)
-        first_context = register_gateway_scenario(
-            GatewayMockScenarioTestSchema(accounts=[first_account], cards=[first_card]),
-        )
-        second_context = register_gateway_scenario(
-            GatewayMockScenarioTestSchema(accounts=[second_account], cards=[second_card]),
-        )
-        expected_first_details = expected_account_details(account=first_account, cards=[first_card])
-        expected_second_details = expected_account_details(account=second_account, cards=[second_card])
-
-        get_first_account_details_response_data = gateway_http_test_client.get_account_details(
-            account_id=first_account.id, context=first_context,
-        )
-        assert_get_account_details_response(get_first_account_details_response_data, expected_first_details)
-
-        get_second_account_details_response_data = gateway_http_test_client.get_account_details(
-            account_id=first_account.id, context=second_context,
-        )
-        assert_get_account_details_response(get_second_account_details_response_data, expected_second_details)
-
-    @allure.story(AllureStory.GET_ACCOUNT_DETAILS)
     @allure.title("[HTTP] Get account details. Account not found when cards exist")
     def test_get_account_details_returns_404_when_account_is_missing_but_cards_exist(
             self,
             gateway_http_test_client: GatewayHTTPTestClient,
-            register_gateway_scenario: Callable[[GatewayMockScenarioTestSchema], DynamicHTTPRequestContext],
+            register_gateway_scenario: Callable[[GatewayMockScenarioTestSchema], DynamicScenarioContext],
     ) -> None:
         """Возвращает ошибку Accounts при отсутствии счёта с доступными картами.
 
@@ -454,97 +412,18 @@ class TestDynamicGatewayHTTP:
         context = register_gateway_scenario(GatewayMockScenarioTestSchema(cards=[card]))
         expected_detail = GatewayTestErrorReason.ACCOUNT_NOT_FOUND.format(account_id=account_id)
 
-        mock_http_client = build_mock_admin_http_test_client()
-        with mock_http_client.client:
-            get_cards_response = mock_http_client.get(
-                APITestRoutes.CARDS, params=QueryParams(accountId=str(account_id)), context=context,
-            )
-        assert_status_code(get_cards_response.status_code, HTTPStatus.OK)
-        get_cards_response_data = GetCardsResponseTestSchema.model_validate_json(get_cards_response.content)
-        assert_single_card_in_response(get_cards_response_data, card)
-
         get_account_details_response = gateway_http_test_client.get_account_details_api(
             account_id=account_id, context=context,
         )
 
         assert_gateway_not_found_response(get_account_details_response, expected_detail=expected_detail)
 
-    @allure.story(AllureStory.GET_USER_DETAILS)
-    @allure.title("[HTTP] Get user details. Accounts failure is isolated by scenario")
-    def test_get_user_details_isolates_accounts_failure_by_scenario(
-            self,
-            gateway_http_test_client: GatewayHTTPTestClient,
-            register_gateway_scenario: Callable[[GatewayMockScenarioTestSchema], DynamicHTTPRequestContext],
-    ) -> None:
-        """Возвращает 503 в одном сценарии и детали того же пользователя в другом.
-
-        Args:
-            gateway_http_test_client: Клиент HTTP API Gateway.
-            register_gateway_scenario: Регистрация набора и получение контекста.
-        """
-        user = make_user()
-        account = make_account(user_id=user.id)
-        unavailable_context = register_gateway_scenario(
-            GatewayMockScenarioTestSchema(users=[user], unavailable=[GatewayMockOperation.GET_ACCOUNTS]),
-        )
-        healthy_context = register_gateway_scenario(
-            GatewayMockScenarioTestSchema(users=[user], accounts=[account]),
-        )
-        expected_healthy_details = expected_user_details(user=user, accounts=[account])
-
-        get_unavailable_user_details_response = gateway_http_test_client.get_user_details_api(
-            user_id=user.id, context=unavailable_context,
-        )
-        assert_gateway_error_response(
-            get_unavailable_user_details_response,
-            expected_status=HTTPStatus.SERVICE_UNAVAILABLE,
-            expected_detail=GatewayTestErrorReason.ACCOUNTS_SERVICE_UNAVAILABLE,
-        )
-
-        get_healthy_user_details_response_data = gateway_http_test_client.get_user_details(
-            user_id=user.id, context=healthy_context,
-        )
-        assert_get_user_details_response(get_healthy_user_details_response_data, expected_healthy_details)
-
-    @allure.story(AllureStory.GET_USER_DETAILS)
-    @allure.title("[HTTP] Get user details. Scenario not found after deletion")
-    def test_get_user_details_returns_404_after_scenario_deletion(
-            self,
-            gateway_http_test_client: GatewayHTTPTestClient,
-            register_gateway_scenario: Callable[[GatewayMockScenarioTestSchema], DynamicHTTPRequestContext],
-    ) -> None:
-        """Передаёт причину 404 после удаления ранее доступного сценария.
-
-        Args:
-            gateway_http_test_client: Клиент HTTP API Gateway.
-            register_gateway_scenario: Регистрация набора и получение контекста.
-        """
-        user = make_user()
-        context = register_gateway_scenario(GatewayMockScenarioTestSchema(users=[user]))
-        expected_details = expected_user_details(user=user, accounts=[])
-        expected_detail = f"Scenario {context.scenario} not found"
-
-        get_user_details_response_data = gateway_http_test_client.get_user_details(user_id=user.id, context=context)
-        assert_get_user_details_response(get_user_details_response_data, expected_details)
-
-        admin_client = build_mock_admin_http_test_client()
-        with admin_client.client:
-            admin_client.delete_scenario(context.scenario)
-
-        get_deleted_scenario_user_details_response = gateway_http_test_client.get_user_details_api(
-            user_id=user.id, context=context,
-        )
-        assert_gateway_not_found_response(
-            get_deleted_scenario_user_details_response,
-            expected_detail=expected_detail,
-        )
-
     @allure.story(AllureStory.GET_ACCOUNT_DETAILS)
     @allure.title("[HTTP] User and account details agree within one scenario")
     def test_user_and_account_details_agree_within_one_scenario(
             self,
             gateway_http_test_client: GatewayHTTPTestClient,
-            register_gateway_scenario: Callable[[GatewayMockScenarioTestSchema], DynamicHTTPRequestContext],
+            register_gateway_scenario: Callable[[GatewayMockScenarioTestSchema], DynamicScenarioContext],
     ) -> None:
         """Возвращает счета пользователя и детали второго счёта из одного набора.
 

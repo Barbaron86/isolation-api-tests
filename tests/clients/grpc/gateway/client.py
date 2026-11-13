@@ -14,7 +14,7 @@ from contracts.services.gateway.rpc_get_user_details_pb2 import (
 )
 from tests.clients.grpc.client import GRPCTestClient, build_grpc_test_channel
 from tests.config import test_settings
-from tests.context.base import RequestContext, build_grpc_test_metadata
+from tests.context.base import DynamicScenarioContext, RequestContext, build_grpc_test_metadata
 from tests.tools.logger import get_test_logger
 
 
@@ -33,7 +33,7 @@ class GatewayGRPCTestClient(GRPCTestClient):
     def get_user_details_api(
             self,
             request: GetUserDetailsRequest,
-            context: RequestContext,
+            context: RequestContext | DynamicScenarioContext,
     ) -> GetUserDetailsResponse:
         """Вызывает GetUserDetails с подготовленным protobuf-запросом.
 
@@ -55,7 +55,7 @@ class GatewayGRPCTestClient(GRPCTestClient):
     def get_account_details_api(
             self,
             request: GetAccountDetailsRequest,
-            context: RequestContext,
+            context: RequestContext | DynamicScenarioContext,
     ) -> GetAccountDetailsResponse:
         """Вызывает GetAccountDetails с подготовленным protobuf-запросом.
 
@@ -76,7 +76,7 @@ class GatewayGRPCTestClient(GRPCTestClient):
 
     @allure.step("Get user details")
     def get_user_details(
-            self, *, user_id: UUID, context: RequestContext,
+            self, *, user_id: UUID, context: RequestContext | DynamicScenarioContext,
     ) -> GetUserDetailsResponse:
         """Получает пользователя и его счета по явно переданному ID.
 
@@ -95,7 +95,7 @@ class GatewayGRPCTestClient(GRPCTestClient):
 
     @allure.step("Get account details")
     def get_account_details(
-            self, *, account_id: UUID, context: RequestContext,
+            self, *, account_id: UUID, context: RequestContext | DynamicScenarioContext,
     ) -> GetAccountDetailsResponse:
         """Получает счёт и его карты по явно переданному ID.
 

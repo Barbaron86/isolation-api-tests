@@ -7,9 +7,6 @@ from http import HTTPStatus
 import uvicorn
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
-from redis.asyncio import Redis
-from redis.asyncio.retry import Retry
-from redis.backoff import NoBackoff
 from redis.exceptions import ConnectionError as RedisConnectionError
 from redis.exceptions import TimeoutError as RedisTimeoutError
 
@@ -18,8 +15,8 @@ from tests.mock.http.api.accounts import build_accounts_mock_router
 from tests.mock.http.api.cards import build_cards_mock_router
 from tests.mock.http.api.scenarios import admin_scenarios_router
 from tests.mock.http.api.users import build_users_mock_router
-from tests.mock.http.redis_store import RedisScenarioStore
-from tests.mock.http.scenarios import InMemoryScenarioStore
+from tests.mock.redis_store import open_redis_scenario_store
+from tests.mock.scenarios import InMemoryScenarioStore
 
 
 @asynccontextmanager
@@ -33,14 +30,8 @@ async def redis_lifespan(app: FastAPI, *, redis_url: str) -> AsyncIterator[None]
     Yields:
         Управление приложению после успешной проверки соединения.
     """
-    async with Redis.from_url(
-        redis_url,
-        socket_connect_timeout=2,
-        socket_timeout=2,
-        retry=Retry(NoBackoff(), 0),
-    ) as client:
-        await client.ping()
-        app.state.scenario_store = RedisScenarioStore(client)
+    async with open_redis_scenario_store(redis_url) as store:
+        app.state.scenario_store = store
         yield
 
 

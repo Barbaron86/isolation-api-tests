@@ -4,7 +4,7 @@ import allure
 from httpx import Client, Response, QueryParams, Headers
 
 from tests.clients.http.logger_event_hook import HTTPLoggerEventHook
-from tests.context.base import DynamicHTTPRequestContext, RequestContext, build_http_test_headers
+from tests.context.base import DynamicScenarioContext, RequestContext, build_http_test_headers
 from tests.tools.config.http import HTTPClientTestConfig
 
 
@@ -28,7 +28,7 @@ class HTTPTestClient:
             self,
             url: str,
             params: QueryParams | None = None,
-            context: RequestContext | DynamicHTTPRequestContext | None = None,
+            context: RequestContext | DynamicScenarioContext | None = None,
             *,
             timeout: float | None = None,
     ) -> Response:

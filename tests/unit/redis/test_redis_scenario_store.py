@@ -8,8 +8,8 @@ from redis.asyncio import Redis
 from redis.exceptions import ConnectionError as RedisConnectionError
 from redis.exceptions import TimeoutError as RedisTimeoutError
 
-from tests.mock.http.redis_store import RedisScenarioStore
-from tests.mock.http.scenarios import DynamicScenario
+from tests.mock.redis_store import RedisScenarioStore
+from tests.mock.scenarios import DynamicScenario
 from tests.schema.mock_gateway import GatewayMockOperation, GatewayMockScenarioTestSchema
 from tests.tools.gateway_data import make_account, make_card, make_user
 

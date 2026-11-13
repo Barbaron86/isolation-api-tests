@@ -1,7 +1,7 @@
 import asyncio
 from uuid import uuid4
 
-from tests.mock.http.scenarios import DynamicScenario, InMemoryScenarioStore
+from tests.mock.scenarios import DynamicScenario, InMemoryScenarioStore
 from tests.schema.mock_gateway import GatewayMockScenarioTestSchema
 
 

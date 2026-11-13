@@ -1,6 +1,11 @@
-from redis.asyncio import Redis
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 
-from tests.mock.http.scenarios import DynamicScenario
+from redis.asyncio import Redis
+from redis.asyncio.retry import Retry
+from redis.backoff import NoBackoff
+
+from tests.mock.scenarios import DynamicScenario
 
 
 SCENARIO_KEY_PREFIX = "http-mock:scenarios:"
@@ -8,13 +13,13 @@ SCENARIO_TTL_SECONDS = 3600
 
 
 class RedisScenarioStore:
-    """Хранит динамические сценарии в общей для HTTP-воркеров базе Redis."""
+    """Хранит динамические сценарии в общей для HTTP и gRPC базе Redis."""
 
     def __init__(self, client: Redis) -> None:
         """Принимает клиент, открытый на время жизни приложения.
 
         Args:
-            client: Асинхронный Redis-клиент текущего HTTP-воркера.
+            client: Асинхронный Redis-клиент процесса мока.
         """
         self._client = client
 
@@ -49,3 +54,23 @@ class RedisScenarioStore:
             scenario_id: Идентификатор удаляемого сценария.
         """
         await self._client.delete(f"{SCENARIO_KEY_PREFIX}{scenario_id}")
+
+
+@asynccontextmanager
+async def open_redis_scenario_store(url: str) -> AsyncIterator[RedisScenarioStore]:
+    """Открывает хранилище после проверки Redis и закрывает клиент при выходе.
+
+    Args:
+        url: Адрес общей базы сценариев.
+
+    Yields:
+        Хранилище с ограниченными таймаутами подключения и чтения.
+    """
+    async with Redis.from_url(
+        url,
+        socket_connect_timeout=2,
+        socket_timeout=2,
+        retry=Retry(NoBackoff(), 0),
+    ) as client:
+        await client.ping()
+        yield RedisScenarioStore(client)

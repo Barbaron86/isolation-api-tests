@@ -110,6 +110,13 @@ services:
     <<: *python-service
     ports: [ "9003:9003" ]
     command: "tests.mock.grpc.server"
+    stop_signal: SIGINT
+    environment:
+      <<: *base-environment
+      MOCK_REDIS_URL: redis://redis:6379/0
+    depends_on:
+      redis:
+        condition: service_healthy
     container_name: "grpc-mock"
 
   # gateway-services

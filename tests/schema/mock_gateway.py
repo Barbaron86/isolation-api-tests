@@ -9,7 +9,7 @@ from tests.schema.users import UserTestSchema
 
 
 class GatewayMockOperation(StrEnum):
-    """Операции зависимостей Gateway, для которых можно задать HTTP 503."""
+    """Операции зависимостей Gateway, для которых можно задать недоступность."""
 
     GET_USER = "users.get_user"
     GET_ACCOUNTS = "accounts.get_accounts"
@@ -24,7 +24,7 @@ class GatewayMockScenarioTestSchema(BaseModel):
         users: Пользователи для поиска по ID.
         accounts: Счета для поиска по ID и фильтрации по владельцу.
         cards: Карты для поиска по ID и фильтрации по счёту.
-        unavailable: Операции, которые отвечают HTTP 503 в этом сценарии.
+        unavailable: Операции, которые сообщают о недоступности в сценарии.
     """
 
     users: list[UserTestSchema] = Field(default_factory=list)

@@ -5,7 +5,7 @@ from fastapi import Depends, Header, HTTPException, Request
 from pydantic import StringConstraints
 
 from tests.context.scenario import Scenario
-from tests.mock.http.scenarios import DynamicScenario, ScenarioStore
+from tests.mock.scenarios import DynamicScenario, ScenarioStore
 from tests.mock.http.tools import get_scenario_http
 
 

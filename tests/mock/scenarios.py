@@ -75,7 +75,7 @@ class DynamicScenario(ScenarioPayload):
             operation: Операция, которую вызвал Gateway.
 
         Returns:
-            Признак того, что операция должна вернуть HTTP 503.
+            Признак того, что операция должна сообщить о недоступности.
         """
         return self.gateway is not None and operation in self.gateway.unavailable
 

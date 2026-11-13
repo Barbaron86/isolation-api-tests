@@ -18,24 +18,25 @@ class RequestContext(BaseModel):
     scenario: Scenario
 
 
-class DynamicHTTPRequestContext(BaseModel):
-    """Передаёт ID сценария, зарегистрированного через HTTP Admin API мока."""
+class DynamicScenarioContext(BaseModel):
+    """Передаёт зарегистрированный ID сценария через HTTP или gRPC."""
 
     scenario: str = Field(pattern=r"^dynamic-.+$")
 
 
-def build_grpc_test_metadata(context: RequestContext) -> list[tuple[str, str]]:
-    """
-    Преобразует RequestContext в gRPC metadata.
+def build_grpc_test_metadata(context: RequestContext | DynamicScenarioContext) -> list[tuple[str, str]]:
+    """Формирует gRPC metadata для выбора сценария мока.
 
-    gRPC не использует HTTP-заголовки напрямую, но смысл тот же:
-    передать управляющий контекст на транспортный уровень,
-    чтобы его могли прочитать downstream-интеграции и mock-сервер.
+    Args:
+        context: Контекст со встроенным именем или ID регистрации.
+
+    Returns:
+        Metadata с ключом x-test-scenario.
     """
     return [("x-test-scenario", context.scenario)]
 
 
-def build_http_test_headers(context: RequestContext | DynamicHTTPRequestContext) -> dict[str, str]:
+def build_http_test_headers(context: RequestContext | DynamicScenarioContext) -> dict[str, str]:
     """Формирует HTTP-заголовок для выбора встроенного или динамического сценария.
 
     Args:

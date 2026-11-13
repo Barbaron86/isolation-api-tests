@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
 from tests.context.scenario import Scenario
 from tests.mock.http.scenario_dependencies import read_dynamic_scenario_header, resolve_scenario
-from tests.mock.http.scenarios import DynamicScenario
+from tests.mock.scenarios import DynamicScenario
 from tests.mock.http.tools import get_scenario_http
 from tests.schema.cards import CardTestSchema, GetCardResponseTestSchema, GetCardsResponseTestSchema
 from tests.schema.mock_gateway import GatewayMockOperation

@@ -1,4 +1,5 @@
-from uuid import UUID
+from collections.abc import Callable
+from uuid import UUID, uuid4
 
 import allure
 import pytest
@@ -8,17 +9,25 @@ from contracts.services.gateway.rpc_get_account_details_pb2 import GetAccountDet
 from contracts.services.gateway.rpc_get_user_details_pb2 import GetUserDetailsRequest
 from tests.assertions.grpc.gateway import (
     assert_gateway_rpc_error,
+    assert_get_account_details_response,
     assert_get_account_details_response_account_with_mixed_cards,
     assert_get_account_details_response_account_without_cards,
     assert_get_account_details_response_user_with_active_debit_card_account,
+    assert_get_user_details_response,
     assert_get_user_details_response_user_with_active_credit_card_account,
     assert_get_user_details_response_user_with_multiple_accounts,
     assert_get_user_details_response_user_without_accounts,
 )
 from tests.clients.grpc.gateway.client import GatewayGRPCTestClient
-from tests.context.base import RequestContext
+from tests.context.base import DynamicScenarioContext, RequestContext
 from tests.context.scenario import Scenario
+from tests.schema.mock_gateway import GatewayMockScenarioTestSchema
 from tests.tools.allure import AllureFeature, AllureStory, AllureTag
+from tests.tools.gateway_data import make_account, make_card, make_user
+from tests.tools.gateway_grpc_expectations import (
+    expected_active_debit_account_details,
+    expected_user_details_with_active_debit_accounts,
+)
 from tests.types.gateway import GatewayTestErrorReason
 
 
@@ -112,18 +121,17 @@ class TestGatewayGRPC:
             unknown_user_id: Корректный UUID, отсутствующий в выбранном сценарии.
         """
         get_user_details_request = GetUserDetailsRequest(id=str(unknown_user_id))
-        with allure.step("Get user details and check NOT_FOUND"):
-            with pytest.raises(RpcError) as get_user_details_rpc_error:
-                gateway_grpc_test_client.get_user_details_api(
-                    get_user_details_request,
-                    context=RequestContext(scenario=Scenario.USER_WITH_ACTIVE_CREDIT_CARD_ACCOUNT),
-                )
-
-            assert_gateway_rpc_error(
-                get_user_details_rpc_error.value,
-                expected_code=StatusCode.NOT_FOUND,
-                expected_detail=GatewayTestErrorReason.USER_NOT_FOUND.format(user_id=unknown_user_id),
+        with pytest.raises(RpcError) as get_user_details_rpc_error:
+            gateway_grpc_test_client.get_user_details_api(
+                get_user_details_request,
+                context=RequestContext(scenario=Scenario.USER_WITH_ACTIVE_CREDIT_CARD_ACCOUNT),
             )
+
+        assert_gateway_rpc_error(
+            get_user_details_rpc_error.value,
+            expected_code=StatusCode.NOT_FOUND,
+            expected_detail=GatewayTestErrorReason.USER_NOT_FOUND.format(user_id=unknown_user_id),
+        )
 
     @allure.story(AllureStory.GET_ACCOUNT_DETAILS)
     @allure.title("[gRPC] Get account details. User with active debit card account")
@@ -211,18 +219,17 @@ class TestGatewayGRPC:
             unknown_account_id: Корректный UUID, отсутствующий в выбранном сценарии.
         """
         get_account_details_request = GetAccountDetailsRequest(id=str(unknown_account_id))
-        with allure.step("Get account details and check NOT_FOUND"):
-            with pytest.raises(RpcError) as get_account_details_rpc_error:
-                gateway_grpc_test_client.get_account_details_api(
-                    get_account_details_request,
-                    context=RequestContext(scenario=Scenario.USER_WITH_ACTIVE_DEBIT_CARD_ACCOUNT),
-                )
-
-            assert_gateway_rpc_error(
-                get_account_details_rpc_error.value,
-                expected_code=StatusCode.NOT_FOUND,
-                expected_detail=GatewayTestErrorReason.ACCOUNT_NOT_FOUND.format(account_id=unknown_account_id),
+        with pytest.raises(RpcError) as get_account_details_rpc_error:
+            gateway_grpc_test_client.get_account_details_api(
+                get_account_details_request,
+                context=RequestContext(scenario=Scenario.USER_WITH_ACTIVE_DEBIT_CARD_ACCOUNT),
             )
+
+        assert_gateway_rpc_error(
+            get_account_details_rpc_error.value,
+            expected_code=StatusCode.NOT_FOUND,
+            expected_detail=GatewayTestErrorReason.ACCOUNT_NOT_FOUND.format(account_id=unknown_account_id),
+        )
 
     @pytest.mark.parametrize(
         "scenario,expected_detail",
@@ -257,18 +264,17 @@ class TestGatewayGRPC:
             expected_detail: Ожидаемая причина ошибки выбранного сервиса.
         """
         get_user_details_request = GetUserDetailsRequest(id=str(active_credit_account_user_id))
-        with allure.step("Get user details and check UNAVAILABLE"):
-            with pytest.raises(RpcError) as get_user_details_rpc_error:
-                gateway_grpc_test_client.get_user_details_api(
-                    get_user_details_request,
-                    context=RequestContext(scenario=scenario),
-                )
-
-            assert_gateway_rpc_error(
-                get_user_details_rpc_error.value,
-                expected_code=StatusCode.UNAVAILABLE,
-                expected_detail=expected_detail,
+        with pytest.raises(RpcError) as get_user_details_rpc_error:
+            gateway_grpc_test_client.get_user_details_api(
+                get_user_details_request,
+                context=RequestContext(scenario=scenario),
             )
+
+        assert_gateway_rpc_error(
+            get_user_details_rpc_error.value,
+            expected_code=StatusCode.UNAVAILABLE,
+            expected_detail=expected_detail,
+        )
 
     @pytest.mark.parametrize(
         "scenario,expected_detail",
@@ -303,15 +309,110 @@ class TestGatewayGRPC:
             expected_detail: Ожидаемая причина ошибки выбранного сервиса.
         """
         get_account_details_request = GetAccountDetailsRequest(id=str(active_debit_account_id))
-        with allure.step("Get account details and check UNAVAILABLE"):
-            with pytest.raises(RpcError) as get_account_details_rpc_error:
-                gateway_grpc_test_client.get_account_details_api(
-                    get_account_details_request,
-                    context=RequestContext(scenario=scenario),
-                )
-
-            assert_gateway_rpc_error(
-                get_account_details_rpc_error.value,
-                expected_code=StatusCode.UNAVAILABLE,
-                expected_detail=expected_detail,
+        with pytest.raises(RpcError) as get_account_details_rpc_error:
+            gateway_grpc_test_client.get_account_details_api(
+                get_account_details_request,
+                context=RequestContext(scenario=scenario),
             )
+
+        assert_gateway_rpc_error(
+            get_account_details_rpc_error.value,
+            expected_code=StatusCode.UNAVAILABLE,
+            expected_detail=expected_detail,
+        )
+
+
+@pytest.mark.gateway
+@pytest.mark.regression
+@allure.tag(AllureTag.GRPC, AllureTag.GATEWAY_SERVICE)
+@allure.feature(AllureFeature.GATEWAY_SERVICE)
+class TestDynamicGatewayGRPC:
+    """Проверяет агрегаты Gateway на сценариях, зарегистрированных через Admin API."""
+
+    @allure.story(AllureStory.GET_USER_DETAILS)
+    @allure.title("[gRPC] Get user details. Filter registered accounts by user")
+    def test_get_user_details_from_registered_scenario(
+            self,
+            gateway_grpc_test_client: GatewayGRPCTestClient,
+            register_gateway_scenario: Callable[[GatewayMockScenarioTestSchema], DynamicScenarioContext],
+    ) -> None:
+        """Возвращает запрошенного пользователя и оба его счёта.
+
+        Args:
+            gateway_grpc_test_client: Клиент Gateway gRPC API.
+            register_gateway_scenario: Регистрирует данные мока и возвращает контекст запроса.
+        """
+        user = make_user()
+        other_user = make_user()
+        user_accounts = [
+            make_account(user_id=user.id, balance=205.25),
+            make_account(user_id=user.id, balance=410.50),
+        ]
+        other_user_account = make_account(user_id=other_user.id)
+        context = register_gateway_scenario(GatewayMockScenarioTestSchema(
+            users=[other_user, user], accounts=[other_user_account, *user_accounts],
+        ))
+        expected = expected_user_details_with_active_debit_accounts(user=user, accounts=user_accounts)
+
+        get_user_details_response_data = gateway_grpc_test_client.get_user_details(
+            user_id=user.id, context=context,
+        )
+
+        assert_get_user_details_response(get_user_details_response_data, expected)
+
+    @allure.story(AllureStory.GET_ACCOUNT_DETAILS)
+    @allure.title("[gRPC] Get account details. Filter registered cards by account")
+    def test_get_account_details_from_registered_scenario(
+            self,
+            gateway_grpc_test_client: GatewayGRPCTestClient,
+            register_gateway_scenario: Callable[[GatewayMockScenarioTestSchema], DynamicScenarioContext],
+    ) -> None:
+        """Возвращает запрошенный счёт и только его карту из зарегистрированного набора.
+
+        Args:
+            gateway_grpc_test_client: Клиент Gateway gRPC API.
+            register_gateway_scenario: Регистрирует данные мока и возвращает контекст запроса.
+        """
+        user_id = uuid4()
+        account = make_account(user_id=user_id, balance=205.25)
+        other_account = make_account(user_id=user_id, balance=410.50)
+        card = make_card(account_id=account.id)
+        other_account_card = make_card(account_id=other_account.id)
+        context = register_gateway_scenario(GatewayMockScenarioTestSchema(
+            accounts=[other_account, account], cards=[other_account_card, card],
+        ))
+        expected = expected_active_debit_account_details(account=account, cards=[card])
+
+        get_account_details_response_data = gateway_grpc_test_client.get_account_details(
+            account_id=account.id, context=context,
+        )
+
+        assert_get_account_details_response(get_account_details_response_data, expected)
+
+    @allure.story(AllureStory.GET_ACCOUNT_DETAILS)
+    @allure.title("[gRPC] Get account details. Account not found when cards exist")
+    def test_get_account_details_returns_not_found_when_account_is_missing_but_cards_exist(
+            self,
+            gateway_grpc_test_client: GatewayGRPCTestClient,
+            register_gateway_scenario: Callable[[GatewayMockScenarioTestSchema], DynamicScenarioContext],
+    ) -> None:
+        """Проверяет ошибку Accounts для отсутствующего счёта с подготовленной картой.
+
+        Args:
+            gateway_grpc_test_client: Клиент Gateway gRPC API.
+            register_gateway_scenario: Регистрирует данные мока и возвращает контекст запроса.
+        """
+        account_id = uuid4()
+        card = make_card(account_id=account_id)
+        context = register_gateway_scenario(GatewayMockScenarioTestSchema(cards=[card]))
+        expected_detail = GatewayTestErrorReason.ACCOUNT_NOT_FOUND.format(account_id=account_id)
+        get_account_details_request = GetAccountDetailsRequest(id=str(account_id))
+
+        with pytest.raises(RpcError) as get_account_details_rpc_error:
+            gateway_grpc_test_client.get_account_details_api(get_account_details_request, context=context)
+
+        assert_gateway_rpc_error(
+            get_account_details_rpc_error.value,
+            expected_code=StatusCode.NOT_FOUND,
+            expected_detail=expected_detail,
+        )

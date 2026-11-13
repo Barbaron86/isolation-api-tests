@@ -16,7 +16,7 @@ class TestSettings(BaseSettings):
 
     Attributes:
         mock_admin_http_client: Адрес и таймаут для регистрации HTTP-сценариев.
-        mock_redis_url: Адрес общего хранилища динамических HTTP-сценариев.
+        mock_redis_url: Адрес общего хранилища динамических сценариев моков.
         kafka_delivery_timeout: Срок подтверждения доставки одного события, секунды.
         operations_processing_timeout: Срок появления операций через API, секунды.
         operations_poll_interval: Пауза между чтениями неполной выборки, секунды.

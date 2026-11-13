@@ -4,7 +4,7 @@ from uuid import uuid4
 from fastapi import APIRouter
 
 from tests.mock.http.scenario_dependencies import ScenarioStoreDependency, require_scenario
-from tests.mock.http.scenarios import DynamicScenario, ScenarioPayload
+from tests.mock.scenarios import DynamicScenario, ScenarioPayload
 
 
 admin_scenarios_router = APIRouter(prefix="/__admin/scenarios", tags=["Mock scenarios"])

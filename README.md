@@ -85,7 +85,7 @@ Stop the local stand with `docker compose -f docker-compose.yaml down`.
 | **FastAPI / Uvicorn** | HTTP APIs for the applications and mock service. |
 | **PostgreSQL / SQLAlchemy / Alembic** | Operations persistence, test data setup and cleanup, and database migrations. |
 | **Kafka / confluent-kafka / aiokafka** | Event broker, test producer and Operations consumer. |
-| **Redis / redis-py** | Shared, TTL-backed storage for dynamic HTTP mock scenarios. |
+| **Redis / redis-py** | Shared, TTL-backed scenario storage for HTTP and gRPC mocks. |
 | **Python logging** | HTTP/gRPC calls, assertions and cleanup diagnostics. |
 | **Allure / allure-pytest** | Test steps, logs, environment metadata and report history. |
 | **Docker Compose** | Local and CI test stands with readiness checks. |
@@ -100,10 +100,12 @@ and the [CI Compose file](docker-compose.ci.yaml).
 | Suite | Data setup | What the tests verify |
 | --- | --- | --- |
 | Gateway HTTP and gRPC | Built-in mock scenarios | User/account aggregates, exact accounts and cards, empty collections, missing entities, and propagation of dependency errors. |
-| Dynamic Gateway HTTP | Test-owned records registered through the Mock Admin API | Aggregation, different snapshots for the same entity ID, isolation of a dependency failure, a missing account with available cards, and `404` after scenario deletion. |
+| Dynamic Gateway HTTP | Test-owned records registered through the Mock Admin API | User and account aggregates, accounts and cards for the requested entity, and a missing account with prepared cards. |
+| Dynamic Gateway gRPC | The same Admin API and Redis store | User and account aggregates, accounts and cards for the requested entity, and `NOT_FOUND` from Accounts when the account is absent. |
 | Operations HTTP and gRPC | Rows inserted through the test repository | Lookup by ID, missing operations, user/card/account filters, combined card and account filters, and exact result membership. |
 | Operations through Kafka | Test events published to the Operations topic | Processing of `IN_PROGRESS` and `COMPLETED` purchases, several events for one user, and filtering after all competing events have been processed. |
 | Unit tests | Controlled dependencies in the pytest process | Cleanup ordering and failure handling, repository timeout budgets, scenario resolution and storage, and Redis serialization, TTL configuration and error handling. |
+| Mock integration | Isolated mock with in-memory scenario storage | Admin lifecycle, scenario isolation and responses from the mock's own HTTP and gRPC endpoints. |
 
 ## 🏗 Architecture
 
@@ -168,9 +170,16 @@ sequenceDiagram
     end
 ```
 
-The same-account test registers two scenarios with the same account ID, different
-balances and different cards. It checks that both downstream responses come
-from the requested scenario. [Gateway test](tests/suites/http/test_gateway.py#L405)
+The account-details test registers cards for two accounts, then calls Gateway
+and checks the requested account and its exact set of cards.
+[Gateway test](tests/suites/http/test_gateway.py#L367)
+
+The gRPC variant registers data through the same HTTP Admin API and sends the
+returned ID as `x-test-scenario` metadata. The gRPC mock reads the same Redis
+key for `GetUser`, `GetAccounts`, `GetCards` and `GetAccount` and returns
+protobuf messages. `GetCard` uses built-in scenarios. A deleted or expired ID
+returns `NOT_FOUND` for the dynamic RPCs. A Redis connection error or timeout
+returns `UNAVAILABLE`.
 
 <details>
 <summary>Try the HTTP Mock Admin API</summary>
@@ -262,6 +271,7 @@ protos/             Protobuf contracts and generated gRPC code
 tests/
   suites/           HTTP and gRPC API suites
   unit/             Cleanup, mock scenario and Redis unit tests
+  integration/mock/ Direct HTTP and gRPC mock integration tests
   clients/          HTTP, gRPC, Kafka and PostgreSQL test access
   fixtures/         Test setup and resource cleanup
   schema/           Pydantic test models
@@ -272,15 +282,17 @@ scripts/            Stand readiness, diagnostics and Allure metadata
 
 ## ▶️ Running Tests
 
-Run API commands against a ready stand. The unit suite runs without Docker
-or live services.
+Run Gateway and Operations API commands against a ready stand. The unit suite
+and mock integration suite run without Docker or a running stand.
 
 | Scope | Command |
 | --- | --- |
 | Unit tests | `python -m pytest tests/unit --noconftest -o addopts= -q` |
+| Mock integration | `python -m pytest tests/integration/mock -o addopts= -q` |
 | Full API regression | `python -m pytest -m regression` |
 | Gateway over HTTP and gRPC | `python -m pytest -m gateway` |
 | Dynamic HTTP Gateway | `python -m pytest tests/suites/http/test_gateway.py::TestDynamicGatewayHTTP` |
+| Dynamic gRPC Gateway | `python -m pytest tests/suites/grpc/test_gateway.py::TestDynamicGatewayGRPC` |
 | Operations over HTTP and gRPC | `python -m pytest -m operations` |
 | Kafka-backed Operations | `python -m pytest -m operations -k operation_events` |
 

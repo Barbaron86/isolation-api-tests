@@ -10,7 +10,7 @@ from pydantic import ValidationError
 
 from tests.context.scenario import Scenario
 from tests.mock.http.scenario_dependencies import resolve_scenario
-from tests.mock.http.scenarios import DynamicScenario, InMemoryScenarioStore, ScenarioPayload
+from tests.mock.scenarios import DynamicScenario, InMemoryScenarioStore, ScenarioPayload
 from tests.schema.mock_gateway import GatewayMockScenarioTestSchema
 from tests.tools.gateway_data import make_account, make_card, make_user
 
