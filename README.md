@@ -145,34 +145,62 @@ Built-in scenarios are selected through `X-Test-Scenario` in HTTP or
 the ID returned by the Admin API. Each dependency route selects the scenario
 and uses the requested entity ID to find or filter the data.
 
+**Static `GetAccountDetails`**
+
 ```mermaid
 sequenceDiagram
     participant T as pytest
-    participant G as Gateway HTTP
-    participant M as HTTP Mock
+    participant G as HTTP Gateway
+    participant M as HTTP mock
+
+    T->>G: Request account details with the built-in scenario name
+    G->>M: Request cards by accountId with the same scenario header
+    M->>M: Read the cards JSON and filter by accountId
+    M-->>G: Return cards for this account
+    G->>M: Request the account by ID with the same scenario header
+    M->>M: Read the account JSON and check its ID
+    M-->>G: Return the account
+    G-->>T: Return the account and its cards
+    T->>T: Check the account fields and cards
+```
+
+The test passes `USER_WITH_ACTIVE_DEBIT_CARD_ACCOUNT` as the scenario and gets
+the requested account ID from a fixture. The mock selects a JSON file for each
+operation. [Static Gateway test](tests/suites/http/test_gateway.py#L143)
+
+**Dynamic `GetAccountDetails`**
+
+```mermaid
+sequenceDiagram
+    participant T as Test and fixture
+    participant G as HTTP Gateway
+    participant M as HTTP mock
     participant R as Redis
-    opt Dynamic scenario
-        T->>M: Register test data through Admin API
-        M->>R: Store scenario with TTL
-        M-->>T: Return scenario ID
-    end
-    T->>G: Request details with X-Test-Scenario
-    G->>M: Request Users, Accounts or Cards data
-    opt Dynamic scenario
-        M->>R: Load data by scenario ID
-    end
-    M-->>G: Return selected data or configured error
-    G-->>T: Return aggregate or error
-    T->>T: Check response against prepared expectations
-    opt Dynamic scenario teardown
-        T->>M: Delete the registered scenario
-        M->>R: Delete its key
-    end
+
+    T->>M: POST /__admin/scenarios with accounts and cards
+    M->>R: Save the scenario
+    M-->>T: Return the scenario ID
+
+    T->>G: Request account details with X-Test-Scenario
+    G->>M: Request cards by accountId with the same header
+    M->>R: Load the scenario by ID
+    M-->>G: Return cards for this account
+    G->>M: Request the account by ID with the same header
+    M->>R: Load the same scenario
+    M-->>G: Return the account
+    G-->>T: Return the account and its cards
+
+    T->>T: Check account fields and exact card membership
+    T->>M: Fixture deletes the scenario through Admin API
+    M->>R: Delete the scenario key
 ```
 
 The account-details test registers cards for two accounts, then calls Gateway
 and checks the requested account and its exact set of cards.
 [Gateway test](tests/suites/http/test_gateway.py#L367)
+
+`X-Test-Scenario` selects the dataset. The account ID selects the account and
+its cards within that dataset.
 
 The gRPC variant registers data through the same HTTP Admin API and sends the
 returned ID as `x-test-scenario` metadata. The gRPC mock reads the same Redis
@@ -181,77 +209,40 @@ protobuf messages. `GetCard` uses built-in scenarios. A deleted or expired ID
 returns `NOT_FOUND` for the dynamic RPCs. A Redis connection error or timeout
 returns `UNAVAILABLE`.
 
-<details>
-<summary>Try the HTTP Mock Admin API</summary>
-
-Open [Swagger UI](http://127.0.0.1:8003/docs). Send `POST /__admin/scenarios` with
-the following synthetic card as the request body.
-
-```json
-{
-  "card": {
-    "id": "ba8bb30a-5ee7-4c4d-a89d-ad7fe7d1b389",
-    "pin": "1234",
-    "cvv": "123",
-    "type": "VIRTUAL",
-    "status": "ACTIVE",
-    "accountId": "df36b93c-84c2-4b92-b6db-df59f18c1684",
-    "cardNumber": "4111111111111111",
-    "cardHolder": "TEST CARD",
-    "expiryDate": "2030-12-31",
-    "paymentSystem": "VISA"
-  }
-}
-```
-
-1. Copy `id` from the `201 Created` response. It has the form `dynamic-<uuid>`.
-2. Inspect the scenario with `GET /__admin/scenarios/{id}`, or send
-   `GET /api/v1/cards/{card_id}` with `card.id` in the path and the scenario ID
-   in the `X-Test-Scenario` header.
-3. Delete it with `DELETE /__admin/scenarios/{id}`. A successful delete returns
-   `204 No Content`, including a repeated delete of the same ID.
-
-The Admin API also accepts `{"account": {...}, "cards": [...]}` and a `gateway`
-object with `users`, `accounts`, `cards` and `unavailable` lists. Entity IDs
-must be unique within their list. To configure `503`, put one of
-`users.get_user`, `accounts.get_accounts`, `accounts.get_account` or
-`cards.get_cards` in `unavailable`.
-
-In Compose, three HTTP mock workers share Redis. Scenarios expire one hour
-after registration and survive an HTTP mock restart while Redis keeps its
-data. The Compose Redis instance is ephemeral. Dynamic mode without
-`MOCK_REDIS_URL` uses a single worker and in-memory storage. An unknown or
-expired ID returns `404`. A Redis connection error or timeout on a dynamic
-request returns `503`.
-
-</details>
-
 #### Operations with PostgreSQL or Kafka
 
 ```mermaid
-flowchart LR
-    T["pytest test"]
-    K["Kafka topic"]
-    C["Operations consumer"]
-    DB["PostgreSQL"]
-    API["Operations HTTP / gRPC"]
-    A["Domain assertions"]
+sequenceDiagram
+    participant T as Test
+    participant K as Kafka
+    participant C as Operations consumer
+    participant DB as PostgreSQL
+    participant API as Operations API
 
-    T -->|Seed rows for repository-backed cases| DB
-    T -->|Publish an event for Kafka cases| K
-    K --> C
-    C -->|Insert and commit| DB
-    T -->|Request operation data| API
-    API -->|Read persisted operations| DB
-    API -->|Return response| A
+    T->>K: Publish a purchase event
+    par Consumer processes the event
+        K-->>C: Deliver the event
+        C->>DB: Insert the operation and commit
+    and Test waits for the result
+        K-->>T: Confirm broker delivery
+        loop Until the expected count is visible or the deadline expires
+            T->>API: Request the user's operations
+            API->>DB: Read committed operations
+            DB-->>API: Return matching rows
+            API-->>T: Return the operations list
+        end
+    end
+
+    T->>T: Check the exact set and fields of the operations
 ```
 
-For database-backed cases, the test writes rows before making the API call.
-For Kafka cases, the producer confirms broker delivery and the test then waits
-for the expected operation count through the public API. A broker acknowledgment
-only confirms delivery to Kafka. The separate API read observes the consumer's
-persisted result. After the expected count is reached, assertions check the
-operation fields, membership and unique IDs.
+The test starts reading the HTTP or gRPC API after Kafka confirms delivery.
+The consumer commits independently. Only a successful response with too few
+operations is retried. Extra operations fail the check immediately. If the
+expected count is still missing at the deadline, the test raises `TimeoutError`.
+
+**Direct database setup** · The test repository inserts rows into PostgreSQL.
+The test then calls the Operations API once and checks the response.
 
 The card-filter test publishes two events for the same user, waits until both
 operations are visible, then filters by card and checks that only the matching
